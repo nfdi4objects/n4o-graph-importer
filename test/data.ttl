@@ -1,0 +1,4 @@
+@prefix crm: <http://www.cidoc-crm.org/cidoc-crm/> .
+@base <https://example.org/> .
+
+<x> a crm:E1_CRM_Entity .

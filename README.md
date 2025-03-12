@@ -12,7 +12,24 @@ This component imports arbitrary RDF data of a collection or a terminology into 
 Internal scripts (don't call directly!):
 
 - `load-collection`
+- `load-collection-metadata`
 - `load-rdf-graph`
+- `sparql-update`
+- `collection-context.json`
+
+Two Docker volumes (or local directories) are used:
+
+- `./import` a directory read RDF data from
+- `./stage` the stage directory with subdirectories
+  - `./stage/collection/$ID` for collections with collection id `$ID`
+  - `./stage/terminology/$ID` for terminologies with BARTOC id `$ID`
+
+## Configuration
+
+Environment variables:
+
+- `SPARQL`
+- `SPARQL_UPDATE` (default: same as `SPARQL`)
 
 ## Development
 
@@ -22,9 +39,4 @@ Locally build Docker image for testing:
 docker compose create
 ~~~
 
-Two Docker volumes (or local directories) are used:
 
-- `./import` a directory read RDF data from
-- `./stage` the stage directory with subdirectories
-  - `stage/collection/$ID` for collections
-  - `stage/terminology/$ID` for terminologies

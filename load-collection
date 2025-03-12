@@ -13,8 +13,14 @@ function load_collection() {
     [[ "$collection" =~ ^[0-9]*$ ]] || error "Collection ID must be numeric!"
     uri=https://graph.nfdi4objects.net/collection/$collection
 
+    rdf=stage/collection/$collection/filtered.nt
+    about=stage/collection/$collection/collection.json
+
+    [[ -e "$rdf" ]] || error "Missing $rdf"
+    [[ -e "$about" ]] || error "Missing $about"
+
     ./load-collection-metadata $collection --issued
-    ./load-rdf-graph $uri stage/collection/$collection/filtered.nt
+    ./load-rdf-graph $uri $rdf
 }
 
 if [[ "$1" = "all" ]]; then

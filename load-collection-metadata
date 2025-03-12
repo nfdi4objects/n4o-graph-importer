@@ -23,8 +23,7 @@ id=$1
 uri=https://graph.nfdi4objects.net/collection/$id
 
 collection=stage/collection/$id/collection.json
-about=$(jq --arg id $uri '.[]|select(.id==$id)' $collections \
-    | npm run --silent -- jsonld2rdf -c collection-context.json)
+about=$(npm run --silent -- jsonld2rdf -c collection-context.json $collection)
 
 [[ -z "$about" ]] && error "Missing $uri in $collections"
 

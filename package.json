@@ -1,6 +1,15 @@
 {
   "name": "n4o-graph-loader",
+  "scripts": {
+    "rdffilter": "rdffilter",
+    "jsonld2rdf": "jsonld2rdf",
+    "lint": "eslint --fix '*.js'"
+  },
   "dependencies": {
+    "jsonld2rdf": "^0.4.0",
     "rdffilter": "^0.4.0"
+  },
+  "devDependencies": {
+    "eslint": "^9.8.0"
   }
 }
