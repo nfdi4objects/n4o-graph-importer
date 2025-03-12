@@ -1,0 +1,19 @@
+#!/usr/bin/bash
+set -euo pipefail
+
+if [ $# -ne 2 ]; then
+    echo "Usage: $0 <graph> <file>"
+    echo "Load an RDF Turtle file into a triple store via SPARQL Graph Store HTTP protocol. An existing graph is overridden."
+    exit 1
+fi
+
+SPARQL=${SPARQL:-http://localhost:3030/n4o}
+SPARQL_STORE=${SPARQL_STORE:-$SPARQL}
+
+graph=$1
+file=$2
+
+echo "Loading $file into Fuseki graph $graph"
+curl --silent -X PUT "$SPARQL_STORE" --header "Content-Type: text/turtle" \
+    --url-query "graph=$graph" \
+    --upload-file "$file"

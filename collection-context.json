@@ -1,0 +1,52 @@
+{
+  "dcat": "http://www.w3.org/ns/dcat#",
+  "dcterms": "http://purl.org/dc/terms/",
+  "fabio": "http://purl.org/spar/fabio/",
+  "foaf": "http://xmlns.com/foaf/0.1/",
+  "nfdicore": "https://nfdi.fiz-karlsruhe.de/ontology/",
+  "owl": "http://www.w3.org/2002/07/owl#",
+  "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+  "schema": "http://schema.org/",
+  "skos": "http://www.w3.org/2004/02/skos/core#",
+  "xsd": "http://www.w3.org/2001/XMLSchema#",
+  "id": "@id",
+  "wikidata": "@id",
+  "db": {
+    "@context": { "@base": "http://www.wikidata.org/entity/" },
+    "@type": "@id",
+    "@reverse": "dcat:dataset"
+  },
+  "re3data": {
+    "@context": { "@base": "https://www.re3data.org/repository/" },
+    "@type": "@id",
+    "@id": "owl:sameAs"
+  },
+  "name": "schema:name",
+  "license": "dcterms:license",
+  "type": {
+    "@type": "@id",
+    "@id": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+  },
+  "url": {
+    "@id": "foaf:homepage",
+    "@type": "@id"
+  },
+  "publisher": {
+    "@id": "dcterms:publisher"
+  },
+  "api": {
+    "@id": "dcat:distribution",
+    "@context": {
+      "url": {
+        "@id": "dcat:accessURL",
+        "@type": "dcat:anyURI"
+      },
+      "protocol": "dcterms:conformsTo",
+      "format": "nfdicore:exportFormat"
+    }
+  },
+  "partOf": {
+    "@type": "@id",
+    "@id": "http://purl.org/dc/terms/isPartOf"
+  }
+}

@@ -1,0 +1,13 @@
+#!/usr/bin/bash
+set -euo pipefail
+
+if [ $# -ne 1 ]; then
+    echo "Usage: $0 SPARQL"
+    echo "Execute arbitrary SPARQL Update query."
+    exit 1
+fi
+
+SPARQL=${SPARQL:-http://localhost:3030/n4o/update}  # TODO: check path: /update?
+SPARQL_UPDATE=${SPARQL_UPDATE:-$SPARQL}
+
+curl --silent -X POST "$SPARQL_UPDATE" --header "Content-Type: application/sparql-update" --data-binary "$1"

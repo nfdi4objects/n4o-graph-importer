@@ -1,0 +1,6 @@
+{
+  "name": "n4o-graph-loader",
+  "dependencies": {
+    "rdffilter": "^0.4.0"
+  }
+}

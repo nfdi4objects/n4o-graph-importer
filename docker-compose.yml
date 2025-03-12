@@ -1,0 +1,13 @@
+services:
+  importer:
+    container_name: ${CONTAINER:-n4o-graph-importer}
+    image: ${IMAGE:-ghcr.io/nfdi4objects/n4o-graph-importer:main}
+    volumes:
+      - ${STAGE:-./stage}:/app/stage
+      - ${STAGE:-./import}:/app/import:ro
+
+    # Everything below is only for local development and testing of the image.
+    # Please don't copy to your local docker-compose.yml!
+    build: # only required to build locally
+      context: .
+      dockerfile: Dockerfile
