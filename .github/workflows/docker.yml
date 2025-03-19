@@ -4,10 +4,8 @@ on:
     branches:
       - main
     paths-ignore:
-      - '.github/**'
       - '.*'
       - '**.md'
-      - LICENSE
 
 env:
   IMAGE_NAME: ${{ github.repository }}
