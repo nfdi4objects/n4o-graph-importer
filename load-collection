@@ -4,7 +4,7 @@ function error() { echo $@ >&2; exit 1; }
 
 if [[ $# -ne 1 ]]; then
     echo "Usage: $0 COLLECTION_ID|all"
-    echo "Load filtered RDF triples of a collection into the triple store"
+    echo "Load collection data and metadata of a collection from stage into triple store"
     exit
 fi
 
@@ -19,7 +19,7 @@ function load_collection() {
     [[ -e "$rdf" ]] || error "Missing $rdf"
     [[ -e "$about" ]] || error "Missing $about"
 
-    ./load-collection-metadata $collection --issued
+    ./load-collection-metadata $collection
     ./load-rdf-graph $uri $rdf
 }
 

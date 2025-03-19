@@ -33,7 +33,6 @@ rapper -q -i turtle test/data.ttl > $stage/filtered.nt
 
 # Import collection
 ./load-collection 0
-./load-collection-metadata 0
 
 echo "Stopping container"
 docker stop $SPARQL_CONTAINER

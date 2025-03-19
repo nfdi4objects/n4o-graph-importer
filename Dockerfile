@@ -17,3 +17,5 @@ COPY load-rdf-graph .
 COPY sparql-update .
 
 COPY collection-context.json .
+
+#CMD ["import"]
