@@ -10,4 +10,4 @@ fi
 SPARQL=${SPARQL:-http://localhost:3030/n4o}
 SPARQL_UPDATE=${SPARQL_UPDATE:-$SPARQL}
 
-curl --silent --fail-with-body -X POST "$SPARQL" --header "Content-Type: application/sparql-update" --data-binary "$1"
+curl --silent --fail-with-body -X POST "$SPARQL_UPDATE" --header "Content-Type: application/sparql-update" --data-binary "$1"

@@ -10,8 +10,12 @@ export SPARQL
 SPARQL_CONTAINER=$(docker run -d --rm -p $SPARQL_PORT:3030 ghcr.io/nfdi4objects/n4o-fuseki:main)
 echo "Started triple store at $SPARQL"
 echo "If something fails run: docker stop $SPARQL_CONTAINER"
-sleep 1 # wait a second for triple store to become available
 
+count=5
+until ./sparql-update "INSERT DATA {}" || (( count-- == 0 )); do
+  echo "Waiting for SPARQL endpoint $SPARQL ..."
+  sleep 1
+done
 
 # test importing a collection
 
