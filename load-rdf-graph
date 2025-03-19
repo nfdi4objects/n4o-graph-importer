@@ -13,7 +13,7 @@ SPARQL_STORE=${SPARQL_STORE:-$SPARQL}
 graph=$1
 file=$2
 
-echo "Loading $file into Fuseki graph $graph"
+echo "Loading $file into graph $graph"
 curl --fail-with-body --silent -X PUT "$SPARQL_STORE" --header "Content-Type: text/turtle" \
     --url-query "graph=$graph" \
     --upload-file "$file"
