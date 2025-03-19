@@ -10,16 +10,50 @@ This component imports RDF data of a collection or a terminology into the triple
 1. **receive**: data is copied into a **stage** directory where it is validated, filtered, and a report is generated.
 2. **load**: on success the processed data is loaded into the triple store
 
+```mermaid
+graph TD
+    collections(collections)
+    data(published data)    
+    apps(applications)
+
+    data --> receive
+    collections --> receive
+
+    subgraph n4o-graph-import
+        receive[**receive**]
+        receive --> stage
+        stage --> import
+        import[**import**]
+    end
+    subgraph n4o-fuseki
+        kg(triple store)
+    end
+    subgraph n4o-graph-apis
+        ui[**web application**]
+    end
+    stage --> ui
+    kg -- SPARQL --> ui
+    ui -- SPARQL --> apps
+
+    import -- SPARQL update & graph store --> kg
+```
+
 ## Usage
 
 This component can be used both as Docker image (recommended) and from sources (for development and testing).
 
 Two Docker volumes (or local directories) are used:
 
-- `./import` a directory read RDF data from (not required)
 - `./stage` the stage directory with subdirectories
   - `./stage/collection/$ID` for collections with collection id `$ID`
   - `./stage/terminology/$ID` for terminologies with BARTOC id `$ID`
+- `./import` a directory read RDF data from (not required if running from sources)
+
+### Receive
+
+*...not fully implemented yet...*
+
+### Load
 
 ## Configuration
 
@@ -30,7 +64,7 @@ Environment variables:
 
 ## Development
 
-See `test/test.sh` for a test script.
+See `test/test.sh` for a test script, also run via GitHub action.
 
 Locally build Docker image for testing:
 
