@@ -18,6 +18,6 @@ COPY sparql-update .
 
 COPY collection-context.json .
 
-ENTRYPOINT /usr/bin/bash
 # TODO
-CMD ["load-collection"]
+ENTRYPOINT /usr/bin/bash
+#CMD ["load-collection"]
