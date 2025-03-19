@@ -1,0 +1,33 @@
+services:
+
+  importer:
+    container_name: ${CONTAINER:-n4o-graph-importer}
+    image: ${IMAGE:-ghcr.io/nfdi4objects/n4o-graph-importer:main}
+    volumes:
+      - ./stage:/app/stage
+      - ./data:/app/data:ro
+    networks:
+      - n4o
+    environment:
+      - SPARQL=http://fuseki:3030/n4o
+
+  graph-apis:
+    image: ghcr.io/nfdi4objects/n4o-graph-apis:main
+    volumes:
+      # TODO: configure via SPARQL env
+      - ./config-web.yaml:/app/config.yaml:ro
+      - ./stage}:/app/stage:ro
+    ports:
+      - ${PORT:-8000}:8000
+    networks:
+      - n4o
+
+  fuseki:
+    image: ghcr.io/nfdi4objects/n4o-fuseki:main
+    ports:
+      - 3030:3030
+    # volumes:
+    # ...
+
+networks:
+  n4o:

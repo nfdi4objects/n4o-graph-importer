@@ -92,17 +92,12 @@ Locally build Docker image for testing:
 docker compose create
 ~~~
 
-Locally run Docker container from image:
+To run with related components there is a docker-compose file currently being developed:
 
 ~~~sh
-
-Internal scripts (don't call directly!):
-
-- `load-collection`
-- `load-collection-metadata`
-- `load-rdf-graph`
-- `sparql-update`
-- `collection-context.json`
+docker compose -f docker-compose-graph.yml up --remove-orphans
+docker compose -f docker-compose-graph.yml run importer
+~~~
 
 ## License
 

@@ -4,7 +4,7 @@ services:
     image: ${IMAGE:-ghcr.io/nfdi4objects/n4o-graph-importer:main}
     volumes:
       - ${STAGE:-./stage}:/app/stage
-      - ${STAGE:-./data}:/app/data:ro
+      - ${DATA:-./data}:/app/data:ro
 
     # Everything below is only for local development and testing of the image.
     # Please don't copy to your local docker-compose.yml!
