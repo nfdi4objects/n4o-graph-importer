@@ -14,11 +14,9 @@ This component imports RDF data of a collection or a terminology into the triple
 
 ```mermaid
 graph TD
-
     collections(collections)
     data(published data)    
     apps(applications)
-
     data --> receive
     collections --> receive
 
@@ -34,13 +32,21 @@ graph TD
     subgraph n4o-graph-apis
         ui[**web application**]
     end
+    subgraph lido-rdf-converter
+        lido2rdf[**lido2rdf**]
+        web-app[**web-app**]
+    end
+
     stage --> ui
     kg -- SPARQL --> ui
     ui -- SPARQL --> apps
 
-    receive -- lido-rdf-converter --> receive
-
+    receive <--> lido2rdf
     load -- SPARQL update & graph store --> kg
+
+    web-app <--> ui
+
+    ui <--web browser--> users(users)
 ```
 
 ## Usage
