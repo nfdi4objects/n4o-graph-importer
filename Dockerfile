@@ -16,8 +16,13 @@ COPY load-collection-metadata .
 COPY load-rdf-graph .
 COPY sparql-update .
 
+COPY importer.sh .
+
+# Copy assets
 COPY collection-context.json .
 
-# TODO
-ENTRYPOINT /usr/bin/bash
-#CMD ["load-collection"]
+# Allow to directly call scripts
+ENV PATH="/app:$PATH"
+
+ENTRYPOINT []
+CMD ["importer.sh"]
