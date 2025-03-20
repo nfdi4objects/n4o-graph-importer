@@ -3,6 +3,7 @@ debug: false
 
 # SPARQL endpoint and examples (required)
 sparql:
+  # TODO: config via env $SPARQL
   endpoint: http://fuseki:3030/n4o
   examples:
     # examples given in files

@@ -59,6 +59,13 @@ Related components:
 - [n4o-graph-apis](https://github.com/nfdi4objects/n4o-graph-apis): web interface and public SPARQL endpoint
 - [n4o-fuseki](https://github.com/nfdi4objects/n4o-fuseki): RDF triple store
 
+With Docker:
+
+~~~
+docker compose -f docker-compose-graph.yml up --force-recreate -V
+docker compose run importer
+~~~
+
 ### Receive
 
 *not fully implemented yet*
