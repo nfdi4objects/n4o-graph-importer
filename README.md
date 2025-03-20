@@ -14,11 +14,9 @@ This component imports RDF data of a collection or a terminology into the triple
 
 ```mermaid
 graph TD
-    collections(collections)
-    data(published data)    
-    apps(applications)
-    data --> receive
-    collections --> receive
+    terminologies(terminologies) --> receive
+    collections(collections) --> receive
+    data(research data) --> receive
 
     subgraph n4o-graph-import
         receive[**receive**]
@@ -39,7 +37,7 @@ graph TD
 
     stage --> ui
     kg -- SPARQL --> ui
-    ui -- SPARQL --> apps
+    ui -- SPARQL --> apps(applications)
 
     receive <--> lido2rdf
     load -- SPARQL update & graph store --> kg
@@ -51,7 +49,7 @@ graph TD
 
 ## Usage
 
-This component can be used both as Docker image (recommended) and from sources (for development and testing).
+This component can be used both as Docker image (recommended) and from sources (for development and testing). In both cases the importer is executed via individual command line scripts.
 
 Two Docker volumes (or local directories) are used:
 
@@ -64,6 +62,7 @@ Related components:
 
 - [n4o-graph-apis](https://github.com/nfdi4objects/n4o-graph-apis): web interface and public SPARQL endpoint
 - [n4o-fuseki](https://github.com/nfdi4objects/n4o-fuseki): RDF triple store
+- [lido-rdf-converter](https://github.com/nfdi4objects/lido-rdf-converter): convert LIDO format to RDF
 
 With Docker:
 
@@ -81,7 +80,7 @@ docker compose run importer
 Load collection data and metadata from stage directory into triple store:
 
 ~~~sh
-./load-collection 0     # change to another collection id except for testing
+load-collection 0     # change to another collection id except for testing
 ~~~
 
 Load terminology data into triple store:

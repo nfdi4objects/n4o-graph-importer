@@ -7,7 +7,6 @@ if [ $# -ne 1 ]; then
     exit 1
 fi
 
-SPARQL=${SPARQL:-http://localhost:3030/n4o}
-SPARQL_UPDATE=${SPARQL_UPDATE:-$SPARQL}
+. sparql-env
 
 curl --silent --fail-with-body -X POST "$SPARQL_UPDATE" --header "Content-Type: application/sparql-update" --data-binary "$1"

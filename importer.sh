@@ -14,6 +14,15 @@ usage() {
   echo "load-terminology ID"
 }
 
-# TODO: check for existence of ./stage etc.
 
 usage
+
+# show configuration
+
+. sparql-env
+
+echo "SPARQL         $SPARQL"
+echo "SPARQL_UPDATE  $SPARQL_UPDATE"
+echo "SPARQL_STORE   $SPARQL_STORE"
+# TODO: check for existence of ./stage
+

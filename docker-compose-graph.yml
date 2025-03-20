@@ -28,7 +28,7 @@ services:
   apis:
     image: ghcr.io/nfdi4objects/n4o-graph-apis:main
     ports:
-      - ${PORT:-}:8000
+      - ${PORT:-8000}:8000
     volumes:
       - ./config-apis.yml:/app/config.yaml:ro # ./config-apis.yml must exist!
       - ${STAGE:-./stage}:/app/stage:ro
@@ -45,9 +45,10 @@ services:
       - ${DATA:-./data}:/app/data:ro
     networks:
       - n4o
-    depends_on:
-      fuseki: 
-        condition: service_healthy
+    # don't check on each call
+    #depends_on:
+    #  fuseki: 
+    #    condition: service_healthy
 
 networks:
   n4o:

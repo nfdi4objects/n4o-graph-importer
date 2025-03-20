@@ -23,7 +23,8 @@ collection=stage/collection/$id/collection.nt
 issued=$(date -Iminutes)
 
 # check whether API is available
-./sparql-update "INSERT DATA {}" || error "SPARQL Update endpoint not available!"
+. sparql-env
+./sparql-update "INSERT DATA {}" || error "SPARQL Update endpoint not available: $SPARQL_UPDATE"
 
 echo "Deleting metadata of $uri"
 sparql=$(cat <<-SPARQL

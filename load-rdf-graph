@@ -7,8 +7,7 @@ if [ $# -ne 2 ]; then
     exit 1
 fi
 
-SPARQL=${SPARQL:-http://localhost:3030/n4o}
-SPARQL_STORE=${SPARQL_STORE:-$SPARQL}
+. sparql-env
 
 graph=$1
 file=$2

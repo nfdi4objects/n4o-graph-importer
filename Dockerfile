@@ -11,6 +11,7 @@ COPY package*.json ./
 RUN npm ci --omit=dev
 
 # Copy scripts
+COPY sparql-env .
 COPY load-collection .
 COPY load-collection-metadata .
 COPY load-rdf-graph .
