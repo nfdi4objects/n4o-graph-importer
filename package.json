@@ -1,8 +1,11 @@
 {
   "name": "n4o-graph-loader",
+  "type": "module",
   "scripts": {
+    "test": "./test/test.sh",
     "rdffilter": "rdffilter",
     "jsonld2rdf": "jsonld2rdf",
+    "update-terminologies-list": "node update-terminologies-list.js",
     "lint": "eslint --fix '*.js'"
   },
   "dependencies": {

@@ -1,0 +1,7 @@
+uri,download,format
+http://bartoc.org/en/node/1048,https://api.dante.gbv.de/export/download/hornbostelsachs/default/hornbostelsachs__default.jskos.ndjson,jskos
+http://bartoc.org/en/node/1644,https://github.com/nfdi4objects/crm-rdf-ap/raw/refs/heads/main/cidoc-crm.rdf,rdf/xml
+http://bartoc.org/en/node/1683,https://n2t.net/ark:/99152/p0dataset.ttl,rdf/turtle
+http://bartoc.org/en/node/18274,https://github.com/nfdi4objects/crm-rdf-ap/raw/refs/heads/main/skos.rdf,rdf/xml
+http://bartoc.org/en/node/18311,https://www.w3.org/2006/time,rdf/turtle
+http://bartoc.org/en/node/17844,https://github.com/nfdi4objects/crm-rdf-ap/raw/refs/heads/main/bibo.ttl,rdf/turtle

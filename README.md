@@ -17,6 +17,7 @@ graph TD
     terminologies(terminologies) --> receive
     collections(collections) --> receive
     data(research data) --> receive
+    stage(stage)
 
     subgraph n4o-graph-import
         receive[**receive**]
@@ -71,21 +72,41 @@ docker compose -f docker-compose-graph.yml up --force-recreate -V
 docker compose run importer
 ~~~
 
-### Receive
+### Receive terminologies
+
+The list of terminologies to be loaded is managed in BARTOC. Download URLs for selected terminologies are hard-coded iin file [`terminology-data.csv`](terminology-data.csv)` (until a better way has been established to manage this information). The following data formats are supported:
+
+- [rdf/turtle](http://format.gbv.de/rdf/turtle) (subsumes N-Triples)
+- [rdf/xml](http://format.gbv.de/rdf/xml)
+- [jskos](http://format.gbv.de/jskos) (`.ndjson`)
+
+To update the list of terminologies run:
+
+~~~sh
+npm run -s update-terminologies-list
+~~~
+
+This generates `stage/terminology/terminologies.json` and `stage/terminology/namespaces.json`, required for importing collections and terminologies.
+
+*rest of receive and import not implemented yet*
+
+Individual terminologies can be loaded (TODO)
+
+### Receive collections
 
 *not fully implemented yet*
 
-### Load
+~~~sh
+receive-collection 0
+~~~
+
+### Load collections
 
 Load collection data and metadata from stage directory into triple store:
 
 ~~~sh
 load-collection 0     # change to another collection id except for testing
 ~~~
-
-Load terminology data into triple store:
-
-*not fully implemented yet*
 
 ## Configuration
 
