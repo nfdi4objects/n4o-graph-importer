@@ -1,0 +1,78 @@
+#!/usr/bin/bash
+set -euo pipefail
+function error() { echo $@ >&2; exit 1; }
+
+[[ $# -eq 1 ]] || error "Usage: $0 ID"
+
+if [[ "$1" =~ ^[0-9]+$ ]]; then
+  id=$1
+elif [[ "$1" =~ ^https?://bartoc.org/en/node/[0-9]+$ ]]; then
+  id="${1##*/}"
+else
+  error "Invalid BARTOC URI or ID!"
+fi
+
+while IFS=, read -r uri download format
+do
+  [[ "$uri" == "http://bartoc.org/en/node/$id" ]] && break
+done < terminology-data.csv
+
+[[ -z "$uri" ]] && error "terminology $id not found!"
+[[ -z "$download" ]] && error "terminology $id has no download URL!"
+
+stage=stage/terminology/$id
+original=$stage/original.$format
+tmp=$original.tmp
+
+mkdir -p $stage
+
+# TODO: enable/disable download with option
+echo "Downloading $download ..."
+curl -sL "$download" > $tmp
+mv $tmp $original
+
+# TODO unify RDF processing with collections
+
+# convert JSKOS to N-Triples
+if [[ "$format" = "ndjson"  ]]; then
+    npm run --silent -- jsonld2rdf -c jskos-context.json "$original" > "$stage/original.nt"
+    original="$dir/original.nt"
+    format=ttl
+fi
+
+declare -A formats=( ["ttl"]="turtle" ["rdf"]="rdfxml")
+
+unique=$stage/unique.nt
+duplicated=$stage/duplicated.nt
+
+rm -f "$tmp"
+rapper -q -i "${formats[$format]}" "$original" | sort | uniq > "$tmp"
+
+if [[ ! -s "$tmp" ]]; then
+    rm "$tmp"
+    echo "$original ist syntaktisch nicht korrekt oder leer!"
+    exit 1
+fi
+
+rapper -q -i "${formats[$format]}" "$original" | sort | uniq -d > "$duplicated"
+
+mv "$tmp" "$unique"
+
+echo "$original ist syntaktisch korrektes RDF. "
+echo
+echo "Anzahl mehrfacher        Tripel: **$(<$duplicated wc -l)**"
+echo "Anzahl unterschiedlicher Tripel: **$(<$unique wc -l)**"
+
+filtered=$stage/filtered.nt
+removed=$stage/removed.nt
+namespace=$(jq -r --arg uri "$uri" '.[$uri]' stage/terminology/namespaces.json)
+
+export RDFFILTER_ALLOW_NAMESPACE=$namespace
+npm run --silent -- rdffilter $unique -o $filtered --stats -f ./rdffilter.js
+# TODO: extend rdffilter for one-pass
+npm run --silent -- rdffilter $unique -o $removed -r -f ./rdffilter.js
+unset RDFFILTER_ALLOW_NAMESPACE
+
+wc -l $duplicated
+wc -l $removed
+wc -l $filtered

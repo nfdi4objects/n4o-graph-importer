@@ -35,6 +35,8 @@ const write = (file, content) => {
 
 console.log(`${terminologies.length} terminologies, ${datacount} with download URL, ${Object.keys(namespaces).length} with namespace`)
 
+const dir = "stage/terminology"
+fs.existsSync(dir) || fs.mkdirSync(dir, { recursive: true })
 write("stage/terminology/terminologies.json", JSON.stringify(terminologies, null, 2))
 write("stage/terminology/namespaces.json", JSON.stringify(namespaces, null, 2))
 
