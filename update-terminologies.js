@@ -1,4 +1,5 @@
 import fs from "fs"
+import { jsonld2rdf } from "jsonld2rdf"
 
 const url = "https://bartoc.org/api/voc?partOf=http%3A%2F%2Fbartoc.org%2Fen%2Fnode%2F18961&limit=500"
 var terminologies = await fetch(url).then(res => res.json())
@@ -27,7 +28,17 @@ terminologies = terminologies.map(terminology => {
   return terminology
 })
 
-console.log(`${terminologies.length} terminologies in ${file}, ${datacount} with download URL, ${Object.keys(namespaces).length} with namespace`)
+const write = (file, content) => {
+  console.log(file)
+  fs.writeFileSync(file, content)
+}
 
-fs.writeFileSync("stage/terminology/terminologies.json", JSON.stringify(terminologies, null, 2))
-fs.writeFileSync("stage/terminology/namespaces.json", JSON.stringify(namespaces, null, 2))
+console.log(`${terminologies.length} terminologies, ${datacount} with download URL, ${Object.keys(namespaces).length} with namespace`)
+
+write("stage/terminology/terminologies.json", JSON.stringify(terminologies, null, 2))
+write("stage/terminology/namespaces.json", JSON.stringify(namespaces, null, 2))
+
+const context = JSON.parse(fs.readFileSync("jskos-context.json"))
+const prefixes = JSON.parse(fs.readFileSync("prefixes.json"))
+const ttl = await jsonld2rdf(terminologies, { context, prefixes })
+write("stage/terminology/terminologies.ttl", ttl)

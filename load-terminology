@@ -1,0 +1,21 @@
+#!/usr/bin/bash
+set -euo pipefail
+function error() { echo $@ >&2; exit 1; }
+
+if [[ $# -ne 1 ]]; then
+    echo "Usage: $0 ID"
+    echo "Load terminology from stage into triple store"
+    exit
+fi
+
+# TODO: also support BARTOC URI
+
+[[ "$id" =~ ^[0-9]*$ ]] || error "Terminology ID must be numeric!"
+
+uri=http://bartoc.org/en/node/$id
+
+rdf=stage/terminology/$id/filtered.nt
+
+[[ -e "$rdf" ]] || error "Missing $rdf"
+
+./load-rdf-graph "$uri" "$rdf"

@@ -5,14 +5,14 @@
     "test": "./test/test.sh",
     "rdffilter": "rdffilter",
     "jsonld2rdf": "jsonld2rdf",
-    "update-terminologies-list": "node update-terminologies-list.js",
+    "update-terminologies": "node update-terminologies.js",
     "lint": "eslint --fix '*.js'"
   },
   "dependencies": {
-    "jsonld2rdf": "^0.4.0",
+    "jsonld2rdf": "^0.5.1",
     "rdffilter": "^0.4.0"
   },
   "devDependencies": {
-    "eslint": "^9.8.0"
+    "eslint": "^9.23.0"
   }
 }

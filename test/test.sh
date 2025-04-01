@@ -17,6 +17,8 @@ until ./sparql-update "INSERT DATA {}" || (( count-- == 0 )); do
   sleep 1
 done
 
+# TODO: test loading terminology
+
 # test importing a collection
 
 # TODO: receive data

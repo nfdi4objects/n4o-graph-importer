@@ -72,9 +72,9 @@ docker compose -f docker-compose-graph.yml up --force-recreate -V
 docker compose run importer
 ~~~
 
-### Receive terminologies
+### Import terminologies
 
-The list of terminologies to be loaded is managed in BARTOC. Download URLs for selected terminologies are hard-coded iin file [`terminology-data.csv`](terminology-data.csv)` (until a better way has been established to manage this information). The following data formats are supported:
+The list of terminologies to be loaded is managed in BARTOC. Download URLs for selected terminologies are hard-coded iin file [`terminology-data.csv`](terminology-data.csv) (until a better way has been established to manage this information). The following data formats are supported:
 
 - [rdf/turtle](http://format.gbv.de/rdf/turtle) (subsumes N-Triples)
 - [rdf/xml](http://format.gbv.de/rdf/xml)
@@ -83,21 +83,30 @@ The list of terminologies to be loaded is managed in BARTOC. Download URLs for s
 To update the list of terminologies run:
 
 ~~~sh
-npm run -s update-terminologies-list
+npm run -s update-terminologies
 ~~~
 
-This generates `stage/terminology/terminologies.json` and `stage/terminology/namespaces.json`, required for importing collections and terminologies.
+This generates files `terminologies.json`, `namespaces.json`, and `terminologies.ttl` in directory `stage/terminology/`, required for importing collections and terminologies. This metadata about terminologies is loaded into the triple store with:
 
-*rest of receive and import not implemented yet*
+~~~sh
+./load-terminologies-metadata
+~~~
 
-Individual terminologies can be loaded (TODO)
+To receive and load individual terminology data (here exemplified with SKOS terminology, <http://bartoc.org/en/node/18274>:
+
+~~~sh
+./receive-terminology http://bartoc.org/en/node/18274
+./load-terminology http://bartoc.org/en/node/18274
+~~~
+
+Data and reports are stored in `stage/terminology/18274`.
 
 ### Receive collections
 
 *not fully implemented yet*
 
 ~~~sh
-receive-collection 0
+./receive-collection 0
 ~~~
 
 ### Load collections
@@ -105,7 +114,7 @@ receive-collection 0
 Load collection data and metadata from stage directory into triple store:
 
 ~~~sh
-load-collection 0     # change to another collection id except for testing
+./load-collection 0     # change to another collection id except for testing
 ~~~
 
 ## Configuration
