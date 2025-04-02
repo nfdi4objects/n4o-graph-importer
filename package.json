@@ -5,7 +5,7 @@
     "test": "./test/test.sh",
     "rdffilter": "rdffilter",
     "jsonld2rdf": "jsonld2rdf",
-    "update-terminologies": "node update-terminologies.js",
+    "update-terminologies": "node js/update-terminologies.js",
     "lint": "eslint --fix '*.js'"
   },
   "dependencies": {

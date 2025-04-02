@@ -68,9 +68,9 @@ removed=$stage/removed.nt
 namespace=$(jq -r --arg uri "$uri" '.[$uri]' stage/terminology/namespaces.json)
 
 export RDFFILTER_ALLOW_NAMESPACE=$namespace
-npm run --silent -- rdffilter $unique -o $filtered --stats -f ./rdffilter.js
+npm run --silent -- rdffilter $unique -o $filtered --stats -f ./js/rdffilter.js
 # TODO: extend rdffilter for one-pass
-npm run --silent -- rdffilter $unique -o $removed -r -f ./rdffilter.js
+npm run --silent -- rdffilter $unique -o $removed -r -f ./js/rdffilter.js
 unset RDFFILTER_ALLOW_NAMESPACE
 
 wc -l $duplicated

@@ -14,6 +14,7 @@ RUN npm ci --omit=dev
 COPY sparql-env .
 COPY sparql-update .
 COPY load-rdf-graph .
+COPY js .
 
 COPY load-collection .
 COPY load-collection-metadata .

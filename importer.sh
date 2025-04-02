@@ -9,6 +9,7 @@ usage() {
   echo "receive-collection ID"
   echo "load-collection ID"
   echo
+  echo "npm run update-terminologies"
   # echo "import-terminology ID"
   echo "receive-terminology ID"
   echo "load-terminology ID"
