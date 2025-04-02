@@ -12,15 +12,21 @@ RUN npm ci --omit=dev
 
 # Copy scripts
 COPY sparql-env .
+COPY sparql-update .
+COPY load-rdf-graph .
+
 COPY load-collection .
 COPY load-collection-metadata .
-COPY load-rdf-graph .
-COPY sparql-update .
+
+COPY terminology-data.csv .
+COPY receive-terminology .
+COPY load-terminologies-metadata .
+COPY load-terminology .
+
+COPY prefixes.json .
+COPY *-context.json .
 
 COPY importer.sh .
-
-# Copy assets
-COPY collection-context.json .
 
 # Allow to directly call scripts
 ENV PATH="/app:$PATH"
