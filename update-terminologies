@@ -1,0 +1,5 @@
+#!/usr/bin/bash
+set -euo pipefail
+function error() { echo $@ >&2; exit 1; }
+
+npm run --silent update-terminologies

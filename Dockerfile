@@ -20,6 +20,7 @@ COPY load-collection .
 COPY load-collection-metadata .
 
 COPY terminology-data.csv .
+COPY update-terminologies .
 COPY receive-terminology .
 COPY load-terminologies-metadata .
 COPY load-terminology .

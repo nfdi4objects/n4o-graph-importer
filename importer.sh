@@ -6,13 +6,13 @@ usage() {
   echo "Please use one of the following commands (not all implemented yet):"
   echo
   # echo "import-collection ID"
-  echo "receive-collection ID"
-  echo "load-collection ID"
+  echo "  receive-collection ID"
+  echo "  load-collection ID"
   echo
-  echo "npm run update-terminologies"
+  echo "  update-terminologies"
   # echo "import-terminology ID"
-  echo "receive-terminology ID"
-  echo "load-terminology ID"
+  echo "  receive-terminology ID"
+  echo "  load-terminology ID"
 }
 
 
@@ -22,6 +22,7 @@ usage
 
 . sparql-env
 
+echo
 echo "SPARQL         $SPARQL"
 echo "SPARQL_UPDATE  $SPARQL_UPDATE"
 echo "SPARQL_STORE   $SPARQL_STORE"

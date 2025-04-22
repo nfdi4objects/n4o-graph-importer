@@ -68,19 +68,19 @@ Related components:
 With Docker:
 
 ~~~
-docker compose -f docker-compose-graph.yml up --force-recreate -V
-docker compose run importer
+docker compose -f docker-compose-graph.yml up --force-recreate --remove-orphans -V
+docker compose -f docker-compose-graph.yml run importer
 ~~~
 
 ### Import terminologies
 
-The list of terminologies to be loaded is managed in BARTOC. Download URLs for selected terminologies are hard-coded iin file [`terminology-data.csv`](terminology-data.csv) (until a better way has been established to manage this information). The following data formats are supported:
+The list of terminologies to be loaded is managed in BARTOC. Download URLs for selected terminologies are hard-coded in file [`terminology-data.csv`](terminology-data.csv) (until a better way has been established to manage this information). The following data formats are supported:
 
 - [rdf/turtle](http://format.gbv.de/rdf/turtle) (subsumes N-Triples)
 - [rdf/xml](http://format.gbv.de/rdf/xml)
 - [jskos](http://format.gbv.de/jskos) (`.ndjson`)
 
-To update the list of terminologies run:
+To update the list of terminologies from BARTOC run:
 
 ~~~sh
 npm run -s update-terminologies
