@@ -19,19 +19,19 @@ graph TD
     data(research data) --> receive
     stage(stage)
 
-    subgraph n4o-graph-import
+    subgraph "**importer**: n4o-graph-importer"
         receive[**receive**]
         receive -- validate, transform, report --> stage
         stage --> load
         load[**load**]
     end
-    subgraph n4o-fuseki
+    subgraph "**fuseki**: n4o-fuseki"
         kg(triple store)
     end
-    subgraph n4o-graph-apis
+    subgraph "**apis**: n4o-graph-apis"
         ui[**web application**]
     end
-    subgraph lido-rdf-converter
+    subgraph "**lido2rdf**: lido-rdf-converter"
         lido2rdf[**lido2rdf**]
         web-app[**web-app**]
     end
