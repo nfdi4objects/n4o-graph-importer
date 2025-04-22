@@ -1,30 +1,24 @@
-#!/bin/bash
-set -euo pipefail
-function error() { echo $@ >&2; exit 1; }
+#!/usr/bin/bash
+. utils.sh
 
-usage() {
-  echo "Please use one of the following commands (not all implemented yet):"
-  echo
-  # echo "import-collection ID"
-  echo "  receive-collection ID"
-  echo "  load-collection ID"
-  echo
-  echo "  update-terminologies"
-  # echo "import-terminology ID"
-  echo "  receive-terminology ID"
-  echo "  load-terminology ID"
-}
-
-
-usage
+echo "Please use one of the following commands (not all implemented yet):"
+echo
+# echo "import-collection ID"
+echo "  receive-collection ID"
+echo "  load-collection ID"
+echo
+echo "  update-terminologies"
+echo "  load-terminologies-metadata"
+echo
+echo " import-terminology ID"
+echo "  receive-terminology ID"
+echo "  load-terminology ID"
 
 # show configuration
-
-. sparql-env
 
 echo
 echo "SPARQL         $SPARQL"
 echo "SPARQL_UPDATE  $SPARQL_UPDATE"
 echo "SPARQL_STORE   $SPARQL_STORE"
-# TODO: check for existence of ./stage
 
+# TODO: check for existence of ./stage

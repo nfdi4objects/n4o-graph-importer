@@ -1,16 +1,8 @@
 #!/usr/bin/bash
-set -euo pipefail
-function error() { echo $@ >&2; exit 1; }
+. utils.sh
 
-[[ $# -eq 1 ]] || error "Usage: $0 ID"
-
-if [[ "$1" =~ ^[0-9]+$ ]]; then
-  id=$1
-elif [[ "$1" =~ ^https?://bartoc.org/en/node/[0-9]+$ ]]; then
-  id="${1##*/}"
-else
-  error "Invalid BARTOC URI or ID!"
-fi
+require_bartoc_id "$@"
+unset uri
 
 while IFS=, read -r uri download format
 do

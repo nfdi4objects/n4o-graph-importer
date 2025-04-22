@@ -1,0 +1,7 @@
+#!/usr/bin/bash
+. utils.sh
+
+require_bartoc_id "$@"
+
+./receive-terminology $id
+./load-terminology $id

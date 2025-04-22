@@ -1,5 +1,5 @@
 #!/usr/bin/bash
-set -euo pipefail
+. utils.sh
 
 if [ $# -ne 2 ]; then
     echo "Usage: $0 <graph> <file>"
@@ -7,10 +7,10 @@ if [ $# -ne 2 ]; then
     exit 1
 fi
 
-. sparql-env
-
 graph=$1
 file=$2
+
+[[ -e "$file" ]] || error "Missing $file"
 
 echo "Loading $file into graph $graph"
 curl --fail-with-body --silent -X PUT "$SPARQL_STORE" --header "Content-Type: text/turtle" \

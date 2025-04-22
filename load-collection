@@ -1,6 +1,5 @@
 #!/usr/bin/bash
-set -euo pipefail
-function error() { echo $@ >&2; exit 1; }
+. utils.sh
 
 if [[ $# -ne 1 ]]; then
     echo "Usage: $0 COLLECTION_ID|all"

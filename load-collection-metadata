@@ -1,5 +1,5 @@
 #!/usr/bin/bash
-set -euo pipefail
+. utils.sh
 
 function usage() {
     echo "Usage: $0 COLLECTION_ID"
@@ -8,11 +8,6 @@ function usage() {
 }
 
 [[ "${1:-}" =~ ^[0-9]*$ ]] || usage
-
-function error() {
-    echo $@ >&2
-    exit 1
-}
 
 id=$1
 uri=https://graph.nfdi4objects.net/collection/$id
@@ -23,7 +18,6 @@ collection=stage/collection/$id/collection.nt
 issued=$(date -Iminutes)
 
 # check whether API is available
-. sparql-env
 ./sparql-update "INSERT DATA {}" || error "SPARQL Update endpoint not available: $SPARQL_UPDATE"
 
 echo "Deleting metadata of $uri"

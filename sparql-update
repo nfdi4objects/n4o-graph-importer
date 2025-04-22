@@ -1,12 +1,10 @@
 #!/usr/bin/bash
-set -euo pipefail
+. utils.sh
 
 if [ $# -ne 1 ]; then
     echo "Usage: $0 SPARQL"
     echo "Execute arbitrary SPARQL Update query."
     exit 1
 fi
-
-. sparql-env
 
 curl --silent --fail-with-body -X POST "$SPARQL_UPDATE" --header "Content-Type: application/sparql-update" --data-binary "$1"

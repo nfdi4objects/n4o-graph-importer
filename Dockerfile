@@ -11,7 +11,7 @@ COPY package*.json ./
 RUN npm ci --omit=dev
 
 # Copy scripts
-COPY sparql-env .
+COPY utils.sh .
 COPY sparql-update .
 COPY load-rdf-graph .
 COPY js ./js
@@ -20,6 +20,7 @@ COPY load-collection .
 COPY load-collection-metadata .
 
 COPY terminology-data.csv .
+COPY import-terminology .
 COPY update-terminologies .
 COPY receive-terminology .
 COPY load-terminologies-metadata .

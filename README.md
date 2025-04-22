@@ -65,11 +65,24 @@ Related components:
 - [n4o-fuseki](https://github.com/nfdi4objects/n4o-fuseki): RDF triple store
 - [lido-rdf-converter](https://github.com/nfdi4objects/lido-rdf-converter): convert LIDO format to RDF
 
-With Docker:
+With Docker (run `docker pull  ghcr.io/nfdi4objects/n4o-graph-importer:main` and related components for update):
 
 ~~~
 docker compose -f docker-compose-graph.yml up --force-recreate --remove-orphans -V
+~~~
+
+The containers include a web interface at <http://localhost:8000/>.
+
+The importer scripts can then be called:
+
+~~~
 docker compose -f docker-compose-graph.yml run importer
+~~~
+
+For instance
+
+~~~
+docker compose -f docker-compose-graph.yml run importer load-terminologies-metadata 
 ~~~
 
 ### Import terminologies

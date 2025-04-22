@@ -1,6 +1,5 @@
 #!/usr/bin/bash
-set -euo pipefail
-function error() { echo $@ >&2; exit 1; }
+. utils.sh
 
 echo -n "Loading N4O Terminologies Metadata into the Knowledge Graph"
 ./load-rdf-graph https://graph.nfdi4objects.net/terminology/ stage/terminology/terminologies.ttl || error "FAILED"

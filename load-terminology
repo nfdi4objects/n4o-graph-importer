@@ -1,25 +1,10 @@
 #!/usr/bin/bash
-set -euo pipefail
-function error() { echo $@ >&2; exit 1; }
+# Load terminology from stage into triple store
 
-if [[ $# -ne 1 ]]; then
-    echo "Usage: $0 ID"
-    echo "Load terminology from stage into triple store"
-    exit
-fi
+. utils.sh
 
-if [[ "$1" =~ ^[0-9]+$ ]]; then
-  id=$1
-elif [[ "$1" =~ ^https?://bartoc.org/en/node/[0-9]+$ ]]; then
-  id="${1##*/}"
-else
-  error "Invalid BARTOC URI or ID!"
-fi
-
-uri=http://bartoc.org/en/node/$id
+require_bartoc_id "$@"
 
 rdf=stage/terminology/$id/filtered.nt
-
-[[ -e "$rdf" ]] || error "Missing $rdf"
 
 ./load-rdf-graph "$uri" "$rdf"
