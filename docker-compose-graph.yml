@@ -45,10 +45,18 @@ services:
       - ${DATA:-./data}:/app/data:ro
     networks:
       - n4o
+    environment:
+      - SPARQL=http://fuseki:3030/n4o
+
     # don't check on each call
     #depends_on:
     #  fuseki: 
     #    condition: service_healthy
+
+  lido2rdf:
+    image: ghcr.io/nfdi4objects/lido-rdf-converter:main
+    networks:
+      - n4o
 
 networks:
   n4o:

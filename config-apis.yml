@@ -20,3 +20,7 @@ tools:
   - name: LIDO-Schulung
     url: https://docs.nfdi4culture.de/lido-schulung
     description: Einführung in das LIDO-Format
+  - name: LIDO2RDF
+    description: Convert LIDO XML to RDF
+    path: /lido2rdf/
+    proxy: http://lido2rdf:5000/
