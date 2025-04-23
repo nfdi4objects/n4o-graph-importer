@@ -1,16 +1,8 @@
 #!/usr/bin/bash
+# Update description about a collection in triple store
+
 . utils.sh
-
-function usage() {
-    echo "Usage: $0 COLLECTION_ID"
-    echo "Update description about a collection in triple store."
-    exit
-}
-
-[[ "${1:-}" =~ ^[0-9]*$ ]] || usage
-
-id=$1
-uri=https://graph.nfdi4objects.net/collection/$id
+require_collection_id "$@"
 
 collection=$STAGE/collection/$id/collection.nt
 [[ -s "$collection" ]] || error "Missing or empty $collection"
@@ -48,6 +40,4 @@ $(< $collection)
 SPARQL
 )
 
-#echo "$sparql"
 ./sparql-update "$sparql"
-

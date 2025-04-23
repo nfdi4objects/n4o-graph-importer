@@ -27,14 +27,14 @@ See n4o-graph for full documentation of system architecture with all components.
 
 The list of terminologies to be loaded is managed in BARTOC. Download URLs for selected terminologies are hard-coded in file [`terminology-data.csv`](terminology-data.csv) (until a better way has been established to manage this information). The following data formats are supported:
 
-- [rdf/turtle](http://format.gbv.de/rdf/turtle) (subsumes N-Triples)
-- [rdf/xml](http://format.gbv.de/rdf/xml)
+- [rdf/turtle](http://format.gbv.de/rdf/turtle) (subsumes N-Triples) (`.ttl` or `.nt`)
+- [rdf/xml](http://format.gbv.de/rdf/xml) (`.rdf`)
 - [jskos](http://format.gbv.de/jskos) (`.ndjson`)
 
 To update the list of terminologies from BARTOC run:
 
 ~~~sh
-npm run -s update-terminologies
+./update-terminologies
 ~~~
 
 This generates files `terminologies.json`, `namespaces.json`, and `terminologies.ttl` in directory `stage/terminology/`, required for importing collections and terminologies. This metadata about terminologies is loaded into the triple store with:
@@ -63,6 +63,8 @@ A local terminology file can be imported for testing:
 ~~~sh
 ./import-terminology http://bartoc.org/en/node/18274 skos.rdf
 ~~~
+
+Terminology data is *not checked* before import except basic RDF syntax checks!
 
 ### Receive collections
 

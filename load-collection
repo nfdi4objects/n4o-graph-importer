@@ -1,31 +1,25 @@
 #!/usr/bin/bash
+# Load collection data and metadata of a collection from stage into triple store
+
 . utils.sh
+require_collection_id "$@"
 
-if [[ $# -ne 1 ]]; then
-    echo "Usage: $0 COLLECTION_ID|all"
-    echo "Load collection data and metadata of a collection from stage into triple store"
-    exit
-fi
+[[ "$id" =~ ^[0-9]*$ ]] || error "Collection ID must be numeric!"
+uri=https://graph.nfdi4objects.net/collection/$id
 
-function load_collection() {
-    collection=$1
-    [[ "$collection" =~ ^[0-9]*$ ]] || error "Collection ID must be numeric!"
-    uri=https://graph.nfdi4objects.net/collection/$collection
+rdf=$STAGE/collection/$id/filtered.nt
+about=$STAGE/collection/$id/collection.json
 
-    rdf=$STAGE/collection/$collection/filtered.nt
-    about=$STAGE/collection/$collection/collection.json
+[[ -e "$rdf" ]] || error "Missing $rdf"
+[[ -e "$about" ]] || error "Missing $about"
 
-    [[ -e "$rdf" ]] || error "Missing $rdf"
-    [[ -e "$about" ]] || error "Missing $about"
+./load-collection-metadata $id
+./load-rdf-graph $uri $rdf
 
-    ./load-collection-metadata $collection
-    ./load-rdf-graph $uri $rdf
-}
-
-if [[ "$1" = "all" ]]; then
-    for collection in $STAGE/collection/*; do
-        load_collection $(basename $collection)
-    done
-else
-    load_collection $1
-fi
+#if [[ "$1" = "all" ]]; then
+#    for collection in $STAGE/collection/*; do
+#        load_collection $(basename $id)
+#    done
+#else
+#    load_collection $1
+#fi

@@ -1,4 +1,6 @@
 #!/usr/bin/bash
+
 . utils.sh
+require_collection_id "$@"
 
 error "Not implemented yet!"
