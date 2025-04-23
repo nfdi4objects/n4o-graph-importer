@@ -10,44 +10,6 @@ This component imports RDF data of a collection or a terminology into the triple
 1. **receive**: data is copied into a **stage** directory where it is validated, filtered, and a report is generated.
 2. **load**: on success the processed data is loaded into the triple store
 
-## Data flow
-
-```mermaid
-graph TD
-    terminologies(terminologies) --> receive
-    collections(collections) --> receive
-    data(research data) --> receive
-    stage(stage)
-
-    subgraph "**importer**: n4o-graph-importer"
-        receive[**receive**]
-        receive -- validate, transform, report --> stage
-        stage --> load
-        load[**load**]
-    end
-    subgraph "**fuseki**: n4o-fuseki"
-        kg(triple store)
-    end
-    subgraph "**apis**: n4o-graph-apis"
-        ui[**web application**]
-    end
-    subgraph "**lido2rdf**: lido-rdf-converter"
-        lido2rdf[**lido2rdf**]
-        web-app[**web-app**]
-    end
-
-    stage --> ui
-    kg -- SPARQL --> ui
-    ui -- SPARQL --> apps(applications)
-
-    receive <--> lido2rdf
-    load -- SPARQL update & graph store --> kg
-
-    web-app <--> ui
-
-    ui <--web browser--> users(users)
-```
-
 ## Usage
 
 This component can be used both as Docker image (recommended) and from sources (for development and testing). In both cases the importer is executed via individual command line scripts.
@@ -59,31 +21,7 @@ Two Docker volumes (or local directories) are used:
   - `./stage/terminology/$ID` for terminologies with BARTOC id `$ID`
 - `./data` a directory read RDF data from (not required if running from sources)
 
-Related components:
-
-- [n4o-graph-apis](https://github.com/nfdi4objects/n4o-graph-apis): web interface and public SPARQL endpoint
-- [n4o-fuseki](https://github.com/nfdi4objects/n4o-fuseki): RDF triple store
-- [lido-rdf-converter](https://github.com/nfdi4objects/lido-rdf-converter): convert LIDO format to RDF
-
-With Docker (run `docker pull  ghcr.io/nfdi4objects/n4o-graph-importer:main` and related components for update):
-
-~~~
-docker compose -f docker-compose-graph.yml up --force-recreate --remove-orphans -V
-~~~
-
-The containers include a web interface at <http://localhost:8000/>.
-
-The importer scripts can then be called:
-
-~~~
-docker compose -f docker-compose-graph.yml run importer
-~~~
-
-For instance
-
-~~~
-docker compose -f docker-compose-graph.yml run importer load-terminologies-metadata 
-~~~
+See n4o-graph for full documentation of system architecture with all components.
 
 ### Import terminologies
 
@@ -145,13 +83,6 @@ Locally build Docker image for testing:
 
 ~~~sh
 docker compose create
-~~~
-
-To run with related components there is a docker-compose file currently being developed:
-
-~~~sh
-docker compose -f docker-compose-graph.yml up --remove-orphans
-docker compose -f docker-compose-graph.yml run importer
 ~~~
 
 ## License
