@@ -21,3 +21,4 @@ require_bartoc_id() {
 SPARQL=${SPARQL:-http://localhost:3030/n4o}
 SPARQL_UPDATE=${SPARQL_UPDATE:-$SPARQL}
 SPARQL_STORE=${SPARQL_STORE:-$SPARQL}
+STAGE=${STAGE:-stage}

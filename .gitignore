@@ -1,3 +1,5 @@
 node_modules/
 data/
 stage/
+test/stage/
+*.tmp

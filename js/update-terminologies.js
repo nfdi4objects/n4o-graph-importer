@@ -35,12 +35,14 @@ const write = (file, content) => {
 
 console.log(`${terminologies.length} terminologies, ${datacount} with download URL, ${Object.keys(namespaces).length} with namespace`)
 
-const dir = "stage/terminology"
+
+const stage = process.env.STAGE || 'stage'
+const dir = `${stage}/terminology`
 fs.existsSync(dir) || fs.mkdirSync(dir, { recursive: true })
-write("stage/terminology/terminologies.json", JSON.stringify(terminologies, null, 2))
-write("stage/terminology/namespaces.json", JSON.stringify(namespaces, null, 2))
+write(`${dir}/terminologies.json`, JSON.stringify(terminologies, null, 2))
+write(`${dir}/namespaces.json`, JSON.stringify(namespaces, null, 2))
 
 const context = JSON.parse(fs.readFileSync("jskos-context.json"))
 const prefixes = JSON.parse(fs.readFileSync("prefixes.json"))
 const ttl = await jsonld2rdf(terminologies, { context, prefixes })
-write("stage/terminology/terminologies.ttl", ttl)
+write(`${dir}/terminologies.ttl`, ttl)

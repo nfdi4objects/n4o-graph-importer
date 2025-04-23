@@ -19,7 +19,8 @@ const nsReplace = namespaceFilter({
 // Filter out triples about known vocabularies
 
 import fs from "fs"
-const terminologyNamespaces = JSON.parse(fs.readFileSync("stage/terminology/namespaces.json"))
+const stage = process.env.STAGE || 'stage'
+const terminologyNamespaces = JSON.parse(fs.readFileSync(`${stage}/terminology/namespaces.json`))
 
 const namespaces = {}
 for (let uri in terminologyNamespaces) {

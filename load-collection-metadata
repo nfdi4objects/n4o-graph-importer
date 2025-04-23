@@ -12,7 +12,7 @@ function usage() {
 id=$1
 uri=https://graph.nfdi4objects.net/collection/$id
 
-collection=stage/collection/$id/collection.nt
+collection=$STAGE/collection/$id/collection.nt
 [[ -s "$collection" ]] || error "Missing or empty $collection"
 
 issued=$(date -Iminutes)

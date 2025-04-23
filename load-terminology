@@ -5,6 +5,6 @@
 
 require_bartoc_id "$@"
 
-rdf=stage/terminology/$id/filtered.nt
+rdf=$STAGE/terminology/$id/filtered.nt
 
 ./load-rdf-graph "$uri" "$rdf"

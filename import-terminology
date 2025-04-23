@@ -2,6 +2,7 @@
 . utils.sh
 
 require_bartoc_id "$@"
+shift
 
-./receive-terminology $id
+./receive-terminology $id "$@"
 ./load-terminology $id

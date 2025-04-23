@@ -2,40 +2,44 @@
 . utils.sh
 
 require_bartoc_id "$@"
-unset uri
 
-while IFS=, read -r uri download format
-do
-  [[ "$uri" == "http://bartoc.org/en/node/$id" ]] && break
-done < terminology-data.csv
-
-[[ -z "$uri" ]] && error "terminology $id not found!"
-[[ -z "$download" ]] && error "terminology $id has no download URL!"
-
-stage=stage/terminology/$id
-original=$stage/original.$format
-tmp=$original.tmp
-
+stage=$STAGE/terminology/$id
 mkdir -p $stage
 
-# TODO: enable/disable download with option
-echo "Downloading $download ..."
-curl -sL "$download" > $tmp
-mv $tmp $original
+if [[ $# -ne 2 ]]; then     # get URL and format from approved CSV file
+    unset uri
+    while IFS=, read -r uri download format
+    do
+      [[ "$uri" == "http://bartoc.org/en/node/$id" ]] && break
+    done < terminology-data.csv
+
+    [[ -z "$uri" ]] && error "terminology $id not found!"
+    [[ -z "$download" ]] && error "terminology $id has no download URL!"
+
+    original=$stage/original.$format
+    tmp=$original.tmp
+
+    # TODO: enable/disable download with option
+    echo "Downloading $download ..."
+    curl -sL "$download" > $tmp
+    mv $tmp $original
+
+else                        # pass local file with known extension (for testing)
+    original=$2
+    format="${original##*.}"
+    tmp=$original.tmp    
+fi
 
 # TODO unify RDF processing with collections
 
 # convert JSKOS to N-Triples
 if [[ "$format" = "ndjson"  ]]; then
     npm run --silent -- jsonld2rdf -c jskos-context.json "$original" > "$stage/original.nt"
-    original="$dir/original.nt"
+    original="$stage/original.nt"
     format=ttl
 fi
 
 declare -A formats=( ["ttl"]="turtle" ["rdf"]="rdfxml")
-
-unique=$stage/unique.nt
-duplicated=$stage/duplicated.nt
 
 rm -f "$tmp"
 rapper -q -i "${formats[$format]}" "$original" | sort | uniq > "$tmp"
@@ -45,6 +49,9 @@ if [[ ! -s "$tmp" ]]; then
     echo "$original ist syntaktisch nicht korrekt oder leer!"
     exit 1
 fi
+
+unique=$stage/unique.nt
+duplicated=$stage/duplicated.nt
 
 rapper -q -i "${formats[$format]}" "$original" | sort | uniq -d > "$duplicated"
 
@@ -57,7 +64,7 @@ echo "Anzahl unterschiedlicher Tripel: **$(<$unique wc -l)**"
 
 filtered=$stage/filtered.nt
 removed=$stage/removed.nt
-namespace=$(jq -r --arg uri "$uri" '.[$uri]' stage/terminology/namespaces.json)
+namespace=$(jq -r --arg uri "$uri" '.[$uri]' $STAGE/terminology/namespaces.json)
 
 export RDFFILTER_ALLOW_NAMESPACE=$namespace
 npm run --silent -- rdffilter $unique -o $filtered --stats -f ./js/rdffilter.js

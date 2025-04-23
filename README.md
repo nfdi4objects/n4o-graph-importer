@@ -50,7 +50,19 @@ To receive and load individual terminology data (here exemplified with SKOS term
 ./load-terminology http://bartoc.org/en/node/18274
 ~~~
 
+Or both in one command:
+
+~~~sh
+./import-terminology http://bartoc.org/en/node/18274
+~~~
+
 Data and reports are stored in `stage/terminology/18274`.
+
+A local terminology file can be imported for testing:
+
+~~~sh
+./import-terminology http://bartoc.org/en/node/18274 skos.rdf
+~~~
 
 ### Receive collections
 
@@ -74,6 +86,7 @@ Environment variables:
 
 - `SPARQL`: API endpoint of SPARQL Update protocol. Default: <http://localhost:3030/n4o>.
 - `SPARQL_UPDATE`: API endpoint of SPARQL Graph store protocol. Default: same as `SPARQL`
+- `STAGE`: stage directory. Default `stage`
 
 ## Development
 
