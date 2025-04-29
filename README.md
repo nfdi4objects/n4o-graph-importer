@@ -66,15 +66,27 @@ A local terminology file can be imported for testing:
 
 Terminology data is *not checked* before import except basic RDF syntax checks!
 
-### Receive collections
+### Import collections
 
-*not fully implemented yet*
+Collections are currently managed [in a CSV file](https://github.com/nfdi4objects/n4o-databases/blob/main/n4o-collections.csv) until there is a better solution. To get the current list of collections and transform it to RDF run:
+
+~~~sh
+./update-collections
+~~~
+
+This creates `stage/collection/collections.ttl`. To load its content into the Knowledge Graph run:
+
+~~~sh
+./load-collections-metadata
+~~~
+
+Note this overrides the `issued` date of imported collection data (this may be fixed later).
+
+*Receiving data from individual collections has not been fully implemented yet!*
 
 ~~~sh
 ./receive-collection 0
 ~~~
-
-### Load collections
 
 Load collection data and metadata from stage directory into triple store:
 

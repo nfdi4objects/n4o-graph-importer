@@ -5,10 +5,12 @@
     "test": "./test/test.sh",
     "rdffilter": "rdffilter",
     "jsonld2rdf": "jsonld2rdf",
+    "csv2json": "node js/csv2json.js",
     "update-terminologies": "node js/update-terminologies.js",
     "lint": "eslint --fix '*.js'"
   },
   "dependencies": {
+    "csv-parser": "^3.2.0",
     "jsonld2rdf": "^0.5.1",
     "rdffilter": "^0.4.0"
   },
