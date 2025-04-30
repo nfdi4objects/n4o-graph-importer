@@ -12,7 +12,9 @@ This component imports RDF data of a collection or a terminology into the triple
 
 ## Usage
 
-This component can be used both as Docker image (recommended) and from sources (for development and testing). In both cases the importer is executed via individual command line scripts.
+This component can be used both [as Docker image](https://github.com/nfdi4objects/n4o-graph-importer) (recommended) and from sources (for development and testing). In both cases the importer is executed via individual command line scripts.
+
+See [n4o-graph](https://github.com/nfdi4objects/n4o-graph) for full documentation of system architecture with all components.
 
 Two Docker volumes (or local directories) are used:
 
@@ -20,8 +22,6 @@ Two Docker volumes (or local directories) are used:
   - `./stage/collection/$ID` for collections with collection id `$ID`
   - `./stage/terminology/$ID` for terminologies with BARTOC id `$ID`
 - `./data` a directory read RDF data from (not required if running from sources)
-
-See n4o-graph for full documentation of system architecture with all components.
 
 ### Import terminologies
 

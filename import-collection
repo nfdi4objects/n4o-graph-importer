@@ -1,0 +1,8 @@
+#!/usr/bin/bash
+. utils.sh
+
+require_bartoc_id "$@"
+shift
+
+./receive-collection $id "$@"
+./load-collection $id

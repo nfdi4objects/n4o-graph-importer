@@ -16,11 +16,14 @@ COPY sparql-update .
 COPY load-rdf-graph .
 COPY js ./js
 
+COPY import-collection .
 COPY update-collections .
 COPY receive-collection .
 COPY load-collection .
 COPY load-collection-metadata .
 COPY load-collections-metadata .
+
+COPY download-zenodo .
 
 COPY terminology-data.csv .
 COPY import-terminology .

@@ -3,3 +3,4 @@ data/
 stage/
 test/stage/
 *.tmp
+tmp/

@@ -4,9 +4,6 @@
 . utils.sh
 require_collection_id "$@"
 
-[[ "$id" =~ ^[0-9]*$ ]] || error "Collection ID must be numeric!"
-uri=https://graph.nfdi4objects.net/collection/$id
-
 rdf=$STAGE/collection/$id/filtered.nt
 about=$STAGE/collection/$id/collection.json
 
