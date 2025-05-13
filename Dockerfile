@@ -10,6 +10,9 @@ RUN ./install-packages.sh
 COPY package*.json ./
 RUN npm ci --omit=dev
 
+# Install Python dependencies
+RUN python3 -m venv .venv && . .venv/bin/activate && pip install -r requirements.txt
+
 # Copy scripts
 COPY utils.sh .
 COPY sparql-update .

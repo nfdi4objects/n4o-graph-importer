@@ -1,4 +1,7 @@
 node_modules/
+.venv/
+lib/__pycache__
+
 data/
 stage/
 test/stage/
