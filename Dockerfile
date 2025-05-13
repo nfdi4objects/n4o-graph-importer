@@ -11,6 +11,7 @@ COPY package*.json ./
 RUN npm ci --omit=dev
 
 # Install Python dependencies
+COPY requirements.txt .
 RUN python3 -m venv .venv && . .venv/bin/activate && pip install -r requirements.txt
 
 # Copy scripts

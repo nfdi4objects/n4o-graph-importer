@@ -8,7 +8,6 @@ connector=
 if [[ $# -eq 3 ]]; then     # pass source and connector for testing
     url=$2
     connector=$3
-    #
 else                        # get source and connector from collections database
   collections=$STAGE/collection/collections.json
   [[ -f $collections ]] || error "Missing $collections, please update list of collections!"
@@ -36,8 +35,9 @@ fi
 
 if [[ $connector == "zenodo" ]]; then
   echo "Receive data from Zenodo"
-  ./download-zenodo $url
+  ./download-zenodo $url $stage # TODO: target directory
   error "Extacting data from Zenodo not fully implemented yet!"
+  ./unpack-zenodo $stage
 else
   error "Unknown or unsupported connector $connector how to get data for the collection!"
 fi

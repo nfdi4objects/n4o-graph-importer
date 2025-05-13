@@ -1,9 +1,12 @@
 #!/usr/bin/bash
+
+. utils.sh
+
 set -euo pipefail
 function error() { echo $@ >&2; exit 1; }
 
-if [[ $# -ne 1 ]]; then
-    echo "Usage: $0 DOI|URL"
+if [[ $# -ne 2 ]]; then
+    echo "Usage: $0 DOI|URL directory"
     echo "Download Data from Zenodo publication, given by DOI"
     exit
 fi
@@ -17,9 +20,12 @@ else
   error "Expecting Zenodo DOI or record URL"
 fi
 
+dir=$2
+[[ -d "$dir" ]] || error "Directory not found: $dir"
+
 doi=https://doi.org/10.5281/zenodo.$id
-mkdir -p tmp/zenodo-$id/
-cd tmp/zenodo-$id/
+
+cd $dir
 
 # TODO: Zenodo does not have last-modified header
 url="https://zenodo.org/api/records/$id/files-archive"
@@ -27,8 +33,8 @@ echo "Downloading $doi from $url"
 wget -nv -O files-archive.zip $url
 
 # TODO: Get DCAT-AP (RDF) or DataCite format
-curl -s https://zenodo.org/api/records/$id | jq . > metadata.json
-curl -s https://zenodo.org/records/$id/export/dcat-ap > metadata.rdf
+curl -s https://zenodo.org/api/records/$id | jq . > zenodo-metadata.json
+curl -s https://zenodo.org/records/$id/export/dcat-ap > zenodo-metadata.rdf
 
 # TODO: generate datapackage
 # fido -zip files-archive -nomatchprintf "" -matchprintf "%(info.filesize)s,%(info.mimetype)s,%(info.filename)s\n"
