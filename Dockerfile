@@ -20,6 +20,8 @@ COPY sparql-update .
 COPY load-rdf-graph .
 COPY js ./js
 
+COPY import-metadata .
+
 COPY import-collection .
 COPY update-collections .
 COPY receive-collection .

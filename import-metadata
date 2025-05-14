@@ -1,0 +1,8 @@
+#!/usr/bin/bash
+. utils.sh
+
+./update-terminologies
+./load-terminologies-metadata
+
+./update-collections
+./load-collections-metadata

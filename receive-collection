@@ -35,13 +35,12 @@ fi
 
 if [[ $connector == "zenodo" ]]; then
   echo "Receive data from Zenodo"
-  ./download-zenodo $url $stage # TODO: target directory
-  error "Extacting data from Zenodo not fully implemented yet!"
+  ./download-zenodo $url $stage
   ./unpack-zenodo $stage
+
+  error "filtering of RDF not implemented yet"
 else
   error "Unknown or unsupported connector $connector how to get data for the collection!"
 fi
-
-# create filtered.nt
 
 error "Not implemented yet!"

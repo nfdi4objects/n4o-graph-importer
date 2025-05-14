@@ -3,6 +3,8 @@
 
 echo "Please use one of the following commands (not all implemented yet):"
 echo
+echo " import-metadata"
+echo
 echo "  update-terminologies"
 echo "  load-terminologies-metadata"
 echo

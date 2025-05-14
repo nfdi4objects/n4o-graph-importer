@@ -23,6 +23,10 @@ Two Docker volumes (or local directories) are used:
   - `./stage/terminology/$ID` for terminologies with BARTOC id `$ID`
 - `./data` a directory read RDF data from (not required if running from sources)
 
+There is a utility script to receive and load terminologies metadata and collections metadata with one command:
+
+`./import-metadata`
+
 ### Import terminologies
 
 The list of terminologies to be loaded is managed in BARTOC. Download URLs for selected terminologies are hard-coded in file [`terminology-data.csv`](terminology-data.csv) (until a better way has been established to manage this information). The following data formats are supported:
