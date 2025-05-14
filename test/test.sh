@@ -47,7 +47,9 @@ mkdir -p $stage
 
 jq 'select(.id)|.uri="https://graph.nfdi4objects.net/collection/\(.id)"' test/collection.json > $stage/collection.json
 npm run --silent -- jsonld2rdf -c collection-context.json $stage/collection.json > $stage/collection.nt
-rapper -q -i turtle test/data.ttl > $stage/filtered.nt
+
+cp test/data.ttl $stage/original.ttl
+./transform-rdf $stage/original.ttl
 
 # Import collection
 ./load-collection 0

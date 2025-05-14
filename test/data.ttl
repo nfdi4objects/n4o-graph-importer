@@ -1,4 +1,8 @@
 @prefix crm: <http://www.cidoc-crm.org/cidoc-crm/> .
 @base <https://example.org/> .
 
-<x> a crm:E1_CRM_Entity .
+<x> a crm:E1_CRM_Entity .                                   # should be kept
+
+crm:E1_CRM_Entity <foo> <bar> .                             # should be removed
+
+<x> a <http://www.cidoc-crm.org/cidoc-crm/E1_CRM_Entity> .  # should be removed (duplicated)

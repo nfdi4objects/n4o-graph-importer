@@ -16,6 +16,7 @@ RUN python3 -m venv .venv && . .venv/bin/activate && pip install -r requirements
 
 # Copy scripts
 COPY utils.sh .
+COPY transform-rdf .
 COPY sparql-update .
 COPY load-rdf-graph .
 COPY js ./js

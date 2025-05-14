@@ -39,6 +39,8 @@ if [[ "$format" = "ndjson"  ]]; then
     format=ttl
 fi
 
+# TODO: duplicated code in transform-rdf
+
 declare -A formats=( ["ttl"]="turtle" ["rdf"]="rdfxml")
 
 rm -f "$tmp"
