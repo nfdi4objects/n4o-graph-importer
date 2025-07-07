@@ -31,7 +31,7 @@ def walk(top) -> list:
     if os.path.isdir(top):
         for path, dirs, files in os.walk(top):
             for name in files:
-                yield name, [path]
+                yield name, [path], None
                 if isZip(name):
                     yield from zipwalk(os.path.join(path, name))
     elif os.path.isfile(top):
@@ -40,4 +40,4 @@ def walk(top) -> list:
         else:
             path, name = os.path.split(top)
             path = [] if path == '' else [path]
-            yield name, path
+            yield name, path, None

@@ -30,7 +30,7 @@ COPY load-collection .
 COPY load-collection-metadata .
 COPY load-collections-metadata .
 
-COPY download-zenodo .
+COPY download-from-repository.py .
 
 COPY terminology-data.csv .
 COPY import-terminology .

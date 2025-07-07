@@ -1,29 +1,33 @@
 #!./.venv/bin/python
 
-"""Extract all RDF turtle files from an archive. Supports .nt and .ttl files."""
+"""Extract all RDF turtle files from a directory. Supports .nt and .ttl files."""
 import sys
 import os
 from lib import extractRDF
 
 
 def main(args):
-    if len(args) != 1:
-        print("Please provide a directory with zip file `files-archive.zip`")
+    if len(args) != 2:
+        print("Please provide a source directory and a target file`")
         sys.exit(1)
-    dir = args[0]
-    if not os.path.isdir(dir):
-        print(f"Directory does not exist: {dir}")
+
+    source, target = args
+    if not os.path.isdir(source):
+        print(f"Directory does not exist: {source}")
+        sys.exit(1)
+
+    if os.path.isdir(target):
+        print(f"Target must not be a directory: {target}")
         sys.exit(1)
 
     triples = 0
-    tmp = os.path.join(dir, "tmp.nt")
+    tmp = "tmp.nt"
     with open(tmp, "w") as out:
-        for triple in extractRDF(os.path.join(dir, "files-archive.zip")):
+        for triple in extractRDF(source):
             print(" ".join(triple) + " .", file=out)
             triples += 1
 
     if triples:
-        target = os.path.join(dir, "triples.nt")
         os.rename(tmp, target)
         print(f"extracted {triples} triples into {target}")
     else:

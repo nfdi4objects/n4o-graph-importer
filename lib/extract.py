@@ -4,9 +4,9 @@ import lightrdf
 rdfparser = lightrdf.Parser()
 
 
-def extractRDF(file):
-    """Extract RDF triples from a file, directory and/or ZIP archive."""
-    for name, path, archive in walk(file):
+def extractRDF(source):
+    """Recursively extract RDF triples from a file, directory and/or ZIP archive."""
+    for name, path, archive in walk(source):
         format = None
         if name.endswith(".ttl") or name.endswith(".nt"):
             format = "turtle"
@@ -15,8 +15,13 @@ def extractRDF(file):
         if format is None:
             continue
 
-        base = f"file://{name}"
-        file = archive.open(name)
+        if archive:
+            base = f"file://{name}"
+            file = archive.open(name)
+        else:
+            file = f"{source}/{name}"
+            base = f"file://{file}"
+
         try:
             for triple in rdfparser.parse(file, base_iri=base, format=format):
                 yield triple
