@@ -10,7 +10,7 @@ duplicated="$stage/duplicated.nt"
 filtered="$stage/filtered.nt"
 removed="$stage/removed.nt"
 
-declare -A rdfformats=( ["ttl"]="turtle" ["rdf"]="rdfxml")
+declare -A rdfformats=( ["nt"]="turtle" ["ttl"]="turtle" ["rdf"]="rdfxml")
 format="${original##*.}"
 fmt="${rdfformats[$format]}"
 

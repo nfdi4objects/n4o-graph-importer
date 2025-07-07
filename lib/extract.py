@@ -10,17 +10,21 @@ def extractRDF(source):
         format = None
         if name.endswith(".ttl") or name.endswith(".nt"):
             format = "turtle"
-
-        # TODO: support more RDF serialization formats, in particular RDF/XML
-        if format is None:
+        elif name.endswith(".owl"):
+            format = "owl"
+        else:
+            # TODO: support more RDF serialization formats, in particular RDF/XML
             continue
 
         if archive:
-            base = f"file://{name}"
             file = archive.open(name)
+            base = f"file://{name}"
         else:
             file = f"{source}/{name}"
             base = f"file://{file}"
+
+        base = None # TODO
+        print(file)
 
         try:
             for triple in rdfparser.parse(file, base_iri=base, format=format):

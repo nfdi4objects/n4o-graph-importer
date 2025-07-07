@@ -28,7 +28,11 @@ fi
 # TODO: support OAI-PMH for LIDO/XML
 
 echo "Receive RDF data from Repository"
-./download-from-repository $url $stage
-python ./unpack-zenodo.py $stage      # TODO: move to download-from-repository
-/transform-rdf $stage/triples.nt     # includes validation
+rm -rf $stage/download
+mkdir -p $stage/download
 
+./download-from-repository.py $url $stage/download
+
+# TODO: support LIDO/XML via repository
+./extract-rdf.py $stage/download $stage/triples.nt
+./transform-rdf $stage/triples.nt     # includes validation
