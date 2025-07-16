@@ -40,7 +40,7 @@ app = Flask(__name__, template_folder='templates',
 @app.route('/')
 def home():
     '''Home page'''
-    return jsonify(message="Welcome to the Collection API!")
+    return jsonify(message="Welcome to the N4O REST API!")
 
 
 @app.route('/ping')
