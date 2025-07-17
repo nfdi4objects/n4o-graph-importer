@@ -45,7 +45,7 @@ def home():
 
 @app.route('/ping')
 def ping():
-    '''Ping endpoint to check server status'''
+    '''Ping endpoint to check the server status'''
     res, err = run_subprocess(['uname', '-a'])
     return jsonify(result=res, err=err)
 
