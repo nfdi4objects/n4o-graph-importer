@@ -10,22 +10,31 @@ This component imports RDF data of a collection or a terminology into the triple
 1. **receive**: data is copied into a **stage** directory where it is validated, filtered, and a report is generated.
 2. **load**: on success the processed data is loaded into the triple store
 
-## Usage
-
-This component can be used both [as Docker image](https://github.com/nfdi4objects/n4o-graph-importer) (recommended) and from sources (for development and testing). In both cases the importer is executed via individual command line scripts.
-
 See [n4o-graph](https://github.com/nfdi4objects/n4o-graph) for full documentation of system architecture with all components.
 
-Two Docker volumes (or local directories) are used:
+## Usage
+
+This component can be used both [as Docker image](https://github.com/nfdi4objects/n4o-graph-importer) (recommended) and from sources (for development and testing). In both cases the importer is executed via individual command line scripts. A REST API is being implemented.
+
+Two Docker volumes (or local directories) are used to store files:
 
 - `./stage` the stage directory with subdirectories
   - `./stage/collection/$ID` for collections with collection id `$ID`
   - `./stage/terminology/$ID` for terminologies with BARTOC id `$ID`
 - `./data` a directory read RDF data from (not required if running from sources)
 
-There is a utility script to receive and load terminologies metadata and collections metadata with one command:
+## Configuration
 
-`./import-metadata`
+Environment variables:
+
+- `SPARQL`: API endpoint of SPARQL Query protocol. Default: <http://localhost:3030/n4o>.
+- `SPARQL_UPDATE`: API endpoint of SPARQL Update protocol. Default: same as `SPARQL`
+- `SPARQL_STORE`: API endpoint of SPARQL Graph store protocol. Default: same as `SPARQL`
+- `STAGE`: stage directory. Default `stage`
+
+## Commands
+
+Main entry script `./importer.sh` lists all available commands.
 
 ### Import terminologies
 
@@ -86,25 +95,19 @@ This creates `stage/collection/collections.ttl`. To load its content into the Kn
 
 Note this overrides the `issued` date of imported collection data (this may be fixed later).
 
-*Receiving data from individual collections has not been fully implemented yet!*
+To receive collection data from where it has been published, do quality analysis and convert it to RDF run:
 
 ~~~sh
 ./receive-collection 0
 ~~~
+
+*Receiving data has not been fully implemented yet!*
 
 Load collection data and metadata from stage directory into triple store:
 
 ~~~sh
 ./load-collection 0     # change to another collection id except for testing
 ~~~
-
-## Configuration
-
-Environment variables:
-
-- `SPARQL`: API endpoint of SPARQL Update protocol. Default: <http://localhost:3030/n4o>.
-- `SPARQL_UPDATE`: API endpoint of SPARQL Graph store protocol. Default: same as `SPARQL`
-- `STAGE`: stage directory. Default `stage`
 
 ## Development
 
