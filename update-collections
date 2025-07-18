@@ -6,11 +6,16 @@ csv=$STAGE/collection/collections.csv
 json=$STAGE/collection/collections.json
 ttl=$STAGE/collection/collections.ttl
 
-# TODO: allow to configure URL with env COLLECTIONS=
-url=https://github.com/nfdi4objects/n4o-databases/raw/refs/heads/main/n4o-collections.csv
+url=${1:-https://github.com/nfdi4objects/n4o-databases/raw/refs/heads/main/n4o-collections.csv}
 
 echo "Updating collections from $url"
-curl -L --silent --fail $url -o $csv
+
+if [[ -f "$url" ]]; then
+  cp "$url" "$csv"
+else
+  curl -L --silent --fail $url -o $csv
+fi
+
 wc -l $csv
 
 npm run --silent -- csv2json < $csv > $json

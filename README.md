@@ -87,6 +87,8 @@ Collections are currently managed [in a CSV file](https://github.com/nfdi4object
 ./update-collections
 ~~~
 
+Optionally pass a local `.csv` file or an URL to load list of collections from.
+
 This creates `stage/collection/collections.ttl`. To load its content into the Knowledge Graph run:
 
 ~~~sh
