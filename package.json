@@ -4,12 +4,15 @@
   "scripts": {
     "test": "./test/test.sh",
     "rdffilter": "rdffilter",
+    "ajv": "ajv --spec draft2020 -c ajv-formats",
     "jsonld2rdf": "jsonld2rdf",
     "csv2json": "node js/csv2json.js",
     "update-terminologies": "node js/update-terminologies.js",
     "lint": "eslint --fix '*.js'"
   },
   "dependencies": {
+    "ajv-cli": "^5.0.0",
+    "ajv-formats": "^3.0.1",
     "csv-parser": "^3.2.0",
     "jsonld2rdf": "^0.5.1",
     "rdffilter": "^0.4.0"

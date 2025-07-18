@@ -32,6 +32,10 @@ Environment variables:
 - `SPARQL_STORE`: API endpoint of SPARQL Graph store protocol. Default: same as `SPARQL`
 - `STAGE`: stage directory. Default `stage`
 
+## Collection metadata
+
+Collections are specified in a JSON format described by JSON Schema [collection-schema.json](collection-schema.json).
+
 ## Commands
 
 Main entry script `./importer.sh` lists all available commands.
@@ -87,7 +91,7 @@ Collections are currently managed [in a CSV file](https://github.com/nfdi4object
 ./update-collections
 ~~~
 
-Optionally pass a local `.csv` file or an URL to load list of collections from.
+Optionally pass a local `.json` file or an URL to load list of collections from (see [Collection metadata](#collections-metadata).
 
 This creates `stage/collection/collections.ttl`. To load its content into the Knowledge Graph run:
 

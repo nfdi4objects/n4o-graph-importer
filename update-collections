@@ -11,14 +11,15 @@ url=${1:-https://github.com/nfdi4objects/n4o-databases/raw/refs/heads/main/n4o-c
 echo "Updating collections from $url"
 
 if [[ -f "$url" ]]; then
-  cp "$url" "$csv"
+  cp "$url" "$json"
 else
   curl -L --silent --fail $url -o $csv
+  wc -l $csv
+  npm run --silent -- csv2json < $csv > $json
 fi
 
-wc -l $csv
+npm run --silent -- ajv validate -s collection-schema.json -d $json
 
-npm run --silent -- csv2json < $csv > $json
 npm run --silent -- jsonld2rdf -c collection-context.json $json > $ttl
 
 echo $ttl
