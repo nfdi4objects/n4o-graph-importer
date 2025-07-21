@@ -3,15 +3,18 @@ from waitress import serve
 import argparse as AP
 import subprocess
 import csv
+from pathlib import Path    
 
 collections_file = 'stage/collection/collections.csv'
-collection_list = []
+collection_info_list = []
 
 
 def load_collections():
-    with open(collections_file) as csvfile:
-        reader = csv.DictReader(csvfile, delimiter=',', quotechar='|')
-        return [row for row in reader]
+    p = Path(collections_file)
+    if p.exists():
+        with p.open() as csvfile:
+            reader = csv.DictReader(csvfile, delimiter=',', quotechar='|')
+            return [row for row in reader]
     return []
 
 
@@ -28,10 +31,14 @@ def run_subprocess(args, timeout=20):
         return None, f"Process timed out.\n{exc}"
 
 
-def find_p(lst, p=lambda x: True):
-    '''Find object in list by predicate'''
-    return next((x for x in lst if p(x)), None)
+def preciate_find(lst, predicate=lambda x: True):
+    return next((x for x in lst if predicate(x)), None)
 
+def get_collection_info(id):
+    '''Get collection by ID'''
+    if collection_info := preciate_find(collection_info_list, lambda x: int(x['id']) == id):
+        return collection_info
+    return None
 
 app = Flask(__name__, template_folder='templates',
             static_folder='static', static_url_path='/assets')
@@ -49,26 +56,28 @@ def ping():
     res, err = run_subprocess(['uname', '-a'])
     return jsonify(result=res, err=err)
 
-
-@app.route('/collections')
-def collections():
-    '''List all collections'''
-    return jsonify(collection_list)
+@app.route('/collection_info', defaults={'id': None})
+@app.route('/collection_info/<int:id>')
+def collection_info(id):
+    '''Get collection information by ID or list all collections if no ID is provided'''
+    if not id:
+        return jsonify(collection_info_list)
+    if coll := get_collection_info(id):
+        return jsonify(coll)
+    return jsonify(error="collection not found", id=id), 404
 
 
 @app.route('/import_collection/<int:id>')
 def import_collection(id):
     '''Import a collection by ID'''
-    def hasId(x):
-        return x['id'] == str(id)
-    if coll := find_p(collection_list, hasId):
+    if coll := get_collection_info(id):
         url = coll['url']
         return jsonify(url=url)
     return jsonify(error="Collection not found", id=id), 404
 
 
 if __name__ == '__main__':
-    collection_list = load_collections()
+    collection_info_list = load_collections()
     parser = AP.ArgumentParser()
     parser.add_argument(
         '-w', '--wsgi', action=AP.BooleanOptionalAction, help="Use WSGI server")

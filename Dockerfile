@@ -1,51 +1,16 @@
-FROM node:bookworm
+FROM node:24-slim as builder
 
 WORKDIR /app
-
-# Install Debian packages
-COPY install-packages.sh .
+COPY . .
 RUN ./install-packages.sh
-
-# Copy and install node dependencies
-COPY package*.json ./
 RUN npm ci --omit=dev
 
-# Install Python dependencies
-COPY requirements.txt .
-RUN python3 -m venv .venv && . .venv/bin/activate && pip install -r requirements.txt
-
-# Copy scripts
-COPY utils.sh .
-COPY transform-rdf .
-COPY sparql-update .
-COPY load-rdf-graph .
-COPY js ./js
-
-COPY import-metadata .
-
-COPY import-collection .
-COPY update-collections .
-COPY receive-collection .
-COPY load-collection .
-COPY load-collection-metadata .
-COPY load-collections-metadata .
-
-COPY download-from-repository.py .
-
-COPY terminology-data.csv .
-COPY import-terminology .
-COPY update-terminologies .
-COPY receive-terminology .
-COPY load-terminologies-metadata .
-COPY load-terminology .
-
-COPY prefixes.json .
-COPY *-context.json .
-
-COPY importer.sh .
-
-# Allow to directly call scripts
+FROM python:3.12-slim
+WORKDIR /app
+COPY requirements.txt requirements.txt
+RUN pip3 install -r requirements.txt
+COPY --from=builder /app /app
 ENV PATH="/app:$PATH"
 
 ENTRYPOINT []
-CMD ["importer.sh"]
+CMD importer.sh ; python3 app.py
