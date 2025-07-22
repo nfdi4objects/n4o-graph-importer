@@ -2,9 +2,10 @@ from flask import Flask, jsonify, request
 from waitress import serve
 import argparse as AP
 import subprocess
-import csv
+import csv,json
 from pathlib import Path
-import requests
+from jsonschema import validate
+
 
 collections_dir = Path('stage/collection')
 collections_csv = collections_dir / 'collections.csv'
@@ -99,11 +100,22 @@ def collection():
     return collection_json()
 
 
-@app.route('/collection/<int:id>', methods=['GET'])
+@app.route('/collection/<int:id>', methods=['GET','PUT'])
 def collection_id(id):
-    '''Get collection information by ID '''
-    if coll := get_collection_id(id):
-        return jsonify(coll)
+    if request.method == 'PUT':
+        '''Update collection by ID'''
+        data = request.get_json()
+        with open('collection-schema.json', 'r') as f:
+            st = json.load(f) 
+        try:
+            validate(instance=data, schema=st)
+        except Exception as e:
+            return jsonify(error=str(e)), 400
+        return jsonify(message="Collection updated:", id=id, data=data), 200 
+    elif request.method == 'GET':
+        '''Get collection information by ID '''
+        if coll := get_collection_id(id):
+            return jsonify(coll)
     return jsonify(error="collection not found", id=id), 404
 
 
