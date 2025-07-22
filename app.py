@@ -56,20 +56,20 @@ app = Flask(__name__, template_folder='templates',
             static_folder='static', static_url_path='/assets')
 
 
-@app.route('/')
+@app.route('/', methods=['GET'])
 def home():
     '''Home page'''
     return jsonify(message="Welcome to the N4O REST API!")
 
 
-@app.route('/ping')
+@app.route('/ping', methods=['GET'])
 def ping():
     '''Ping endpoint to check the server status'''
     res, err = run_subprocess(['uname', '-a'])
     return jsonify(result=res, err=err)
 
 
-@app.route('/collection.json')
+@app.route('/collection.json', methods=['GET'])
 def collection_json():
     '''Get all collections in JSON format'''
     with open(collections_json, 'r') as f:
@@ -80,7 +80,7 @@ def collection_json():
     return jsonify(error=err), 500
 
 
-@app.route('/collection.ttl')
+@app.route('/collection.ttl', methods=['GET'])
 def collection_ttl():
     '''Get all collections in Turtle format'''
     with open(collections_ttl, 'r') as f:
@@ -91,7 +91,7 @@ def collection_ttl():
     return jsonify(error=err), 500
 
 
-@app.route('/collection')
+@app.route('/collection', methods=['GET'])
 def collection():
     accept = request.headers.get('Accept', 'application/json')
     if accept == 'text/turtle':
@@ -99,7 +99,7 @@ def collection():
     return collection_json()
 
 
-@app.route('/collection/<int:id>')
+@app.route('/collection/<int:id>', methods=['GET'])
 def collection_id(id):
     '''Get collection information by ID '''
     if coll := get_collection_id(id):
@@ -107,7 +107,7 @@ def collection_id(id):
     return jsonify(error="collection not found", id=id), 404
 
 
-@app.route('/collection/<int:id>.json')
+@app.route('/collection/<int:id>.json', methods=['GET'])
 def collection_id_json(id):
     '''Get collection file by ID '''
     if js_str := load_collection_file(id):
@@ -115,7 +115,7 @@ def collection_id_json(id):
     return jsonify(error="collection not found", id=id), 404
 
 
-@app.route('/import_collection/<int:id>')
+@app.route('/import_collection/<int:id>', methods=['GET'])
 def import_collection(id):
     '''Import a collection by ID'''
     if coll := get_collection_id(id):
