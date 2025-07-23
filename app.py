@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, redirect
 from waitress import serve
 import argparse as AP
 import subprocess
@@ -99,6 +99,18 @@ def collection():
         return collection_ttl()
     return collection_json()
 
+def add_collection(data):
+    '''Add a new collection'''
+    if not collections_csv.exists():
+        with collections_csv.open('w', newline='') as csvfile:
+            fieldnames = ['id', 'name', 'url','db','license','format','access']
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writeheader()
+    with collections_csv.open('a', newline='') as csvfile:
+        fieldnames = ['id', 'name', 'url','db','license','format','access']
+        print(data)
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writerow(data)
 
 @app.route('/collection/<int:id>', methods=['GET','PUT'])
 def collection_id(id):
@@ -109,6 +121,7 @@ def collection_id(id):
             st = json.load(f) 
         try:
             validate(instance=data, schema=st)
+            add_collection(data)
         except Exception as e:
             return jsonify(error=str(e)), 400
         return jsonify(message="Collection updated:", id=id, data=data), 200 
@@ -126,6 +139,11 @@ def collection_id_json(id):
         return js_str, 200, {'Content-Type': 'text/json'}
     return jsonify(error="collection not found", id=id), 404
 
+import requests
+@app.route('/collection/<int:id>.ttl', methods=['GET'])
+def collection_id_ttl(id):
+    host = 'https://graph.nfdi4objects.net' # TODO: local_host
+    return requests.get(f'{host}/collection/{id}').content, 200, {'Content-Type': 'text/turtle'}
 
 @app.route('/import_collection/<int:id>', methods=['GET'])
 def import_collection(id):
