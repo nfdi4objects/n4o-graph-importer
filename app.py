@@ -1,32 +1,35 @@
-from flask import Flask, jsonify, request, redirect
+from flask import Flask, jsonify, request
 from waitress import serve
+from jsonschema import validate
+from pathlib import Path
 import argparse as AP
 import subprocess
-import csv,json
-from pathlib import Path
-from jsonschema import validate
+import csv
+import json
+import requests
 
 
-collections_dir = Path('stage/collection')
-collections_csv = collections_dir / 'collections.csv'
-collections_ttl = collections_dir / 'collections.ttl'
-collections_json = collections_dir / 'collections.json'
+COLLECTIONS_DIR = Path('stage/collection')
+COLLECTIONS_CVS = COLLECTIONS_DIR / 'collections.csv'
+COLLECTIONS_TTL = COLLECTIONS_DIR / 'collections.ttl'
+COLLECTIONS_JSON = COLLECTIONS_DIR / 'collections.json'
+
 collection_info_list = []
 
 
 def load_collections():
-    if collections_csv.exists():
-        with collections_csv.open() as csvfile:
-            reader = csv.DictReader(csvfile, delimiter=',', quotechar='|')
-            return [row for row in reader]
+    if COLLECTIONS_CVS.exists():
+        with COLLECTIONS_CVS.open() as f:
+            dr = csv.DictReader(f, delimiter=',', quotechar='|')
+            return [row for row in dr]
     return []
 
 
 def load_collection_file(id):
-    f = collections_dir / str(id) / 'collection.json'
-    if f.exists():
-        with f.open() as jsonfile:
-            return jsonfile.read()
+    json_file = COLLECTIONS_DIR / str(id) / 'collection.json'
+    if json_file.exists():
+        with json_file.open() as f:
+            return f.read()
 
 
 def run_subprocess(args, timeout=20):
@@ -73,7 +76,7 @@ def ping():
 @app.route('/collection.json', methods=['GET'])
 def collection_json():
     '''Get all collections in JSON format'''
-    with open(collections_json, 'r') as f:
+    with open(COLLECTIONS_JSON, 'r') as f:
         res = f.read()
         err = "No JSON file found" if not res else None
     if res:
@@ -84,7 +87,7 @@ def collection_json():
 @app.route('/collection.ttl', methods=['GET'])
 def collection_ttl():
     '''Get all collections in Turtle format'''
-    with open(collections_ttl, 'r') as f:
+    with open(COLLECTIONS_TTL, 'r') as f:
         res = f.read()
         err = "No Turtle file found" if not res else None
     if res:
@@ -93,43 +96,26 @@ def collection_ttl():
 
 
 @app.route('/collection', methods=['GET'])
+@app.route('/collection/', methods=['GET'])
 def collection():
     accept = request.headers.get('Accept', 'application/json')
     if accept == 'text/turtle':
         return collection_ttl()
     return collection_json()
 
+
 def add_collection(data):
     '''Add a new collection'''
-    if not collections_csv.exists():
-        with collections_csv.open('w', newline='') as csvfile:
-            fieldnames = ['id', 'name', 'url','db','license','format','access']
+    if not COLLECTIONS_CVS.exists():
+        with COLLECTIONS_CVS.open('w', newline='') as csvfile:
+            fieldnames = ['id', 'name', 'url', 'db', 'license', 'format', 'access']
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             writer.writeheader()
-    with collections_csv.open('a', newline='') as csvfile:
-        fieldnames = ['id', 'name', 'url','db','license','format','access']
+    with COLLECTIONS_CVS.open('a', newline='') as csvfile:
+        fieldnames = ['id', 'name', 'url', 'db', 'license', 'format', 'access']
         print(data)
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writerow(data)
-
-@app.route('/collection/<int:id>', methods=['GET','PUT'])
-def collection_id(id):
-    if request.method == 'PUT':
-        '''Update collection by ID'''
-        data = request.get_json()
-        with open('collection-schema.json', 'r') as f:
-            st = json.load(f) 
-        try:
-            validate(instance=data, schema=st)
-            add_collection(data)
-        except Exception as e:
-            return jsonify(error=str(e)), 400
-        return jsonify(message="Collection updated:", id=id, data=data), 200 
-    elif request.method == 'GET':
-        '''Get collection information by ID '''
-        if coll := get_collection_id(id):
-            return jsonify(coll)
-    return jsonify(error="collection not found", id=id), 404
 
 
 @app.route('/collection/<int:id>.json', methods=['GET'])
@@ -139,19 +125,25 @@ def collection_id_json(id):
         return js_str, 200, {'Content-Type': 'text/json'}
     return jsonify(error="collection not found", id=id), 404
 
-import requests
+
 @app.route('/collection/<int:id>.ttl', methods=['GET'])
 def collection_id_ttl(id):
-    host = 'https://graph.nfdi4objects.net' # TODO: local_host
+    host = 'https://graph.nfdi4objects.net'  # TODO: local_host
     return requests.get(f'{host}/collection/{id}').content, 200, {'Content-Type': 'text/turtle'}
 
-@app.route('/import_collection/<int:id>', methods=['GET'])
-def import_collection(id):
-    '''Import a collection by ID'''
-    if coll := get_collection_id(id):
-        url = coll['url']
-        return jsonify(url=url)
-    return jsonify(error="Collection not found", id=id), 404
+
+@app.route('/collection/<int:id>', methods=['PUT'])
+def collection_id(id):
+    '''Update collection by ID'''
+    data = request.get_json()
+    with open('collection-schema.json', 'r') as f:
+        st = json.load(f)
+    try:
+        validate(instance=data, schema=st)
+        add_collection(data)
+    except Exception as e:
+        return jsonify(error=str(e)), 400
+    return jsonify(message="Collection updated:", id=id, data=data), 200
 
 
 if __name__ == '__main__':
