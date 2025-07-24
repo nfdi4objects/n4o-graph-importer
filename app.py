@@ -163,10 +163,19 @@ def collection_id(id):
 
 @app.route('/collection/<int:id>/receive', methods=['POST'])
 def collection_receive_id(id):
-    res = subprocess.run(f'$PWD/receive-collection {id}', shell=True, capture_output=True, text=True)
+    '''Receive a collection by ID'''
+    res = subprocess.run(f'./receive-collection {id}', shell=True, capture_output=True, text=True)
     if res.stderr:
         return jsonify(error=res.stderr), 500
-    return jsonify(message="Collection updated:", output=res.stdout, id=id), 200
+    return jsonify(message=f"receive {id} executed.", output=res.stdout, id=id), 200
+
+@app.route('/collection/<int:id>/import', methods=['POST'])
+def collection_import_id(id):
+    '''Import a collection by ID'''
+    res = subprocess.run(f'./import-collection {id}', shell=True, capture_output=True, text=True)
+    if res.stderr:
+        return jsonify(error=res.stderr), 500
+    return jsonify(message=f"import {id} executed.", output=res.stdout, id=id), 200
 
 
 if __name__ == '__main__':
