@@ -164,7 +164,11 @@ def collection_id(id):
 @app.route('/collection/<int:id>/receive', methods=['POST'])
 def collection_receive_id(id):
     '''Receive a collection by ID'''
-    res = subprocess.run(f'./receive-collection {id}', shell=True, capture_output=True, text=True)
+    if other_src := request.args.get('from',None):
+        fmt = request.args.get('format','')
+        res = subprocess.run(f'./receive-collection {id} {other_src} {fmt}', shell=True, capture_output=True, text=True)
+    else:
+        res = subprocess.run(f'./receive-collection {id}', shell=True, capture_output=True, text=True)
     if res.stderr:
         return jsonify(error=res.stderr), 500
     return jsonify(message=f"receive {id} executed.", output=res.stdout, id=id), 200
