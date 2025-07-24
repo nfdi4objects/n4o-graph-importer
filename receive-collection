@@ -39,7 +39,7 @@ echo "Receive $format data from $url"
 rm -rf $stage/download
 mkdir -p $stage/download
 
-./download-from-repository.py $url $stage/download
+./download-from-repository.py --progress off $url $stage/download  
 
 # TODO: support LIDO/XML via repository
 ./extract-rdf.py $stage/download $stage/triples.nt

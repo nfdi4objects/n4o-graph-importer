@@ -161,6 +161,14 @@ def collection_id(id):
     return jsonify(message="Collection updated:", id=id), 200
 
 
+@app.route('/collection/<int:id>/receive', methods=['POST'])
+def collection_receive_id(id):
+    res = subprocess.run(f'$PWD/receive-collection {id}', shell=True, capture_output=True, text=True)
+    if res.stderr:
+        return jsonify(error=res.stderr), 500
+    return jsonify(message="Collection updated:", output=res.stdout, id=id), 200
+
+
 if __name__ == '__main__':
 
     parser = AP.ArgumentParser()

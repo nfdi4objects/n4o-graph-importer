@@ -9,12 +9,13 @@ parser = argparse.ArgumentParser(
 parser.add_argument('doi', type=str, help="DOI")
 parser.add_argument('directory', type=str,
                     help="directory where to download data")
+parser.add_argument('-p','--progress', type=str, default='on', help="Show the progress of the download")
 args = parser.parse_args()
 
 try:
     # This downloads the data publication
     # TODO: also get metadata
-    datahugger.get(args.doi, args.directory)
+    datahugger.get(args.doi, args.directory,progress=('on'==args.progress))
     # TODO: generate datapackage?
 except Exception as e:
     sys.exit(e)
