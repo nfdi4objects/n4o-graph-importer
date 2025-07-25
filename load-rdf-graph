@@ -15,4 +15,4 @@ file=$2
 echo "Loading $file into graph $graph"
 curl --fail-with-body --silent -X PUT "$SPARQL_STORE" --header "Content-Type: text/turtle" \
     --url-query "graph=$graph" \
-    --upload-file "$file" || error "FAILED"
+    --upload-file "$file"

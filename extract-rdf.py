@@ -1,4 +1,4 @@
-#!./.venv/bin/python
+#!/usr/local/bin/python3
 
 """Extract all RDF turtle files from a directory. Supports .nt and .ttl files."""
 import sys
@@ -22,13 +22,12 @@ def main(args):
 
     triples = 0
     tmp = "tmp.nt"
-    with open(tmp, "w") as out:
+    with open(target, "w") as out:
         for triple in extractRDF(source):
             print(" ".join(triple) + " .", file=out)
             triples += 1
 
     if triples:
-        os.rename(tmp, target)
         print(f"extracted {triples} triples into {target}")
     else:
         print("No RDF found!")
