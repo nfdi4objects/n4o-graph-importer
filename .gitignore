@@ -7,3 +7,4 @@ stage/
 test/stage/
 *.tmp
 tmp/
+.vscode/settings.json
