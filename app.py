@@ -136,7 +136,7 @@ def collection_id_json(id):
 @app.route('/collection/<int:id>.ttl', methods=['GET'])
 def collection_id_ttl(id):
     '''Get collection by ID in Turtle format'''
-    host = 'https://graph.nfdi4objects.net'  # TODO: local_host
+    host = 'http://apis:8000' # Redirect to the API host
     return requests.get(f'{host}/collection/{id}').content, 200, {'Content-Type': 'text/turtle'}
 
 
