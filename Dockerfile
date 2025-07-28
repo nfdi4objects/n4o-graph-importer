@@ -9,4 +9,4 @@ RUN pip3 install -r requirements.txt
 ENV PATH="/app:$PATH"
 
 ENTRYPOINT []
-CMD ["sh", "-c", "importer.sh ; python3 app.py"]
+CMD ["start.sh"]
