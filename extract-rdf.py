@@ -24,8 +24,9 @@ def main(args):
     tmp = "tmp.nt"
     with open(target, "w") as out:
         for triple in extractRDF(source):
-            print(" ".join(triple) + " .", file=out)
-            triples += 1
+            if triple:
+                print(" ".join(triple) + " .", file=out)
+                triples += 1
 
     if triples:
         print(f"extracted {triples} triples into {target}")
