@@ -8,6 +8,7 @@ import csv
 import requests
 
 COLLECTION_SCHEMA = Path('collection-schema.json')
+COLLECTION_CTX = Path('collection-context.json')
 COLLECTIONS_DIR = Path('stage/collection')
 COLLECTIONS_CVS = COLLECTIONS_DIR / 'collections.csv'
 COLLECTIONS_TTL = COLLECTIONS_DIR / 'collections.ttl'
@@ -24,32 +25,21 @@ def s_read(file: Path, **kw):
     return None
 
 
-def load_csv_collections():
+def load_csv_collections(file_path=COLLECTIONS_CVS):
     '''Load collections from CSV file and return a list of dictionaries'''
-    def read(fp): return [row for row in csv.DictReader(fp, delimiter=',', quotechar='|')]
-    return s_read(COLLECTIONS_CVS, func=read)
+    def func(fp): return [row for row in csv.DictReader(fp, delimiter=',', quotechar='|')]
+    return s_read(file_path, func=func)
 
 
-def write_csv_collections(coll):
+def write_csv_collections(coll, file_path=COLLECTIONS_CVS):
     """Write collections to CSV file."""
     def write(f):
         writer = csv.DictWriter(f, fieldnames=FIELD_NAMES)
         writer.writeheader()
         for c in coll:
             writer.writerow(c)
-    with COLLECTIONS_CVS.open('w', newline='') as f:
+    with file_path.open('w', newline='') as f:
         write(f)
-
-
-def add_csv_item(item, id):
-    """Update collections with a new item."""
-    item['id'] = str(id)  # Reset ID to the provided one
-    items = load_csv_collections()
-    items = list(filter(lambda x: x['id'] != item['id'], items))
-    items.append(item)
-    items.sort(key=lambda x: int(x['id']))
-    write_csv_collections(items)
-    return items
 
 
 def load_collection_file(id):
@@ -84,13 +74,6 @@ app = Flask(__name__, template_folder='templates',
 def home():
     '''Home page'''
     return jsonify(message="Welcome to the N4O REST API!")
-
-
-@app.route('/ping', methods=['GET'])
-def ping():
-    '''Ping endpoint to check the server status'''
-    res, err = run_subprocess(['uname', '-a'])
-    return jsonify(result=res, err=err)
 
 
 @app.route('/collection.json', methods=['GET'])
@@ -136,27 +119,37 @@ def collection_id_json(id):
 @app.route('/collection/<int:id>.ttl', methods=['GET'])
 def collection_id_ttl(id):
     '''Get collection by ID in Turtle format'''
-    host = 'http://apis:8000' # Redirect to the API host
-    return requests.get(f'{host}/collection/{id}').content, 200, {'Content-Type': 'text/turtle'}
+    return requests.get(f'http://apis:8000/collection/{id}').content, 200, {'Content-Type': 'text/turtle'}
 
 
-def apply_csv():
-    """Apply the new CSV file to the collections."""
+def add_csv_item(item, id):
+    """Update/add the collections with a new item."""
+    item['id'] = str(id)  # Reset ID to the provided one
+    items = load_csv_collections()
+    items = list(filter(lambda x: x['id'] != item['id'], items))
+    items.append(item)
+    items.sort(key=lambda x: int(x['id']))
+    write_csv_collections(items)
+    return items
+
+
+def csv_to_json_ttl():
+    """Convert the current csv file to json and turtle files"""
     npm_cmd = '/usr/bin/npm run --silent -- '
-    run_s = lambda cmd: subprocess.run(f'{npm_cmd}{cmd} ', shell=True, capture_output=True, text=True)
+    def run_s(cmd): return subprocess.run(f'{npm_cmd}{cmd} ', shell=True, capture_output=True, text=True)
     run_s(f'csv2json < ./{COLLECTIONS_CVS} > ./{COLLECTIONS_JSON}')
-    run_s(f'ajv validate -s collection-schema.json -d {COLLECTIONS_JSON}')
-    run_s(f'jsonld2rdf -c collection-context.json {COLLECTIONS_JSON} > {COLLECTIONS_TTL}')
+    run_s(f'ajv validate -s {COLLECTION_SCHEMA} -d {COLLECTIONS_JSON}')
+    run_s(f'jsonld2rdf -c {COLLECTION_CTX} {COLLECTIONS_JSON} > {COLLECTIONS_TTL}')
 
 
 @app.route('/collection/<int:id>', methods=['PUT'])
 def collection_id(id):
-    '''Update collection by ID'''
+    '''Add/update a json item to the collection.'''
     try:
         data = request.get_json()
         data_fixed = {k: v for k, v in data.items() if k in FIELD_NAMES}
         add_csv_item(data_fixed, id)
-        apply_csv()
+        csv_to_json_ttl()
     except Exception as e:
         return jsonify(error=str(e)), 400
     return jsonify(message="Collection updated:", id=id), 200
@@ -164,23 +157,26 @@ def collection_id(id):
 
 @app.route('/collection/<int:id>/receive', methods=['POST'])
 def collection_receive_id(id):
-    '''Receive a collection by ID'''
-    if other_src := request.args.get('from',None):
-        fmt = request.args.get('format','')
-        res = subprocess.run(f'./receive-collection {id} {other_src} {fmt}', shell=True, capture_output=True, text=True)
+    '''Receive the data of a collection entry by.'''
+    cmds = ['./receive-collection', str(id)]
+    if other_src := request.args.get('from', None):
+        cmds.append(other_src)
+        if fmt := request.args.get('format', None):
+            cmds.append(fmt)
+    response = subprocess.run(cmds, capture_output=True, text=True)
+    if response.stderr:
+        return jsonify(error=response.stderr), 500
     else:
-        res = subprocess.run(f'./receive-collection {id}', shell=True, capture_output=True, text=True)
-    if res.stderr:
-        return jsonify(error=res.stderr), 500
-    return jsonify(message=f"receive {id} executed.", output=res.stdout, id=id), 200
+        return jsonify(message=f"receive {id} executed.", output=response.stdout, id=id), 200
+
 
 @app.route('/collection/<int:id>/import', methods=['POST'])
 def collection_import_id(id):
-    '''Import a collection by ID'''
-    res = subprocess.run(f'./import-collection {id}', shell=True, capture_output=True, text=True)
-    if res.stderr:
-        return jsonify(error=res.stderr), 500
-    return jsonify(message=f"import {id} executed.", output=res.stdout, id=id), 200
+    '''Import the data of an collection entry.'''
+    response = subprocess.run(f'./import-collection {id}', shell=True, capture_output=True, text=True)
+    if response.stderr:
+        return jsonify(error=response.stderr), 500
+    return jsonify(message=f"import {id} executed.", output=response.stdout, id=id), 200
 
 
 if __name__ == '__main__':
