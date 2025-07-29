@@ -1,11 +1,13 @@
 
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, make_response
 from waitress import serve
 from pathlib import Path
 import argparse as AP
 import subprocess
 import csv
-import requests
+import os
+from SPARQLWrapper import SPARQLWrapper
+
 
 COLLECTION_SCHEMA = Path('collection-schema.json')
 COLLECTION_CTX = Path('collection-context.json')
@@ -46,24 +48,6 @@ def load_collection_file(id):
     """Load a collection file by ID and return its content."""
     json_file = COLLECTIONS_DIR / str(id) / 'collection.json'
     return s_read(json_file)
-
-
-def run_subprocess(args, timeout=20):
-    """Run a subprocess command and return the output."""
-    try:
-        res = subprocess.run(args, capture_output=True, text=True, check=True, timeout=timeout)
-        return res.stdout, res.stderr
-    except FileNotFoundError as exc:
-        return None, f"Process failed because the executable could not be found.\n{exc}"
-    except subprocess.CalledProcessError as exc:
-        return exc.stdout, exc.stderr
-    except subprocess.TimeoutExpired as exc:
-        return None, f"Process timed out.\n{exc}"
-
-
-def preciate_find(lst, predicate=lambda x: True):
-    """Find the first item in a list that matches a predicate."""
-    return next((x for x in lst if predicate(x)), None)
 
 
 app = Flask(__name__, template_folder='templates',
@@ -116,10 +100,26 @@ def collection_id_json(id):
     return jsonify(error="collection not found", id=id), 404
 
 
+def sparql_request(query):
+    '''Make a SPARQL request to the Fuseki server and return the result in Turtle format.'''
+    spaql_url = os.environ.get('SPARQL', 'http://localhost:3030/n4o')
+    fuseki_w = SPARQLWrapper(spaql_url)
+    fuseki_w.setQuery(query)
+    fuseki_w.addParameter("named-graph-uri", "https://graph.nfdi4objects.net/collection/")
+    return fuseki_w.queryAndConvert()
+
+
 @app.route('/collection/<int:id>.ttl', methods=['GET'])
 def collection_id_ttl(id):
     '''Get collection by ID in Turtle format'''
-    return requests.get(f'http://apis:8000/collection/{id}').content, 200, {'Content-Type': 'text/turtle'}
+    graph = sparql_request(f"DESCRIBE <https://graph.nfdi4objects.net/collection/{str(id)}>")
+    if len(graph) > 0:
+        response = make_response(graph.serialize(format="turtle"), 200)
+        response.mimetype = "text/turtle"
+    else:
+        response = make_response("Not found", 404)
+        response.mimetype = "text/plain"
+    return response
 
 
 def add_csv_item(item, id):

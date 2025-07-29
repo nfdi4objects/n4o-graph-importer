@@ -5,3 +5,4 @@ waitress==3.0.2
 requests
 datahugger
 jsonschema
+SPARQLWrapper
