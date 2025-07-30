@@ -18,9 +18,8 @@ COLLECTIONS_JSON = COLLECTIONS_DIR / 'collections.json'
 FIELD_NAMES = ['id', 'name', 'url', 'db', 'license', 'format', 'access']
 
 
-def s_read(file: Path, **kw):
+def s_read(file: Path, func=lambda f: f.read(), **kw):
     """Open a file and apply a function"""
-    func = kw.get('func', lambda f: f.read())
     if file.exists():
         with file.open(mode='r') as f:
             return func(f)
@@ -29,7 +28,7 @@ def s_read(file: Path, **kw):
 
 def load_csv_collections(file_path=COLLECTIONS_CVS):
     '''Load collections from CSV file and return a list of dictionaries'''
-    def func(fp): return [row for row in csv.DictReader(fp, delimiter=',', quotechar='|')]
+    def func(fp): return [row for row in csv.DictReader(fp)]
     return s_read(file_path, func=func)
 
 
@@ -38,8 +37,7 @@ def write_csv_collections(coll, file_path=COLLECTIONS_CVS):
     def write(f):
         writer = csv.DictWriter(f, fieldnames=FIELD_NAMES)
         writer.writeheader()
-        for c in coll:
-            writer.writerow(c)
+        writer.writerows(coll)
     with file_path.open('w', newline='') as f:
         write(f)
 
@@ -59,6 +57,14 @@ def home():
     '''Home page'''
     return jsonify(message="Welcome to the N4O REST API!")
 
+@app.route('/initCT', methods=['GET'])
+def initCT():
+    '''Initialize the collections directory and create necessary files'''
+    res =subprocess.run(f'./init_ct.sh', shell=True, capture_output=True, text=True)
+    if res.returncode != 0:
+        return res.stdout, 200,  {'Content-Type': 'text/plain'}
+    else:
+        return jsonify(error=res.stderr), 500,  {'Content-Type': 'text/json'}
 
 @app.route('/collection.json', methods=['GET'])
 def collection_json():
