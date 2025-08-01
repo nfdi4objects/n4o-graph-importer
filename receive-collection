@@ -14,7 +14,7 @@ else                        # get source URL from collections database
 
   name=$(jq -r ".[]|select(.uri==\"$uri\")|.name" $collections)
   [[ -n "$name" ]] || error "Collection $id not found!"
-  echo $name
+  echo "Name: $name"
 
   # create collection.json and collection.nt
 
@@ -28,7 +28,11 @@ else                        # get source URL from collections database
   format=$(jq -r ".access?.format // \"\" | split(\"/\")[-1]" $about)
 fi
 
-[[ -z "$url" ]] && error "Missing access URL to download collection data from!"
+echo $url
+
+if [[ -z "$url" ]]; then
+   format="rdf"
+fi
 
 # TODO: support OAI-PMH for LIDO/XML
 if [[ "$format" != "rdf" ]]; then
@@ -37,16 +41,23 @@ fi
 
 echo "Receive $format data from $url"
 
-rm -rf $stage/download
-mkdir -p $stage/download
+inbox=$STAGE/inbox/$id
+download_dir=$stage/download
 
-if  [[ $url == http* ]];then
-   ./download-from-repository.py --progress off $url $stage/download  
+rm -rf $download_dir
+mkdir -p $download_dir
+
+
+if [[ $url == *doi.org* ]]; then
+  ./download-from-repository.py $url $download_dir
+elif [[ $url == http* ]]; then
+  wget $url --directory-prefix $download_dir
+elif [[ -d $inbox ]]; then
+  cp $inbox/* $download_dir
 else
-    cp $url $stage/download
+  error "No valid source $url"
 fi
 
 # TODO: support LIDO/XML via repository
-./extract-rdf.py $stage/download $stage/triples.nt
+./extract-rdf.py $download_dir $stage/triples.nt
 ./transform-rdf $stage/triples.nt     # includes validation
-

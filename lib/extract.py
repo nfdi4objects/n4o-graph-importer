@@ -14,6 +14,8 @@ def extractRDF(source):
             format = "nt"
         elif name.endswith(".owl"):
             format = "owl"
+        elif name.endswith(".rdf"):
+            format = "xml"
         else:
             # TODO: support more RDF serialization formats, in particular RDF/XML
             continue
@@ -29,7 +31,7 @@ def extractRDF(source):
         print(file,base)
 
         try:
-            for triple in rdfparser.parse(file):
+            for triple in rdfparser.parse(file,format=format):
                 yield triple
         except Exception as e:
             print(f"Error parsing {file}: {e} {base}")

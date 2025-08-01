@@ -61,10 +61,9 @@ def home():
 def initCT():
     '''Initialize the collections directory and create necessary files'''
     res =subprocess.run(f'./init_ct.sh', shell=True, capture_output=True, text=True)
-    if res.returncode != 0:
-        return res.stdout, 200,  {'Content-Type': 'text/plain'}
-    else:
+    if res.stderr:
         return jsonify(error=res.stderr), 500,  {'Content-Type': 'text/json'}
+    return res.stdout, 200,  {'Content-Type': 'text/plain'}
 
 @app.route('/collection.json', methods=['GET'])
 def collection_json():
