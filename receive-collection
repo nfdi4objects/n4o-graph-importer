@@ -51,7 +51,7 @@ mkdir -p $download_dir
 if [[ $url == *doi.org* ]]; then
   ./download-from-repository.py $url $download_dir
 elif [[ $url == http* ]]; then
-  wget $url --directory-prefix $download_dir
+  wget -q $url --directory-prefix $download_dir
 elif [[ -d $inbox ]]; then
   cp $inbox/* $download_dir
 else
