@@ -1,4 +1,3 @@
-
 from flask import Flask, jsonify, request, make_response
 from waitress import serve
 from pathlib import Path
@@ -57,13 +56,16 @@ def home():
     '''Home page'''
     return jsonify(message="Welcome to the N4O REST API!")
 
+
 @app.route('/initCT', methods=['GET'])
 def initCT():
     '''Initialize the collections directory and create necessary files'''
-    res =subprocess.run(f'./init_ct.sh', shell=True, capture_output=True, text=True)
+    res = subprocess.run(f'./init_ct.sh', shell=True,
+                         capture_output=True, text=True)
     if res.stderr:
         return jsonify(error=res.stderr), 500,  {'Content-Type': 'text/json'}
     return res.stdout, 200,  {'Content-Type': 'text/plain'}
+
 
 @app.route('/collection.json', methods=['GET'])
 def collection_json():
@@ -110,14 +112,16 @@ def sparql_request(query):
     spaql_url = os.environ.get('SPARQL', 'http://localhost:3030/n4o')
     fuseki_w = SPARQLWrapper(spaql_url)
     fuseki_w.setQuery(query)
-    fuseki_w.addParameter("named-graph-uri", "https://graph.nfdi4objects.net/collection/")
+    fuseki_w.addParameter(
+        "named-graph-uri", "https://graph.nfdi4objects.net/collection/")
     return fuseki_w.queryAndConvert()
 
 
 @app.route('/collection/<int:id>.ttl', methods=['GET'])
 def collection_id_ttl(id):
     '''Get collection by ID in Turtle format'''
-    graph = sparql_request(f"DESCRIBE <https://graph.nfdi4objects.net/collection/{str(id)}>")
+    graph = sparql_request(
+        f"DESCRIBE <https://graph.nfdi4objects.net/collection/{str(id)}>")
     if len(graph) > 0:
         response = make_response(graph.serialize(format="turtle"), 200)
         response.mimetype = "text/turtle"
@@ -141,10 +145,12 @@ def add_csv_item(item, id):
 def csv_to_json_ttl():
     """Convert the current csv file to json and turtle files"""
     npm_cmd = '/usr/bin/npm run --silent -- '
-    def run_s(cmd): return subprocess.run(f'{npm_cmd}{cmd} ', shell=True, capture_output=True, text=True)
+    def run_s(cmd): return subprocess.run(
+        f'{npm_cmd}{cmd} ', shell=True, capture_output=True, text=True)
     run_s(f'csv2json < ./{COLLECTIONS_CVS} > ./{COLLECTIONS_JSON}')
     run_s(f'ajv validate -s {COLLECTION_SCHEMA} -d {COLLECTIONS_JSON}')
-    run_s(f'jsonld2rdf -c {COLLECTION_CTX} {COLLECTIONS_JSON} > {COLLECTIONS_TTL}')
+    run_s(
+        f'jsonld2rdf -c {COLLECTION_CTX} {COLLECTIONS_JSON} > {COLLECTIONS_TTL}')
 
 
 @app.route('/collection/<int:id>', methods=['PUT'])
@@ -178,7 +184,8 @@ def collection_receive_id(id):
 @app.route('/collection/<int:id>/import', methods=['POST'])
 def collection_import_id(id):
     '''Import the data of an collection entry.'''
-    response = subprocess.run(f'./import-collection {id}', shell=True, capture_output=True, text=True)
+    response = subprocess.run(
+        f'./import-collection {id}', shell=True, capture_output=True, text=True)
     if response.stderr:
         return jsonify(error=response.stderr), 500
     return jsonify(message=f"import {id} executed.", output=response.stdout, id=id), 200

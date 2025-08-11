@@ -7,6 +7,9 @@ deps:
 test:
 	@.venv/bin/pytest
 
+dev:
+	@.venv/bin/python app.py
+
 lint:
 	@.venv/bin/flake8 *.py --ignore=C901,E741 --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
