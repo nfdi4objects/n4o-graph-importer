@@ -8,7 +8,8 @@
     "jsonld2rdf": "jsonld2rdf",
     "csv2json": "node js/csv2json.js",
     "update-terminologies": "node js/update-terminologies.js",
-    "lint": "eslint --fix '*.js'"
+    "lint": "eslint --fix '*.js'",
+    "app": "nodemon --exec .venv/bin/python app.py"
   },
   "dependencies": {
     "ajv-cli": "^5.0.0",
@@ -18,6 +19,7 @@
     "rdffilter": "^0.4.0"
   },
   "devDependencies": {
-    "eslint": "^9.23.0"
+    "eslint": "^9.23.0",
+    "nodemon": "^3.1.10"
   }
 }

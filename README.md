@@ -23,6 +23,24 @@ Two Docker volumes (or local directories) are used to store files:
   - `./stage/terminology/$ID` for terminologies with BARTOC id `$ID`
 - `./data` a directory read RDF data from (not required if running from sources)
 
+## API
+
+### GET /collection
+
+...
+
+### GET /collection/:id 
+
+...
+
+### POST /collection/:id/receive
+
+...
+
+### POST /collection/:id/import
+
+...
+
 ## Configuration
 
 Environment variables:

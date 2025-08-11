@@ -1,7 +1,7 @@
-from flask import Flask, jsonify, request, make_response
+from flask import Flask, jsonify, request, make_response, render_template
 from waitress import serve
 from pathlib import Path
-import argparse as AP
+import argparse
 import subprocess
 import csv
 import os
@@ -47,14 +47,12 @@ def load_collection_file(id):
     return s_read(json_file)
 
 
-app = Flask(__name__, template_folder='templates',
-            static_folder='static', static_url_path='/assets')
+app = Flask(__name__)
 
 
 @app.route('/', methods=['GET'])
 def home():
-    '''Home page'''
-    return jsonify(message="Welcome to the N4O REST API!")
+    return render_template('index.html', name="N4O Graph Import API")
 
 
 @app.route('/initCT', methods=['GET'])
@@ -192,12 +190,12 @@ def collection_import_id(id):
 
 
 if __name__ == '__main__':
-
-    parser = AP.ArgumentParser()
+    parser = argparse.ArgumentParser()
     parser.add_argument(
-        '-w', '--wsgi', action=AP.BooleanOptionalAction, help="Use WSGI server")
+        '-w', '--wsgi', action=argparse.BooleanOptionalAction, help="Use WSGI server")
     parser.add_argument('-p', '--port', type=int,
                         default=5020, help="Server port")
+    parser.add_argument('-d', '--debug', action=argparse.BooleanOptionalAction)
     args = parser.parse_args()
     opts = {"port": args.port}
     if args.wsgi:

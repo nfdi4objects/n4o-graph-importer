@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>{{ name }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style type="text/css">
+    body {
+      margin: 20px;
+    }
+    a:link, a:visited {
+      text-decoration: none;
+      color: rgb(96, 143, 219);
+    }
+    a:hover, a:active {
+      text-decoration: underline;
+    }
+    .ws-endpoint {
+      display: inline-block;
+      background-color:#29517C ;
+      color: white;
+      font-size: 0.75em;
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+    </style>
+  </head>
+  <body>
+    <h1>{{ name }}</h1>  
+    <p>For internal use only!</p>
+    <h2>Available Endpoints</h2>
+    <h3>Collections</h3>
+    <ul>
+      <li>GET <a href="/initCT">/initCT</a> - Initializes list of collections and terminologies (<em>this will be removed</em>)</li>
+      <li>
+        GET <a href="/collection/">/collection/</a> - Returns list of registered collections (<a href="https://github.com/nfdi4objects/n4o-graph-importer#get-collection" target="_blank">documentation</a>)
+        <ul>
+         <li><a href="/collection.json">/collection.json</a> - JSON format</li>
+         <li><a href="/collection.ttl">/collection.ttl</a> - RDF/Turte</li>
+        </ul>
+      </li>
+      <li>
+        GET /collection/:id - Returns metadata of a specific registered collection (<a href="https://github.com/nfdi4objects/n4o-graph-importer#get-collection_id" target="_blank">documentation</a>)
+      </li>
+      <li style="text-decoration: line-through;">
+        PUT /collection/:id - Updates metadata of a specific existing or newly registered collection (<a href="https://github.com/nfdi4objects/n4o-graph-importer#put-collection_id" target="_blank">documentation</a>)
+      </li>
+      <li style="text-decoration: line-through;">
+        DELETE /collection/:id - Unregister a collection and remove it from the knowledge graph (<a href="https://github.com/nfdi4objects/n4o-graph-importer#delete-collection_id" target="_blank">documentation</a>)
+      </li>
+      <li>
+        POST /collection/:id/receive - ... (<a href="https://github.com/nfdi4objects/n4o-graph-importer#post-collection_id_receive" target="_blank">documentation</a>)
+      </li>
+      <li>
+        POST /collection/:id/import - ... (<a href="https://github.com/nfdi4objects/n4o-graph-importer#post-collection_id_import" target="_blank">documentation</a>)
+      </li>
+    </ul>
+    <h3>Terminologies</h3>
+    <ul>
+      <li>...</li>
+    </ul>
+  </body>
+</html>
