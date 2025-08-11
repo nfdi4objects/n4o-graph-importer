@@ -25,23 +25,37 @@ Two Docker volumes (or local directories) are used to store files:
 
 ## API
 
+Collections are described in a custom JSON format described by JSON Schema [collection-schema.json](collection-schema.json). The JSON is internally converted to RDF for import into the knowledge graph.
+
 ### GET /collection
 
-Returns list of registered collections. Can also be called as `/collection.json`.
+Returns list of registered collections with their metadata.
 
 ### GET /collection/:id 
 
 Returns metadata of a specific registered collection.
 
+### PUT /collection/:id 
+
+Updates metadata of a specific registered collection. The updated metadata is not imported into the triple store!
+
+### POST /collection
+
+Register a new collection. The metadata is not imported into the triple store!
+
 ### DELETE /collection/:id 
 
 Unregister a collection by removing its metadata and its staging are. This does not remove any data from the triple store!
+
+### GET /collection/:id/:file
+
+Returns a file from the staging area of a registered collection.
 
 ### POST /collection/:id/receive
 
 Receive and process collection data. Optional query parameters:
 
-- from
+- from (URL or local file in data directory)
 - format
 
 ### POST /collection/:id/import
@@ -52,6 +66,18 @@ Load received and processed collection data into the triple store.
 
 Delete collection data from the knowledge graph and from staging area. The collection will still be registered.
 
+### GET /terminology
+
+...
+
+### GET /terminology/:id
+
+...
+
+### GET /terminology/:id/:file
+
+Returns a file from the staging area of a registered terminology.
+
 ## Configuration
 
 Environment variables:
@@ -60,10 +86,6 @@ Environment variables:
 - `SPARQL_UPDATE`: API endpoint of SPARQL Update protocol. Default: same as `SPARQL`
 - `SPARQL_STORE`: API endpoint of SPARQL Graph store protocol. Default: same as `SPARQL`
 - `STAGE`: stage directory. Default `stage`
-
-## Collection metadata
-
-Collections are specified in a JSON format described by JSON Schema [collection-schema.json](collection-schema.json).
 
 ## Commands
 

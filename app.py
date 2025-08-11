@@ -66,7 +66,6 @@ def initCT():
 
 
 @app.route('/collection', methods=['GET'])
-@app.route('/collection.json', methods=['GET'])
 def collection_json():
     '''Get all collections in JSON format'''
     with open(COLLECTIONS_JSON, 'r') as f:
@@ -77,8 +76,8 @@ def collection_json():
     return jsonify(error=err), 500
 
 
-@app.route('/collection/<int:id>.json', methods=['GET'])
-def collection_id_json(id):
+@app.route('/collection/<int:id>', methods=['GET'])
+def collection_id(id):
     '''Get collection by ID in JSON format'''
     if js_str := load_collection_file(id):
         return js_str, 200, {'Content-Type': 'text/json'}

@@ -36,18 +36,23 @@
     </ul>
     <h3>Collections</h3>
     <ul>
-      <li>GET <a href="/initCT">/initCT</a> - Initializes list of collections and terminologies (<em>this will be removed</em>)</li>
       <li>
         GET <a href="/collection/">/collection/</a> - Returns list of registered collections (<a href="https://github.com/nfdi4objects/n4o-graph-importer#get-collection" target="_blank">documentation</a>)
       </li>
       <li>
         GET /collection/:id - Returns metadata of a specific registered collection (<a href="https://github.com/nfdi4objects/n4o-graph-importer#get-collection_id" target="_blank">documentation</a>)
       </li>
+      <li>
+        PUT /collection/:id - Updates metadata of a specific registered collection (<a href="https://github.com/nfdi4objects/n4o-graph-importer#put-collection_id" target="_blank">documentation</a>)
+      </li>
       <li style="text-decoration: line-through;">
-        PUT /collection/:id - Updates metadata of a specific existing or newly registered collection (<a href="https://github.com/nfdi4objects/n4o-graph-importer#put-collection_id" target="_blank">documentation</a>)
+        POST /collection - Register a new collection (<a href="https://github.com/nfdi4objects/n4o-graph-importer#post-collection" target="_blank">documentation</a>)
       </li>
       <li style="text-decoration: line-through;">
         DELETE /collection/:id - Unregister a collection and remove it from the knowledge graph (<a href="https://github.com/nfdi4objects/n4o-graph-importer#delete-collection_id" target="_blank">documentation</a>)
+      </li>
+      <li style="text-decoration: line-through;">
+        GET /collection/:id/:file - Returns a file from the staging area of a registered collection (<a href="https://github.com/nfdi4objects/n4o-graph-importer#get-collection_id_file" target="_blank">documentation</a>)
       </li>
       <li>
         POST /collection/:id/receive - Receive and process collection data (<a href="https://github.com/nfdi4objects/n4o-graph-importer#post-collection_id_receive" target="_blank">documentation</a>)
@@ -56,12 +61,24 @@
         POST /collection/:id/import - Load received and processed collection data into the triple store (<a href="https://github.com/nfdi4objects/n4o-graph-importer#post-collection_id_import" target="_blank">documentation</a>)
       </li>
       <li style="text-decoration: line-through;">
-        POST /collection/:id/delete - Delete collection data from the knowledge graph and from staging area (<a href="https://github.com/nfdi4objects/n4o-graph-importer#post-collection_id_delete" target="_blank">documentation</a>)
+        DELETE /collection/:id/delete - Delete collection data from the knowledge graph and from staging area (<a href="https://github.com/nfdi4objects/n4o-graph-importer#post-collection_id_delete" target="_blank">documentation</a>)
       </li>
     </ul>
     <h3>Terminologies</h3>
+    <p>Not implemented yet!</p>
     <ul>
-      <li>...</li>
+      <li>
+        GET /terminology - ... (<a href="https://github.com/nfdi4objects/n4o-graph-importer#get-terminology" target="_blank">documentation</a>)
+      </li>
+      <li>
+        GET /terminology/:id - ... (<a href="https://github.com/nfdi4objects/n4o-graph-importer#get-terminology_id" target="_blank">documentation</a>)
+      </li>
+      <li>
+        ...
+      </li>
+      <li style="text-decoration: line-through;">
+        GET /terminology/:id/:file - Returns a file from the staging area of a registered terminology (<a href="https://github.com/nfdi4objects/n4o-graph-importer#get-terminology_id_file" target="_blank">documentation</a>)
+      </li>
     </ul>
   </body>
 </html>
