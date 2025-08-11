@@ -65,6 +65,7 @@ def initCT():
     return res.stdout, 200,  {'Content-Type': 'text/plain'}
 
 
+@app.route('/collection', methods=['GET'])
 @app.route('/collection.json', methods=['GET'])
 def collection_json():
     '''Get all collections in JSON format'''
@@ -76,57 +77,12 @@ def collection_json():
     return jsonify(error=err), 500
 
 
-@app.route('/collection.ttl', methods=['GET'])
-def collection_ttl():
-    '''Get all collections in Turtle format'''
-    with open(COLLECTIONS_TTL, 'r') as f:
-        res = f.read()
-        err = "No Turtle file found" if not res else None
-    if res:
-        return res, 200, {'Content-Type': 'text/turtle'}
-    return jsonify(error=err), 500
-
-
-@app.route('/collection', methods=['GET'])
-@app.route('/collection/', methods=['GET'])
-def collection():
-    '''Return collections in JSON or Turtle format based on the Accept header'''
-    accept = request.headers.get('Accept', 'application/json')
-    if accept == 'text/turtle':
-        return collection_ttl()
-    return collection_json()
-
-
 @app.route('/collection/<int:id>.json', methods=['GET'])
 def collection_id_json(id):
     '''Get collection by ID in JSON format'''
     if js_str := load_collection_file(id):
         return js_str, 200, {'Content-Type': 'text/json'}
     return jsonify(error="collection not found", id=id), 404
-
-
-def sparql_request(query):
-    '''Make a SPARQL request to the Fuseki server and return the result in Turtle format.'''
-    spaql_url = os.environ.get('SPARQL', 'http://localhost:3030/n4o')
-    fuseki_w = SPARQLWrapper(spaql_url)
-    fuseki_w.setQuery(query)
-    fuseki_w.addParameter(
-        "named-graph-uri", "https://graph.nfdi4objects.net/collection/")
-    return fuseki_w.queryAndConvert()
-
-
-@app.route('/collection/<int:id>.ttl', methods=['GET'])
-def collection_id_ttl(id):
-    '''Get collection by ID in Turtle format'''
-    graph = sparql_request(
-        f"DESCRIBE <https://graph.nfdi4objects.net/collection/{str(id)}>")
-    if len(graph) > 0:
-        response = make_response(graph.serialize(format="turtle"), 200)
-        response.mimetype = "text/turtle"
-    else:
-        response = make_response("Not found", 404)
-        response.mimetype = "text/plain"
-    return response
 
 
 def add_csv_item(item, id):

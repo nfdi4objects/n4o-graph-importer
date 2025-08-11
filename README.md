@@ -27,19 +27,30 @@ Two Docker volumes (or local directories) are used to store files:
 
 ### GET /collection
 
-...
+Returns list of registered collections. Can also be called as `/collection.json`.
 
 ### GET /collection/:id 
 
-...
+Returns metadata of a specific registered collection.
+
+### DELETE /collection/:id 
+
+Unregister a collection by removing its metadata and its staging are. This does not remove any data from the triple store!
 
 ### POST /collection/:id/receive
 
-...
+Receive and process collection data. Optional query parameters:
+
+- from
+- format
 
 ### POST /collection/:id/import
 
-...
+Load received and processed collection data into the triple store.
+
+### POST /collection/:id/delete
+
+Delete collection data from the knowledge graph and from staging area. The collection will still be registered.
 
 ## Configuration
 
