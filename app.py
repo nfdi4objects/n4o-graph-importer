@@ -10,11 +10,24 @@ from SPARQLWrapper import SPARQLWrapper
 
 COLLECTION_SCHEMA = Path('collection-schema.json')
 COLLECTION_CTX = Path('collection-context.json')
-COLLECTIONS_DIR = Path('stage/collection')
-COLLECTIONS_CVS = COLLECTIONS_DIR / 'collections.csv'
-COLLECTIONS_TTL = COLLECTIONS_DIR / 'collections.ttl'
-COLLECTIONS_JSON = COLLECTIONS_DIR / 'collections.json'
 FIELD_NAMES = ['id', 'name', 'url', 'db', 'license', 'format', 'access']
+
+app = Flask(__name__)
+app.config['STAGE'] = os.getenv('STAGE', 'stage')
+app.config['TITLE'] = os.getenv('TITLE', "N4O Graph Import API")
+
+
+def stage():
+    return Path(app.config['STAGE'])
+
+
+def init():
+    (stage() / "collection").mkdir(exist_ok=True)
+    file = stage() / "collection" / "collections.json"
+    if not file.exists():
+        with open(file, mode='w') as f:
+            f.write("[]")
+    (stage() / "terminology").mkdir(exist_ok=True)
 
 
 def s_read(file: Path, func=lambda f: f.read(), **kw):
@@ -25,14 +38,17 @@ def s_read(file: Path, func=lambda f: f.read(), **kw):
     return None
 
 
-def load_csv_collections(file_path=COLLECTIONS_CVS):
+def load_csv_collections():
     '''Load collections from CSV file and return a list of dictionaries'''
+    file_path = stage() / 'collection' / 'collections.csv'
     def func(fp): return [row for row in csv.DictReader(fp)]
     return s_read(file_path, func=func)
 
 
-def write_csv_collections(coll, file_path=COLLECTIONS_CVS):
+def write_csv_collections(coll):
     """Write collections to CSV file."""
+    file_path = stage() / 'collection' / 'collections.csv'
+
     def write(f):
         writer = csv.DictWriter(f, fieldnames=FIELD_NAMES)
         writer.writeheader()
@@ -43,16 +59,13 @@ def write_csv_collections(coll, file_path=COLLECTIONS_CVS):
 
 def load_collection_file(id):
     """Load a collection file by ID and return its content."""
-    json_file = COLLECTIONS_DIR / str(id) / 'collection.json'
+    json_file = stage() / 'collection' / str(id) / 'collection.json'
     return s_read(json_file)
-
-
-app = Flask(__name__)
 
 
 @app.route('/', methods=['GET'])
 def home():
-    return render_template('index.html', name="N4O Graph Import API")
+    return render_template('index.html', title=app.config['TITLE'])
 
 
 @app.route('/initCT', methods=['GET'])
@@ -61,26 +74,28 @@ def initCT():
     res = subprocess.run(f'./init_ct.sh', shell=True,
                          capture_output=True, text=True)
     if res.stderr:
-        return jsonify(error=res.stderr), 500,  {'Content-Type': 'text/json'}
+        return jsonify(error=res.stderr), 500,  {'Content-Type': 'application/json'}
     return res.stdout, 200,  {'Content-Type': 'text/plain'}
 
 
 @app.route('/collection', methods=['GET'])
+@app.route('/collection/', methods=['GET'])
 def collection_json():
     '''Get all collections in JSON format'''
+    COLLECTIONS_JSON = stage() / 'collection' / 'collections.json'
     with open(COLLECTIONS_JSON, 'r') as f:
         res = f.read()
         err = "No JSON file found" if not res else None
     if res:
-        return res, 200, {'Content-Type': 'text/json'}
+        return res, 200, {'Content-Type': 'application/json'}
     return jsonify(error=err), 500
 
 
 @app.route('/collection/<int:id>', methods=['GET'])
-def collection_id(id):
+def get_collection(id):
     '''Get collection by ID in JSON format'''
     if js_str := load_collection_file(id):
-        return js_str, 200, {'Content-Type': 'text/json'}
+        return js_str, 200, {'Content-Type': 'application/json'}
     return jsonify(error="collection not found", id=id), 404
 
 
@@ -97,6 +112,10 @@ def add_csv_item(item, id):
 
 def csv_to_json_ttl():
     """Convert the current csv file to json and turtle files"""
+    COLLECTIONS_CSV = stage() / 'collection' / 'collections.csv'
+    COLLECTIONS_JSON = stage() / 'collection' / 'collections.json'
+    COLLECTIONS_TTL = stage() / 'collection' / 'collections.ttl'
+
     npm_cmd = '/usr/bin/npm run --silent -- '
     def run_s(cmd): return subprocess.run(
         f'{npm_cmd}{cmd} ', shell=True, capture_output=True, text=True)
@@ -107,7 +126,7 @@ def csv_to_json_ttl():
 
 
 @app.route('/collection/<int:id>', methods=['PUT'])
-def collection_id(id):
+def put_collection(id):
     '''Add/update a json item to the collection.'''
     try:
         data = request.get_json()
@@ -153,6 +172,7 @@ if __name__ == '__main__':
     parser.add_argument('-d', '--debug', action=argparse.BooleanOptionalAction)
     args = parser.parse_args()
     opts = {"port": args.port}
+    init()
     if args.wsgi:
         serve(app, host="0.0.0.0", **opts)
     else:

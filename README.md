@@ -168,7 +168,7 @@ Load collection data and metadata from stage directory into triple store:
 
 ## Development
 
-See `test/test.sh` for a test script, also run via GitHub action.
+See `tests/test.sh` for a test script, also run via GitHub action.
 
 Locally build Docker image for testing:
 

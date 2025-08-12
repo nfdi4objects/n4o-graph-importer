@@ -15,4 +15,4 @@ jobs:
           node-version: 20
       - run: npm ci
       - name: Run test
-        run: ./test/test.sh
+        run: ./tests/test.sh

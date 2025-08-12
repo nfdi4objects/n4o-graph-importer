@@ -2,11 +2,15 @@
 set -euo pipefail
 cd $(dirname "$0")/..   # run from repository root directory
 
+
 SPARQL_PORT=3033
 export SPARQL=http://localhost:$SPARQL_PORT/n4o
-export STAGE=test/stage
+export STAGE=tests/stage
 
 XXXXXXXX() { echo; echo "### $@"; echo; }
+
+XXXXXXXX "Run Python test"
+.venv/bin/pytest
 
 XXXXXXXX "Start temporary triple store"
 
@@ -33,7 +37,7 @@ XXXXXXXX "Test updating terminologies and loading terminology metadata"
 
 XXXXXXXX "Test importing terminology"
 
-./import-terminology 18274 test/skos.rdf
+./import-terminology 18274 tests/skos.rdf
 
 XXXXXXXX "Test importing a collection"
 
@@ -45,10 +49,10 @@ stage=$STAGE/collection/0
 # mock receive => filtered.nt and collection.nt
 mkdir -p $stage 
 
-jq 'select(.id)|.uri="https://graph.nfdi4objects.net/collection/\(.id)"' test/collection.json > $stage/collection.json
+jq 'select(.id)|.uri="https://graph.nfdi4objects.net/collection/\(.id)"' tests/collection.json > $stage/collection.json
 npm run --silent -- jsonld2rdf -c collection-context.json $stage/collection.json > $stage/collection.nt
 
-cp test/data.ttl $stage/original.ttl
+cp tests/data.ttl $stage/original.ttl
 ./transform-rdf $stage/original.ttl
 
 # Import collection
