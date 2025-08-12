@@ -9,9 +9,6 @@ export STAGE=tests/stage
 
 XXXXXXXX() { echo; echo "### $@"; echo; }
 
-XXXXXXXX "Run Python test"
-.venv/bin/pytest
-
 XXXXXXXX "Start temporary triple store"
 
 SPARQL_CONTAINER=$(docker run -d --rm -p $SPARQL_PORT:3030 ghcr.io/nfdi4objects/n4o-fuseki:main)

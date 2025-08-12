@@ -1,7 +1,7 @@
 deps:
 	[ -d .venv ] || python3 -m venv .venv
 	.venv/bin/pip3 install -r requirements.txt
-	.venv/bin/pip3 install -r dev-requirements.txt
+	.venv/bin/pip3 install -r requirements-dev.txt
 	git submodule update --init
 
 .PHONY: test
