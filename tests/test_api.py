@@ -5,7 +5,7 @@ import json
 from app import app, init
 
 base = "https://graph.nfdi4objects.net/"
-dummy_collection = {
+collection_1 = {
   "id": "1",
   "name": "test collection",
   "url": "https://example.org/",
@@ -32,7 +32,7 @@ def test_home(client):
     assert resp.status_code == 200
     assert b"N4O Graph Import API TEST" in resp.data
 
-def test_collection(client):
+def test_empty_collection(client):
     resp = client.get('/collection')
     assert resp.status_code == 200
     assert resp.get_json() == []
@@ -40,21 +40,21 @@ def test_collection(client):
     resp = client.get('/collection/1')
     assert resp.status_code == 404
 
-def test_register_collections(client):
+def test_collection(client):
     resp = client.put('/collection/', json={})
     assert resp.status_code == 400
     assert b"Invalid collection metadata" in resp.data
 
-    resp = client.put('/collection/', json=[dummy_collection])
+    resp = client.put('/collection/', json=[collection_1])
     assert resp.status_code == 200
 
     resp = client.get('/collection/')
     assert resp.status_code == 200
-    assert resp.get_json() == [dummy_collection]
+    assert resp.get_json() == [collection_1]
 
     resp = client.get('/collection/1')
     assert resp.status_code == 200
-    assert resp.get_json() == dummy_collection
+    assert resp.get_json() == collection_1
 
     resp = client.delete('/collection/1')
     assert resp.status_code == 200
@@ -62,3 +62,9 @@ def test_register_collections(client):
     resp = client.get('/collection/1')
     assert resp.status_code == 404
 
+    resp = client.put('/collection/1', json=collection_1)
+    assert resp.status_code == 200  # TODO: should be 201 Created
+
+    resp = client.get('/collection/1')
+    assert resp.status_code == 200
+    assert resp.get_json() == collection_1
