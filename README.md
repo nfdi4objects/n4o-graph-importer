@@ -27,21 +27,25 @@ Two Docker volumes (or local directories) are used to store files:
 
 Collections are described in a custom JSON format described by JSON Schema [collection-schema.json](collection-schema.json). The JSON is internally converted to RDF for import into the knowledge graph.
 
-### GET /collection
+### GET /collection/
 
-Returns list of registered collections with their metadata.
+Returns list of registered collections with their metadata. Can also be called at `/collection`.
+
+### PUT /collection/
+
+Replace the list of registered collections. The metadata is not imported into the triple store!
 
 ### GET /collection/:id 
 
 Returns metadata of a specific registered collection.
 
-### PUT /collection/:id 
+### PUT /collection/:id
 
 Updates metadata of a specific registered collection. The updated metadata is not imported into the triple store!
 
-### POST /collection
+### POST /collection/
 
-Register a new collection. The metadata is not imported into the triple store!
+Register a new collection. The metadata is not imported into the triple store!.
 
 ### DELETE /collection/:id 
 
@@ -86,6 +90,7 @@ Environment variables:
 - `SPARQL_UPDATE`: API endpoint of SPARQL Update protocol. Default: same as `SPARQL`
 - `SPARQL_STORE`: API endpoint of SPARQL Graph store protocol. Default: same as `SPARQL`
 - `STAGE`: stage directory. Default `stage`
+- `TITLE`: title of the application. Default `N4O Graph Importer`
 
 ## Commands
 

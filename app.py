@@ -1,32 +1,56 @@
 from flask import Flask, jsonify, request, make_response, render_template
 from waitress import serve
 from pathlib import Path
+import json
 import argparse
 import subprocess
 import csv
 import os
+from shutil import rmtree
 from SPARQLWrapper import SPARQLWrapper
+from jsonschema import validate, ValidationError
 
-
-COLLECTION_SCHEMA = Path('collection-schema.json')
-COLLECTION_CTX = Path('collection-context.json')
-FIELD_NAMES = ['id', 'name', 'url', 'db', 'license', 'format', 'access']
 
 app = Flask(__name__)
 app.config['STAGE'] = os.getenv('STAGE', 'stage')
-app.config['TITLE'] = os.getenv('TITLE', "N4O Graph Import API")
+app.config['TITLE'] = os.getenv('TITLE', 'N4O Graph Importer')
+app.config['SPARQL'] = os.getenv('SPARQL', 'http://localhost:3030/n4o')
+app.config['SPARQL_UPDATE'] = os.getenv('SPARQL_UPDATE', app.config['SPARQL'])
+app.config['SPARQL_STORE'] = os.getenv('SPARQL_STORE', app.config['SPARQL'])
 
+collection_schema = {}
+
+FIELD_NAMES = ['id', 'name', 'url', 'db', 'license', 'format', 'access']
 
 def stage():
     return Path(app.config['STAGE'])
 
 
+def collections_file():
+    return stage() / "collection" / "collections.json"
+
+
+def load_collection_file(id):
+    json_file = stage() / 'collection' / str(id) / 'collection.json'
+    return s_read(json_file)
+
+
+def read_json_file(file):
+    with open(file) as f:
+        return json.load(f)
+
+def write_json_file(file, data):
+    with open(file, "w") as f:
+        f.write(json.dumps(data, indent=4))
+
+collection_schema = read_json_file('collection-schema.json')
+
+
 def init():
     (stage() / "collection").mkdir(exist_ok=True)
-    file = stage() / "collection" / "collections.json"
+    file = collections_file()
     if not file.exists():
-        with open(file, mode='w') as f:
-            f.write("[]")
+        write_json_file(file, [])
     (stage() / "terminology").mkdir(exist_ok=True)
 
 
@@ -57,17 +81,6 @@ def write_csv_collections(coll):
         write(f)
 
 
-def load_collection_file(id):
-    """Load a collection file by ID and return its content."""
-    json_file = stage() / 'collection' / str(id) / 'collection.json'
-    return s_read(json_file)
-
-
-@app.route('/', methods=['GET'])
-def home():
-    return render_template('index.html', title=app.config['TITLE'])
-
-
 @app.route('/initCT', methods=['GET'])
 def initCT():
     '''Initialize the collections directory and create necessary files'''
@@ -78,25 +91,73 @@ def initCT():
     return res.stdout, 200,  {'Content-Type': 'text/plain'}
 
 
+@app.route('/', methods=['GET'])
+def index():
+    return render_template('index.html', title=app.config['TITLE'])
+
+
 @app.route('/collection', methods=['GET'])
 @app.route('/collection/', methods=['GET'])
-def collection_json():
-    '''Get all collections in JSON format'''
-    COLLECTIONS_JSON = stage() / 'collection' / 'collections.json'
-    with open(COLLECTIONS_JSON, 'r') as f:
+def collections():
+    file = collections_file()
+    with open(file, 'r') as f:
         res = f.read()
-        err = "No JSON file found" if not res else None
-    if res:
-        return res, 200, {'Content-Type': 'application/json'}
-    return jsonify(error=err), 500
+        if res:
+            return res, 200, {'Content-Type': 'application/json'}
+        else:
+            return jsonify(error=f'Missing {file}'), 500
+
+
+@app.route('/collection', methods=['PUT'])
+@app.route('/collection/', methods=['PUT'])
+def put_collections():
+    try:
+        data = request.get_json(force=True)
+        if type(data) is not list:
+            raise ValidationError("Expected list of collections")
+        # TODO: check "id" and "uri" match
+        validate(instance=data, schema=collection_schema)
+        write_json_file(collections_file(), data)
+        return jsonify(data), 200
+    except ValidationError as e:
+        return jsonify(error="Invalid collection metadata"), 400
+    except Exception as e:
+        return jsonify(error="Missing or malformed JSON body"), 400
 
 
 @app.route('/collection/<int:id>', methods=['GET'])
 def get_collection(id):
-    '''Get collection by ID in JSON format'''
-    if js_str := load_collection_file(id):
-        return js_str, 200, {'Content-Type': 'application/json'}
-    return jsonify(error="collection not found", id=id), 404
+    try:
+        data = read_json_file(collections_file())
+        data = next(c for c in data if c["id"] == str(id))
+        return jsonify(data)
+    except StopIteration:
+        return jsonify(error="collection {id} not found"), 404
+
+@app.route('/collection/<int:id>', methods=['PUT'])
+def put_collection(id):
+    try:
+        data = request.get_json(force=True)
+        # TODO: check data["id"] and data["uri"]
+        validate(instance=data, schema=collection_schema)
+        # TODO: insert new collection in collections.json
+        return jsonify(data), 200
+    except ValidationError as e:
+        return jsonify(error="Invalid collection metadata"), 400
+    except Exception as e:
+        return jsonify(error="Missing or malformed JSON body"), 400
+
+@app.route('/collection/<int:id>', methods=['DELETE'])
+def delete_collection(id):
+    try:
+        data = read_json_file(collections_file())
+        cur = next(c for c in data if c["id"] == str(id))
+        data = [c for c in data if c["id"] != str(id)]
+        write_json_file(collections_file(), data)
+        rmtree(stage() / "collection" / str(id), ignore_errors=True)
+        return jsonify(data)
+    except StopIteration:
+        return jsonify(error="collection {id} not found"), 404
 
 
 def add_csv_item(item, id):
@@ -120,22 +181,9 @@ def csv_to_json_ttl():
     def run_s(cmd): return subprocess.run(
         f'{npm_cmd}{cmd} ', shell=True, capture_output=True, text=True)
     run_s(f'csv2json < ./{COLLECTIONS_CVS} > ./{COLLECTIONS_JSON}')
-    run_s(f'ajv validate -s {COLLECTION_SCHEMA} -d {COLLECTIONS_JSON}')
+    run_s(f'ajv validate -s collection-schema.json -d {COLLECTIONS_JSON}')
     run_s(
-        f'jsonld2rdf -c {COLLECTION_CTX} {COLLECTIONS_JSON} > {COLLECTIONS_TTL}')
-
-
-@app.route('/collection/<int:id>', methods=['PUT'])
-def put_collection(id):
-    '''Add/update a json item to the collection.'''
-    try:
-        data = request.get_json()
-        data_fixed = {k: v for k, v in data.items() if k in FIELD_NAMES}
-        add_csv_item(data_fixed, id)
-        csv_to_json_ttl()
-    except Exception as e:
-        return jsonify(error=str(e)), 400
-    return jsonify(message="Collection updated:", id=id), 200
+        f'jsonld2rdf -c collection-context.json {COLLECTIONS_JSON} > {COLLECTIONS_TTL}')
 
 
 @app.route('/collection/<int:id>/receive', methods=['POST'])
