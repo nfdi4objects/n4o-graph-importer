@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, request, make_response, render_template
 from waitress import serve
 from pathlib import Path
+from lib import read_json, write_json, CollectionRegistry, NotFound
 import json
 import argparse
 import subprocess
@@ -18,9 +19,8 @@ app.config['SPARQL'] = os.getenv('SPARQL', 'http://localhost:3030/n4o')
 app.config['SPARQL_UPDATE'] = os.getenv('SPARQL_UPDATE', app.config['SPARQL'])
 app.config['SPARQL_STORE'] = os.getenv('SPARQL_STORE', app.config['SPARQL'])
 
-collection_schema = {}
-
 FIELD_NAMES = ['id', 'name', 'url', 'db', 'license', 'format', 'access']
+
 
 def stage():
     return Path(app.config['STAGE'])
@@ -35,22 +35,12 @@ def load_collection_file(id):
     return s_read(json_file)
 
 
-def read_json_file(file):
-    with open(file) as f:
-        return json.load(f)
-
-def write_json_file(file, data):
-    with open(file, "w") as f:
-        f.write(json.dumps(data, indent=4))
-
-collection_schema = read_json_file('collection-schema.json')
+collectionRegistry = CollectionRegistry(app.config['STAGE'])
 
 
 def init():
-    (stage() / "collection").mkdir(exist_ok=True)
-    file = collections_file()
-    if not file.exists():
-        write_json_file(file, [])
+    global collectionRegistry
+    collectionRegistry = CollectionRegistry(stage())
     (stage() / "terminology").mkdir(exist_ok=True)
 
 
@@ -99,13 +89,7 @@ def index():
 @app.route('/collection', methods=['GET'])
 @app.route('/collection/', methods=['GET'])
 def collections():
-    file = collections_file()
-    with open(file, 'r') as f:
-        res = f.read()
-        if res:
-            return res, 200, {'Content-Type': 'application/json'}
-        else:
-            return jsonify(error=f'Missing {file}'), 500
+    return jsonify(collectionRegistry.collections())
 
 
 @app.route('/collection', methods=['PUT'])
@@ -113,12 +97,7 @@ def collections():
 def put_collections():
     try:
         data = request.get_json(force=True)
-        if type(data) is not list:
-            raise ValidationError("Expected list of collections")
-        # TODO: check "id" and "uri" match
-        validate(instance=data, schema=collection_schema)
-        write_json_file(collections_file(), data)
-        return jsonify(data), 200
+        return jsonify(collectionRegistry.set_all(data)), 200
     except ValidationError as e:
         return jsonify(error="Invalid collection metadata"), 400
     except Exception as e:
@@ -128,32 +107,30 @@ def put_collections():
 @app.route('/collection/<int:id>', methods=['GET'])
 def get_collection(id):
     try:
-        data = read_json_file(collections_file())
-        data = next(c for c in data if c["id"] == str(id))
-        return jsonify(data)
-    except StopIteration:
+        return jsonify(collectionRegistry.get(id))
+    except NotFound:
         return jsonify(error="collection {id} not found"), 404
 
+
 @app.route('/collection/<int:id>', methods=['PUT'])
-def put_collection(id):
+def put_collection(id):    
     try:
-        data = request.get_json(force=True)
-        # TODO: check data["id"] and data["uri"]
-        validate(instance=data, schema=collection_schema)
-        # TODO: insert new collection in collections.json
-        return jsonify(data), 200
+        return jsonify(collectionRegistry.set(id, request.get_json(force=True)))
+    except NotFound:
+        return jsonify(error="collection {id} not found"), 404
     except ValidationError as e:
         return jsonify(error="Invalid collection metadata"), 400
     except Exception as e:
         return jsonify(error="Missing or malformed JSON body"), 400
 
+
 @app.route('/collection/<int:id>', methods=['DELETE'])
 def delete_collection(id):
     try:
-        data = read_json_file(collections_file())
+        data = read_json(collections_file())
         cur = next(c for c in data if c["id"] == str(id))
         data = [c for c in data if c["id"] != str(id)]
-        write_json_file(collections_file(), data)
+        write_json(collections_file(), data)
         rmtree(stage() / "collection" / str(id), ignore_errors=True)
         return jsonify(data)
     except StopIteration:

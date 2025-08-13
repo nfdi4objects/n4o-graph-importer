@@ -46,7 +46,7 @@ def test_register_collections(client):
     assert b"Invalid collection metadata" in resp.data
 
     resp = client.put('/collection/', json=[dummy_collection])
-    assert resp.status_code == 200 # created
+    assert resp.status_code == 200
 
     resp = client.get('/collection/')
     assert resp.status_code == 200
