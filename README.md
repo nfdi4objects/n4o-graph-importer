@@ -33,7 +33,7 @@ Returns list of registered collections with their metadata. Can also be called a
 
 ### PUT /collection/
 
-Replace the list of registered collections. The metadata is not imported into the triple store!
+Replace the list of registered collections. Only allowed if the current list is empty. The metadata is not imported into the triple store!
 
 ### GET /collection/:id 
 

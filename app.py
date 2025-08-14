@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, request, render_template
 from waitress import serve
 from pathlib import Path
-from lib import CollectionRegistry, NotFound
+from lib import CollectionRegistry, NotFound, ValidationError
 import argparse
 import subprocess
 import os
@@ -14,20 +14,15 @@ app.config['SPARQL'] = os.getenv('SPARQL', 'http://localhost:3030/n4o')
 app.config['SPARQL_UPDATE'] = os.getenv('SPARQL_UPDATE', app.config['SPARQL'])
 app.config['SPARQL_STORE'] = os.getenv('SPARQL_STORE', app.config['SPARQL'])
 
-FIELD_NAMES = ['id', 'name', 'url', 'db', 'license', 'format', 'access']
-
-
-def stage():
-    return Path(app.config['STAGE'])
-
 
 collectionRegistry = CollectionRegistry(app.config['STAGE'])
 
 
 def init():
+    stage = Path(app.config['STAGE'])
     global collectionRegistry
-    collectionRegistry = CollectionRegistry(stage())
-    (stage() / "terminology").mkdir(exist_ok=True)
+    collectionRegistry = CollectionRegistry(stage)
+    (stage / "terminology").mkdir(exist_ok=True)
 
 
 @app.route('/initCT', methods=['GET'])
@@ -56,6 +51,8 @@ def collections():
 def put_collections():
     try:
         data = request.get_json(force=True)
+        if len(collectionRegistry.collections()):
+            return jsonify(error="Only allowed when there are not collections"), 403
         return jsonify(collectionRegistry.set_all(data)), 200
     except ValidationError as e:
         return jsonify(error="Invalid collection metadata"), 400
