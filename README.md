@@ -86,11 +86,10 @@ Returns a file from the staging area of a registered terminology.
 
 Environment variables:
 
-- `SPARQL`: API endpoint of SPARQL Query protocol. Default: <http://localhost:3030/n4o>.
-- `SPARQL_UPDATE`: API endpoint of SPARQL Update protocol. Default: same as `SPARQL`
-- `SPARQL_STORE`: API endpoint of SPARQL Graph store protocol. Default: same as `SPARQL`
-- `STAGE`: stage directory. Default `stage`
 - `TITLE`: title of the application. Default `N4O Graph Importer`
+- `SPARQL`: API endpoint of SPARQL Query protocol, SPARQL Update protocol and SPARQL Graph store protocol. Default: <http://localhost:3030/n4o>.
+- `STAGE`: stage directory. Default `stage`
+- `BASE`: base URI of collections. Default: `https://graph.nfdi4objects.net/collection/`
 
 ## Commands
 

@@ -35,8 +35,8 @@ class NotFound(Exception):
 
 class CollectionRegistry:
 
-    def __init__(self, stage):
-        self.stage = stage = Path(stage)
+    def __init__(self, **config):
+        self.stage = stage = Path(config.get('stage', 'stage'))
         if not stage.is_dir():
             raise NotFound(f"Missing stage directory {stage}")
         (stage / "collection").mkdir(exist_ok=True)

@@ -8,21 +8,23 @@ import os
 
 
 app = Flask(__name__)
-app.config['STAGE'] = os.getenv('STAGE', 'stage')
-app.config['TITLE'] = os.getenv('TITLE', 'N4O Graph Importer')
-app.config['SPARQL'] = os.getenv('SPARQL', 'http://localhost:3030/n4o')
-app.config['SPARQL_UPDATE'] = os.getenv('SPARQL_UPDATE', app.config['SPARQL'])
-app.config['SPARQL_STORE'] = os.getenv('SPARQL_STORE', app.config['SPARQL'])
+
+collectionRegistry = None
 
 
-collectionRegistry = CollectionRegistry(app.config['STAGE'])
-
-
-def init():
-    stage = Path(app.config['STAGE'])
+def init(**config):
+    global app
     global collectionRegistry
-    collectionRegistry = CollectionRegistry(stage)
-    (stage / "terminology").mkdir(exist_ok=True)
+
+    app.config['title'] = config.get(
+        'title', os.getenv('TITLE', 'N4O Graph Importer'))
+    app.config['stage'] = config.get('stage', os.getenv('STAGE', 'stage'))
+    app.config['sparql'] = config.get(
+        'sparql', os.getenv('SPARQL', 'http://localhost:3030/n4o'))
+
+    collectionRegistry = CollectionRegistry(**app.config)
+    print(app.config['stage'])
+    (Path(app.config['stage']) / "terminology").mkdir(exist_ok=True)
 
 
 @app.route('/initCT', methods=['GET'])
@@ -37,7 +39,7 @@ def initCT():
 
 @app.route('/', methods=['GET'])
 def index():
-    return render_template('index.html', title=app.config['TITLE'])
+    return render_template('index.html', title=app.config['title'])
 
 
 @app.route('/collection', methods=['GET'])

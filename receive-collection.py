@@ -6,6 +6,7 @@ stage = os.getenv('STAGE', 'stage')
 
 registry = CollectionRegistry(stage)
 
+
 def receive(id, url=None, format=None):
     col = registry.get(id)
 
@@ -49,6 +50,7 @@ def receive(id, url=None, format=None):
     ./transform-rdf $stage/triples.nt     # includes validation
     """
 
+
 if __name__ == '__main__':
     args = sys.argv[1:]
     id = args[0]    # required
@@ -57,4 +59,3 @@ if __name__ == '__main__':
         receive(id, url=args[1], format=args[2])
     else:
         receive(id)
-

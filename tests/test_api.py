@@ -20,10 +20,7 @@ def stage():
 @pytest.fixture
 def client(stage):
     app.testing = True
-    app.config['TITLE'] = "N4O Graph Import API TEST"
-    app.config['STAGE'] = stage
-    app.config['BASE'] = base
-    init()
+    init(title="N4O Graph Import API TEST", stage=stage)
     with app.test_client() as client:
         yield client
 
