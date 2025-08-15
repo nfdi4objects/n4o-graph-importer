@@ -2,34 +2,41 @@ import unittest
 import tempfile
 import pytest
 import json
+import docker
+
 from app import app, init
 
-base = "https://graph.nfdi4objects.net/"
+base = "https://graph.nfdi4objects.net/collection/"
 collection_1 = {
   "id": "1",
   "name": "test collection",
   "url": "https://example.org/",
-  "uri": f"{base}collection/1"
+  "uri": f"{base}1"
 }
 
 @pytest.fixture
-def stage():
+def stage():    
     with tempfile.TemporaryDirectory() as tempdir:
         yield tempdir
 
 @pytest.fixture
 def client(stage):
     app.testing = True
-    init(title="N4O Graph Import API TEST", stage=stage)
+
+    docker_port = 3033
+    sparql = f"http://localhost:{docker_port}n4o"
+    init(title="N4O Graph Import API TEST", stage=stage, sparql=sparql)
+
     with app.test_client() as client:
         yield client
 
-def test_home(client):
+def test_api(client):
+
+    # start without collections
     resp = client.get('/')
     assert resp.status_code == 200
     assert b"N4O Graph Import API TEST" in resp.data
 
-def test_empty_collection(client):
     resp = client.get('/collection')
     assert resp.status_code == 200
     assert resp.get_json() == []
@@ -37,7 +44,7 @@ def test_empty_collection(client):
     resp = client.get('/collection/1')
     assert resp.status_code == 404
 
-def test_collection(client):
+    # add collection
     resp = client.put('/collection/', json={})
     assert resp.status_code == 400
     assert b"Invalid collection metadata" in resp.data
@@ -53,12 +60,14 @@ def test_collection(client):
     assert resp.status_code == 200
     assert resp.get_json() == collection_1
 
+    # delete collection
     resp = client.delete('/collection/1')
     assert resp.status_code == 200
 
     resp = client.get('/collection/1')
     assert resp.status_code == 404
 
+    # add again
     resp = client.put('/collection/1', json=collection_1)
     assert resp.status_code == 200  # TODO: should be 201 Created
 

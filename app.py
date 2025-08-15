@@ -16,6 +16,7 @@ def init(**config):
     global app
     global collectionRegistry
 
+    # TODO: move to __main__?
     app.config['title'] = config.get(
         'title', os.getenv('TITLE', 'N4O Graph Importer'))
     app.config['stage'] = config.get('stage', os.getenv('STAGE', 'stage'))
@@ -23,7 +24,6 @@ def init(**config):
         'sparql', os.getenv('SPARQL', 'http://localhost:3030/n4o'))
 
     collectionRegistry = CollectionRegistry(**app.config)
-    print(app.config['stage'])
     (Path(app.config['stage']) / "terminology").mkdir(exist_ok=True)
 
 
@@ -39,7 +39,7 @@ def initCT():
 
 @app.route('/', methods=['GET'])
 def index():
-    return render_template('index.html', title=app.config['title'])
+    return render_template('index.html', **app.config)
 
 
 @app.route('/collection', methods=['GET'])

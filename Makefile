@@ -7,7 +7,7 @@ deps:
 .PHONY: test
 
 test:
-	@./tests/test.sh
+	@. .venv/bin/activate && ./tests/test_api.sh && coverage report -m
 
 api:
 	@npm run --silent api
