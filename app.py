@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, request, render_template
 from waitress import serve
 from pathlib import Path
-from lib import CollectionRegistry, NotFound, ValidationError
+from lib import CollectionRegistry, NotFound, NotAllowed, ValidationError
 import argparse
 import subprocess
 import os
@@ -48,16 +48,22 @@ def collections():
     return jsonify(collectionRegistry.collections())
 
 
-@app.route('/collection', methods=['PUT'])
-@app.route('/collection/', methods=['PUT'])
-def put_collections():
+@app.route('/collection', methods=['PUT', 'POST'])
+@app.route('/collection/', methods=['PUT', 'POST'])
+def put_post_collections():
     try:
         data = request.get_json(force=True)
-        if len(collectionRegistry.collections()):
-            return jsonify(error="Only allowed when there are not collections"), 403
-        return jsonify(collectionRegistry.set_all(data)), 200
+        if request.method == "PUT":
+            return jsonify(collectionRegistry.set_all(data)), 200
+        else:
+            print(data)
+            col = collectionRegistry.add(data)
+            print(col)
+            return jsonify(col), 200
     except ValidationError as e:
-        return jsonify(error="Invalid collection metadata"), 400
+        return jsonify(error=f"Invalid collection metadata: {e}"), 400
+    except NotAllowed as e:
+        return jsonify(error="Not allowed"), 403
     except Exception as e:
         return jsonify(error="Missing or malformed JSON body"), 400
 
@@ -78,7 +84,7 @@ def put_collection(id):
     # except NotFound:
     #    return jsonify(error="collection {id} not found"), 404
     except ValidationError as e:
-        return jsonify(error="Invalid collection metadata"), 400
+        return jsonify(error=f"Invalid collection metadata: {e}"), 400
     except Exception as e:
         return jsonify(error="Missing or malformed JSON body"), 400
 

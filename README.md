@@ -12,6 +12,14 @@ This component imports RDF data of a collection or a terminology into the triple
 
 See [n4o-graph](https://github.com/nfdi4objects/n4o-graph) for full documentation of system architecture with all components.
 
+## Table of Contents
+
+- [Usage](#usage)
+- [API](#api)
+- [Configuration](#configuration)
+- [Development](#development)
+- [License](#license)
+
 ## Usage
 
 This component can be used both [as Docker image](https://github.com/nfdi4objects/n4o-graph-importer) (recommended) and from sources (for development and testing). In both cases the importer is executed via individual command line scripts. A REST API is being implemented.
@@ -29,31 +37,35 @@ Collections are described in a custom JSON format described by JSON Schema [coll
 
 ### GET /collection/
 
-Returns list of registered collections with their metadata. Can also be called at `/collection`.
+Return the list of registered collections (metadata only).
 
 ### PUT /collection/
 
-Replace the list of registered collections. Only allowed if the current list is empty. The metadata is not imported into the triple store!
+Replace the list of registered collections. Only allowed if the current list is empty. 
 
-### GET /collection/:id 
-
-Returns metadata of a specific registered collection.
-
-### PUT /collection/:id
-
-Updates metadata of a specific registered collection. The updated metadata is not imported into the triple store!
+*The metadata is not imported into the triple store!*
 
 ### POST /collection/
 
-Register a new collection. The metadata is not imported into the triple store!.
+Register a new collection or update metadata of a registered collection.
+
+*The metadata is not imported into the triple store!*
+
+### GET /collection/:id
+
+Return metadata of a specific registered collection.
+
+### PUT /collection/:id
+
+Update metadata of a specific registered collection or register a new collection.
+
+*The metadata is not imported into the triple store!*
 
 ### DELETE /collection/:id 
 
-Unregister a collection by removing its metadata and its staging are. This does not remove any data from the triple store!
+Unregister a collection by removing its metadata and its staging are.
 
-### GET /collection/:id/:file
-
-Returns a file from the staging area of a registered collection.
+*This does not remove any data from the triple store!*
 
 ### POST /collection/:id/receive
 
@@ -62,25 +74,47 @@ Receive and process collection data. Optional query parameters:
 - from (URL or local file in data directory)
 - format
 
-### POST /collection/:id/import
+### GET /collection/:id/receive
+
+Get latest receive log of a collection.
+
+### POST /collection/:id/load
 
 Load received and processed collection data into the triple store.
 
-### POST /collection/:id/delete
+### GET /collection/:id/load
 
-Delete collection data from the knowledge graph and from staging area. The collection will still be registered.
+Get latest load log of a collection.
+
+### POST /collection/:id/remove
+
+Remove collection data from the knowledge graph and from staging area.
+
+*The collection will still be registered.*
+
+### GET /collection/:id/remove
+
+Get latest remove log of a collection.
 
 ### GET /terminology
 
-...
+Return the list of registered terminology metadata.
 
 ### GET /terminology/:id
 
-...
+Return metadata of a registered terminology.
 
-### GET /terminology/:id/:file
+### PUT /terminology/:id
 
-Returns a file from the staging area of a registered terminology.
+Add or update metadata of a registered terminology from BARTOC.
+
+### POST /terminology/:id/receive
+
+Receive terminology data.
+
+### GET /terminology/:id/receive
+
+Get latest receive log of a terminology.
 
 ## Configuration
 
@@ -92,6 +126,8 @@ Environment variables:
 - `BASE`: base URI of collections. Default: `https://graph.nfdi4objects.net/collection/`
 
 ## Commands
+
+**This will be removed in favour or the API**
 
 Main entry script `./importer.sh` lists all available commands.
 

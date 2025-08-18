@@ -2,7 +2,6 @@ import unittest
 import tempfile
 import pytest
 import json
-import docker
 
 from app import app, init
 
@@ -12,6 +11,20 @@ collection_1 = {
   "name": "test collection",
   "url": "https://example.org/",
   "uri": f"{base}1"
+}
+collection_1_full = {
+    **collection_1,  
+    "partOf": [ base ]
+}
+collection_0 = {
+  "name": "another test collection",
+  "url": "https://example.com/",
+}
+collection_3_full = {
+  **collection_0,  
+  "id": "3",
+  "uri": f"{base}3",
+  "partOf": [ base ]
 }
 
 @pytest.fixture
@@ -54,11 +67,15 @@ def test_api(client):
 
     resp = client.get('/collection/')
     assert resp.status_code == 200
-    assert resp.get_json() == [collection_1]
+    assert resp.get_json() == [collection_1_full]
 
     resp = client.get('/collection/1')
     assert resp.status_code == 200
-    assert resp.get_json() == collection_1
+    assert resp.get_json() == collection_1_full
+
+    # only allowed when empty
+    resp = client.put('/collection/', json=[])
+    assert resp.status_code == 403
 
     # delete collection
     resp = client.delete('/collection/1')
@@ -73,4 +90,14 @@ def test_api(client):
 
     resp = client.get('/collection/1')
     assert resp.status_code == 200
-    assert resp.get_json() == collection_1
+    assert resp.get_json() == collection_1_full
+
+    # add without id in record
+    resp = client.put('/collection/3', json=collection_0)
+    assert resp.status_code == 200  # TODO: should be 201 Created
+    assert resp.get_json() == collection_3_full
+    
+    # add without known id
+    resp = client.post('/collection/', json=collection_0)
+    assert resp.status_code == 200  # TODO: should be 201 Created
+    assert resp.get_json()["id"] == "4"
