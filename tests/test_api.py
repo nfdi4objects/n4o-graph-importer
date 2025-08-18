@@ -37,11 +37,19 @@ def client(stage):
     app.testing = True
 
     docker_port = 3033
-    sparql = f"http://localhost:{docker_port}n4o"
+    sparql = f"http://localhost:{docker_port}/n4o"
     init(title="N4O Graph Import API TEST", stage=stage, sparql=sparql)
 
     with app.test_client() as client:
         yield client
+
+def test_terminology(client):
+    resp = client.put('/terminology/18274')
+    assert resp.status_code == 200
+
+    resp = client.get('/terminology/')
+    assert resp.status_code == 200
+    assert len(resp.get_json()) == 1
 
 def test_api(client):
 

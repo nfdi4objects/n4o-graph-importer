@@ -13,8 +13,8 @@ api:
 	@npm run --silent api
 
 lint:
-	@.venv/bin/flake8 *.py --ignore=C901,E741 --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+	@.venv/bin/flake8 *.py lib/*.py --ignore=C901,E741 --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
 fix:
-	@.venv/bin/autopep8 --in-place *.py
+	@.venv/bin/autopep8 --in-place *.py lib/*.py
 

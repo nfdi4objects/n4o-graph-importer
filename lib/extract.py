@@ -27,11 +27,11 @@ def extractRDF(source):
             file = f"{source}/{name}"
             base = f"file://{file}"
 
-        #base = None # TODO
-        print(file,base)
+        # base = None # TODO
+        print(file, base)
 
         try:
-            for triple in rdfparser.parse(file,format=format):
+            for triple in rdfparser.parse(file, format=format):
                 yield triple
         except Exception as e:
             print(f"Error parsing {file}: {e} {base}")

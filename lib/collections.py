@@ -1,33 +1,16 @@
-import os
 from pathlib import Path
 from shutil import rmtree
 from jsonschema import validate
-from SPARQLWrapper import SPARQLWrapper
-from pyld import jsonld
-from rdflib import Graph, Namespace
+# from SPARQLWrapper import SPARQLWrapper
 from .utils import read_json, write_json
-from .errors import NotFound, NotAllowed, ValidationError
+from .errors import NotFound, NotAllowed, ValidationError, ServerError
+from .rdf import write_ttl
 
-JSON_SCHEMA = read_json(Path(__file__).parent.parent / 'collection-schema.json')
-JSONLD_CONTEXT = read_json(Path(__file__).parent.parent / 'collection-context.json')
-PREFIXES = read_json(Path(__file__).parent.parent / 'prefixes.json')
+JSON_SCHEMA = read_json(Path(__file__).parent.parent /
+                        'collection-schema.json')
 
-def to_rdf(doc):
-    if type(doc) == list:
-        doc = {"@context": JSONLD_CONTEXT, "@graph": doc}
-    else:
-        doc["@context"] = JSONLD_CONTEXT
-    expanded = jsonld.expand(doc)
-    nquads = jsonld.to_rdf(expanded, options={'format': 'application/n-quads'})
-    g = Graph(bind_namespaces="core")
-    for prefix, uri in PREFIXES.items():
-        g.bind(prefix, Namespace(uri))    
-    g.parse(data=nquads, format='nquads')
-    return g
-
-def write_ttl(file, doc):
-    with open(file,"w") as f:
-        f.write(to_rdf(doc).serialize(format='turtle', args={}))
+collection_context = read_json(
+    Path(__file__).parent.parent / 'collection-context.json')
 
 
 class CollectionRegistry:
@@ -43,7 +26,8 @@ class CollectionRegistry:
         if not self.collections_file.exists():
             self.update_collections([])
 
-        self.base = config.get("base", "https://graph.nfdi4objects.net/collection/")
+        self.base = config.get(
+            "base", "https://graph.nfdi4objects.net/collection/")
 
     def collections(self):
         return read_json(self.collections_file)
@@ -52,26 +36,27 @@ class CollectionRegistry:
         for col in cols:
             (self.stage / 'collection' / str(id)).mkdir(exist_ok=True)
         write_json(self.collections_file, cols)
-        write_ttl(self.collections_file_ttl, cols)
+        write_ttl(self.collections_file_ttl, cols, collection_context)
 
     def collection_metadata(self, col, id=None):
         if "id" in col and "uri" in col:
             if col["uri"] != self.base + col["id"]:
                 raise ValidationError("uri and id do not match!")
         elif "uri" in col:
-            col["id"] = uri.split("/")[-1]
+            col["id"] = col["uri"].split("/")[-1]
         else:
             if "id" not in col:
                 if id:
                     col["id"] = str(id)
                 else:
                     cols = self.collections()
-                    col["id"] = str(max(int(c["id"]) for c in cols)+1 if cols else 1)
+                    col["id"] = str(max(int(c["id"])
+                                    for c in cols) + 1 if cols else 1)
             col["uri"] = self.base + col["id"]
 
         if id and col["id"] != str(id):
             raise ValidationError("id does not match!")
-        col["partOf"] = [ self.base ]
+        col["partOf"] = [self.base]
         validate(instance=col, schema=JSON_SCHEMA)
         return col
 
@@ -96,7 +81,7 @@ class CollectionRegistry:
     def delete(self, id):
         col = self.get(id)
         cols = [c for c in self.collections() if c["id"] != str(id)]
-        rmtree(self.stage / 'collection' / str(id),  ignore_errors=True)
+        rmtree(self.stage / 'collection' / str(id), ignore_errors=True)
         self.update_collections(cols)
         return col
 
@@ -104,8 +89,7 @@ class CollectionRegistry:
         if type(cols) is not list:
             raise ValidationError("Expected list of collections")
         if len(self.collections()):
-            raise NotAllowed("List of collections is not empty") 
+            raise NotAllowed("List of collections is not empty")
         cols = [self.collection_metadata(c) for c in cols]
         self.update_collections(cols)
         return cols
-

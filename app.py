@@ -1,7 +1,6 @@
 from flask import Flask, jsonify, request, render_template
 from waitress import serve
-from pathlib import Path
-from lib import CollectionRegistry, NotFound, NotAllowed, ValidationError
+from lib import CollectionRegistry, TerminologyRegistry, NotFound, NotAllowed, ValidationError, ServerError
 import argparse
 import subprocess
 import os
@@ -10,11 +9,14 @@ import os
 app = Flask(__name__)
 
 collectionRegistry = None
+terminologyRegistry = None
+
+# TODO: catch ServerError and return 500 response (e.g. backend not available)
 
 
 def init(**config):
-    global app
     global collectionRegistry
+    global terminologyRegistry
 
     # TODO: move to __main__?
     app.config['title'] = config.get(
@@ -24,17 +26,7 @@ def init(**config):
         'sparql', os.getenv('SPARQL', 'http://localhost:3030/n4o'))
 
     collectionRegistry = CollectionRegistry(**app.config)
-    (Path(app.config['stage']) / "terminology").mkdir(exist_ok=True)
-
-
-@app.route('/initCT', methods=['GET'])
-def initCT():
-    '''Initialize the collections directory and create necessary files'''
-    res = subprocess.run(f'./init_ct.sh', shell=True,
-                         capture_output=True, text=True)
-    if res.stderr:
-        return jsonify(error=res.stderr), 500,  {'Content-Type': 'application/json'}
-    return res.stdout, 200,  {'Content-Type': 'text/plain'}
+    terminologyRegistry = TerminologyRegistry(**app.config)
 
 
 @app.route('/', methods=['GET'])
@@ -56,16 +48,13 @@ def put_post_collections():
         if request.method == "PUT":
             return jsonify(collectionRegistry.set_all(data)), 200
         else:
-            print(data)
-            col = collectionRegistry.add(data)
-            print(col)
-            return jsonify(col), 200
+            return jsonify(collectionRegistry.add(data)), 200
     except ValidationError as e:
         return jsonify(error=f"Invalid collection metadata: {e}"), 400
-    except NotAllowed as e:
+    except NotAllowed:
         return jsonify(error="Not allowed"), 403
     except Exception as e:
-        return jsonify(error="Missing or malformed JSON body"), 400
+        return jsonify(error=f"Missing or malformed JSON body: {e}"), 400
 
 
 @app.route('/collection/<int:id>', methods=['GET'])
@@ -86,7 +75,7 @@ def put_collection(id):
     except ValidationError as e:
         return jsonify(error=f"Invalid collection metadata: {e}"), 400
     except Exception as e:
-        return jsonify(error="Missing or malformed JSON body"), 400
+        return jsonify(error=f"Missing or malformed JSON body: {e}"), 400
 
 
 @app.route('/collection/<int:id>', methods=['DELETE'])
@@ -120,6 +109,17 @@ def collection_import_id(id):
     if response.stderr:
         return jsonify(error=response.stderr), 500
     return jsonify(message=f"import {id} executed.", output=response.stdout, id=id), 200
+
+
+@app.route('/terminology', methods=['GET'])
+@app.route('/terminology/', methods=['GET'])
+def terminologies():
+    return jsonify(terminologyRegistry.list())
+
+
+@app.route('/terminology/<int:id>', methods=['PUT'])
+def put_terminology(id):
+    return jsonify(terminologyRegistry.add(id))
 
 
 if __name__ == '__main__':
