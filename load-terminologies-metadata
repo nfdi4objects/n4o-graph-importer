@@ -1,5 +1,0 @@
-#!/usr/bin/bash
-. utils.sh
-
-echo -n "Loading N4O Terminologies Metadata into the Knowledge Graph"
-./load-rdf-graph https://graph.nfdi4objects.net/terminology/ $STAGE/terminology/terminologies.ttl

@@ -26,12 +26,6 @@ until ./sparql-update "INSERT DATA {}" || (( count-- == 0 )); do
   sleep 1
 done
 
-XXXXXXXX "Test updating terminologies and loading terminology metadata"
-
-./update-terminologies  # TODO: avoid external dependency on BARTOC
-
-./load-terminologies-metadata
-
 XXXXXXXX "Test importing terminology"
 
 ./import-terminology 18274 tests/skos.rdf

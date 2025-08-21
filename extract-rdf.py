@@ -21,7 +21,6 @@ def main(args):
         sys.exit(1)
 
     triples = 0
-    tmp = "tmp.nt"
     with open(target, "w") as out:
         for triple in extractRDF(source):
             if triple:

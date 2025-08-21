@@ -24,6 +24,7 @@ def init(**config):
     app.config['stage'] = config.get('stage', os.getenv('STAGE', 'stage'))
     app.config['sparql'] = config.get(
         'sparql', os.getenv('SPARQL', 'http://localhost:3030/n4o'))
+    app.config['data'] = config.get('data', os.getenv('DATA', 'data'))
 
     collectionRegistry = CollectionRegistry(**app.config)
     terminologyRegistry = TerminologyRegistry(**app.config)
@@ -32,6 +33,38 @@ def init(**config):
 @app.route('/', methods=['GET'])
 def index():
     return render_template('index.html', **app.config)
+
+
+@app.route('/terminology', methods=['GET'])
+@app.route('/terminology/', methods=['GET'])
+def terminologies():
+    return jsonify(terminologyRegistry.list())
+
+
+@app.route('/terminology/<int:id>', methods=['PUT'])
+def put_terminology(id):
+    return jsonify(terminologyRegistry.add(id))
+
+
+@app.route('/terminology/<int:id>/receive', methods=['POST'])
+def receive_terminology(id):
+    try:
+        print(request.args)
+        return jsonify(terminologyRegistry.receive(id, request.args.get('from', None)))
+    except Exception as e:
+        print(e)
+        code = 500 if isinstance(e, ServerError) else 400
+        return jsonify(error=f"Failed to receive collection {id}: {e}"), code
+
+
+@app.route('/terminology/<int:id>/load', methods=['POST'])
+def load_terminology(id):
+    try:
+        return jsonify(terminologyRegistry.load(id))
+    except Exception as e:
+        print(e)
+        code = 500 if isinstance(e, ServerError) else 400
+        return jsonify(error=f"Failed to load collection {id}: {e}"), code
 
 
 @app.route('/collection', methods=['GET'])
@@ -109,17 +142,6 @@ def collection_import_id(id):
     if response.stderr:
         return jsonify(error=response.stderr), 500
     return jsonify(message=f"import {id} executed.", output=response.stdout, id=id), 200
-
-
-@app.route('/terminology', methods=['GET'])
-@app.route('/terminology/', methods=['GET'])
-def terminologies():
-    return jsonify(terminologyRegistry.list())
-
-
-@app.route('/terminology/<int:id>', methods=['PUT'])
-def put_terminology(id):
-    return jsonify(terminologyRegistry.add(id))
 
 
 if __name__ == '__main__':

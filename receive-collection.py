@@ -22,7 +22,7 @@ def receive(id, url=None, format=None):
     if format != "rdf":
         raise Exception(f"Only RDF data supported so far, got {format}")
     if not url:
-        raise Exception(f"Missing url to receive from")
+        raise Exception("Missing url to receive from")
 
     print(f"Receive {format} data from {url}")
 

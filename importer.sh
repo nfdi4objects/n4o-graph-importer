@@ -4,8 +4,6 @@
 echo "Please use one of the following commands (not all implemented yet):"
 echo
 echo " import-metadata                update and load terminology metada with one command"
-echo "   update-terminologies         update the list of terminologies from BARTOC"
-echo "   load-terminologies-metadata  load metadata about terminologies into the triple store"
 echo
 echo " import-terminology ID          receive and load a terminology with one command"
 echo "  receive-terminology ID        receive terminology data"

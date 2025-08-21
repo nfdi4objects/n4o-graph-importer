@@ -25,12 +25,44 @@
       margin-left: 6px;
       vertical-align: middle;
     }
+    .disabled, .disabled a:link, .disabled a:visited {      
+      text-decoration: line-through;
+      color: #666;
+    }
     </style>
   </head>
   <body>
     <h1>{{ title }}</h1>  
-    <p>For internal use only!</p>
+    <p>
+      Controlled write access to Triple store at <a href="{{ sparql }}">{{ sparql }}</a>.
+      Please use SPARQL endpoint or N4O Graph APIs for read access.
+      There is <em>no authentication</em>!
+    </p>
     <h2>Available Endpoints</h2>
+    <h3>Terminologies</h3>
+    <ul>
+      <li>
+        <b>GET <a href="/terminology/">/terminology/</a></b> - Return the list of registered terminology metadata (<a href="https://github.com/nfdi4objects/n4o-graph-importer#get-terminology" target="_blank">documentation</a>)
+      </li>
+      <li>
+        <b>GET /terminology/:id</b> - Return metadata of a registered terminology (<a href="https://github.com/nfdi4objects/n4o-graph-importer#get-terminology_id" target="_blank">documentation</a>)
+      </li>
+      <li>
+        <b>PUT /terminology/:id</b> - Add or update metadata of a registered terminology from BARTOC (<a href="https://github.com/nfdi4objects/n4o-graph-importer#put-terminology_id" target="_blank">documentation</a>)
+      </li>
+      <li>
+        <b>POST /terminology/:id/receive</b> - Receive terminology data (<a href="https://github.com/nfdi4objects/n4o-graph-importer#post-terminology_id_receive" target="_blank">documentation</a>)
+      </li>
+      <li class="disabled">
+        <b>GET /terminology/:id/receive</b> - Get latest receive log of a terminology (<a href="https://github.com/nfdi4objects/n4o-graph-importer#get-terminology_id_receive" target="_blank">documentation</a>)
+      </li>
+      <li>
+        <b>POST /terminology/:id/load</b> - Import terminology data into the triple store (<a href="https://github.com/nfdi4objects/n4o-graph-importer#post-terminology_id_load" target="_blank">documentation</a>)
+      </li>
+      <li class="disabled">
+        <b>GET /terminology/:id/load</b> - Get latest load log of a terminology (<a href="https://github.com/nfdi4objects/n4o-graph-importer#get-terminology_id_load" target="_blank">documentation</a>)
+      </li>
+    </ul>
     <h3>Collections</h3>
     <ul>
       <li>
@@ -54,45 +86,22 @@
       <li>
         <b>POST /collection/:id/receive</b> - Receive and process collection data (<a href="https://github.com/nfdi4objects/n4o-graph-importer#post-collection_id_receive" target="_blank">documentation</a>)
       </li>
-      <li>
+      <li class="disabled">
         <b>GET /collection/:id/receive</b> - Get latest receive log of a collection (<a href="https://github.com/nfdi4objects/n4o-graph-importer#get-collection_id_receive" target="_blank">documentation</a>)
       </li>
       <li>
         <b>POST /collection/:id/load</b> - Load received and processed collection data into the triple store (<a href="https://github.com/nfdi4objects/n4o-graph-importer#post-collection_id_load" target="_blank">documentation</a>)
       </li>
-      <li>
+      <li class="disabled">
         <b>GET /collection/:id/load</b> - Get latest load log of a collection (<a href="https://github.com/nfdi4objects/n4o-graph-importer#get-collection_id_load" target="_blank">documentation</a>)
       </li>
       <li>
         <b>POST /collection/:id/remove</b> - Remove collection data and metadata from the knowledge graph and from staging area (<a href="https://github.com/nfdi4objects/n4o-graph-importer#post-collection_id_delete" target="_blank">documentation</a>)
       </li>
-      <li>
+      <li class="disabled">
         <b>GET /collection/:id/remove</b> - Get latest remove log of a collection (<a href="https://github.com/nfdi4objects/n4o-graph-importer#get-collection_id_remove" target="_blank">documentation</a>)
       </li>
     </ul>
-    <h3>Terminologies</h3>
-    <ul>
-      <li>
-        <b>GET <a href="/terminology/">/terminology/</a></b> - Return the list of registered terminology metadata (<a href="https://github.com/nfdi4objects/n4o-graph-importer#get-terminology" target="_blank">documentation</a>)
-      </li>
-      <li>
-        <b>GET /terminology/:id</b> - Return metadata of a registered terminology (<a href="https://github.com/nfdi4objects/n4o-graph-importer#get-terminology_id" target="_blank">documentation</a>)
-      </li>
-      <li>
-        <b>PUT /terminology/:id</b> - Add or update metadata of a registered terminology from BARTOC (<a href="https://github.com/nfdi4objects/n4o-graph-importer#put-terminology_id" target="_blank">documentation</a>)
-      </li>
-      <li>
-        <b>POST /terminology/:id/receive</b> - Receive terminology data (<a href="https://github.com/nfdi4objects/n4o-graph-importer#post-terminology_id_receive" target="_blank">documentation</a>)
-      </li>
-      <li>
-        <b>GET /terminology/:id/receive</b> - Get latest receive log of a terminology (<a href="https://github.com/nfdi4objects/n4o-graph-importer#get-terminology_id_receive" target="_blank">documentation</a>)
-      </li>
-      <li>
-        <b>POST /terminology/:id/load</b> - Import terminology data into the triple store (<a href="https://github.com/nfdi4objects/n4o-graph-importer#post-terminology_id_load" target="_blank">documentation</a>)
-      </li>
-      <li>
-        <b>GET /terminology/:id/load</b> - Get latest load log of a terminology (<a href="https://github.com/nfdi4objects/n4o-graph-importer#get-terminology_id_load" target="_blank">documentation</a>)
-      </li>
     </ul>
   </body>
 </html>

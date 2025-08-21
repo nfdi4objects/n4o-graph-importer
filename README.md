@@ -31,9 +31,47 @@ Two Docker volumes (or local directories) are used to store files:
   - `./stage/terminology/$ID` for terminologies with BARTOC id `$ID`
 - `./data` a directory read RDF data from (not required if running from sources)
 
+Import is three steps:
+
+1. register
+2. receive
+3. load
+
 ## API
 
+Terminologies are identified by their BARTOC identifier. Terminology data should be imported before collection data, to detect use of terminologies in collections. 
+
 Collections are described in a custom JSON format described by JSON Schema [collection-schema.json](collection-schema.json). The JSON is internally converted to RDF for import into the knowledge graph.
+
+### GET /terminology
+
+Return the list of registered terminologies.
+
+### GET /terminology/:id
+
+Return metadata of a registered terminology.
+
+### PUT /terminology/:id
+
+Add or update metadata of a registered terminology from BARTOC. The metadata is directly added to the triple store. Updates may lead to errors in description of terminologies because removal of statements is limited to simple triples with terminology URI as subject!
+
+### POST /terminology/:id/receive
+
+Receive terminology data. Arguments passed as query parameters:
+
+- `from` with an URL or with the name of a file in data directory. Format must be RDF/Turtle for file extension `.ttl` or `.nt`, otherwise RDF/XML.
+
+### GET /terminology/:id/receive
+
+Get latest receive log of a terminology. *Not implemented yet!*
+
+### POST /terminology/:id/load
+
+Load received terminology data into the triple store.
+
+### GET /terminology/:id/load
+
+Get latest load log of a terminology. *Not implemented yet!*
 
 ### GET /collection/
 
@@ -76,7 +114,7 @@ Receive and process collection data. Optional query parameters:
 
 ### GET /collection/:id/receive
 
-Get latest receive log of a collection.
+Get latest receive log of a collection. *Not implemented yet!*
 
 ### POST /collection/:id/load
 
@@ -84,7 +122,8 @@ Load received and processed collection data into the triple store.
 
 ### GET /collection/:id/load
 
-Get latest load log of a collection.
+Get latest load log of a collection. *Not implemented yet!*
+
 
 ### POST /collection/:id/remove
 
@@ -94,27 +133,8 @@ Remove collection data from the knowledge graph and from staging area.
 
 ### GET /collection/:id/remove
 
-Get latest remove log of a collection.
+Get latest remove log of a collection. *Not implemented yet!*
 
-### GET /terminology
-
-Return the list of registered terminology metadata.
-
-### GET /terminology/:id
-
-Return metadata of a registered terminology.
-
-### PUT /terminology/:id
-
-Add or update metadata of a registered terminology from BARTOC.
-
-### POST /terminology/:id/receive
-
-Receive terminology data.
-
-### GET /terminology/:id/receive
-
-Get latest receive log of a terminology.
 
 ## Configuration
 
@@ -124,6 +144,7 @@ Environment variables:
 - `SPARQL`: API endpoint of SPARQL Query protocol, SPARQL Update protocol and SPARQL Graph store protocol. Default: <http://localhost:3030/n4o>.
 - `STAGE`: stage directory. Default `stage`
 - `BASE`: base URI of collections. Default: `https://graph.nfdi4objects.net/collection/`
+- `DATA`: local data directory for file import
 
 ## Commands
 
@@ -145,11 +166,7 @@ To update the list of terminologies from BARTOC run:
 ./update-terminologies
 ~~~
 
-This generates files `terminologies.json`, `namespaces.json`, and `terminologies.ttl` in directory `stage/terminology/`, required for importing collections and terminologies. This metadata about terminologies is loaded into the triple store with:
-
-~~~sh
-./load-terminologies-metadata
-~~~
+This generates files `terminologies.json`, `namespaces.json`, and `terminologies.ttl` in directory `stage/terminology/`, required for importing collections and terminologies.
 
 To receive and load individual terminology data (here exemplified with SKOS terminology, <http://bartoc.org/en/node/18274>:
 

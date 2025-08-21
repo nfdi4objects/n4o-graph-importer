@@ -3,7 +3,7 @@ from shutil import rmtree
 from jsonschema import validate
 # from SPARQLWrapper import SPARQLWrapper
 from .utils import read_json, write_json
-from .errors import NotFound, NotAllowed, ValidationError, ServerError
+from .errors import NotFound, NotAllowed, ValidationError
 from .rdf import write_ttl
 
 JSON_SCHEMA = read_json(Path(__file__).parent.parent /

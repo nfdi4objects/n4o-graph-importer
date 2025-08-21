@@ -1,5 +1,6 @@
 import unittest
 import tempfile
+from pathlib import Path
 import pytest
 import json
 
@@ -38,7 +39,8 @@ def client(stage):
 
     docker_port = 3033
     sparql = f"http://localhost:{docker_port}/n4o"
-    init(title="N4O Graph Import API TEST", stage=stage, sparql=sparql)
+    data = Path(__file__).parent
+    init(title="N4O Graph Import API TEST", stage=stage, sparql=sparql, data=data)
 
     with app.test_client() as client:
         yield client
@@ -50,6 +52,12 @@ def test_terminology(client):
     resp = client.get('/terminology/')
     assert resp.status_code == 200
     assert len(resp.get_json()) == 1
+
+    resp = client.post('/terminology/18274/receive')
+    assert resp.status_code == 400
+
+    resp = client.post('/terminology/18274/receive?from=skos.rdf')
+    assert resp.status_code == 200
 
 def test_api(client):
 
