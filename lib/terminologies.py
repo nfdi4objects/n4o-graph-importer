@@ -5,9 +5,7 @@ import shutil
 from urllib.request import urlretrieve
 from .utils import read_json, write_json
 from .errors import NotFound, ValidationError
-from .rdf import to_rdf, sparql_insert, sparql_update
-
-context = read_json(Path(__file__).parent.parent / 'jskos-context.json')
+from .rdf import to_rdf, jskos_context, sparql_insert, sparql_update
 
 
 class TerminologyRegistry:
@@ -44,7 +42,7 @@ class TerminologyRegistry:
             voc = voc[0]
             write_json(self.stage / f"{id}.json", voc)
             (self.stage / str(id)).mkdir(exist_ok=True)
-            rdf = to_rdf(voc, context).serialize(format='ntriples')
+            rdf = to_rdf(voc, jskos_context).serialize(format='ntriples')
             query = "DELETE { ?s ?p ?o } WHERE { VALUES ?s { <%s> } ?s ?p ?o }" % uri
             sparql_update(self.sparql, self.graph, query)
             sparql_insert(self.sparql, self.graph, rdf)
@@ -67,7 +65,7 @@ class TerminologyRegistry:
         else:  # TODO: test this
             urlretrieve(file, original)
 
-#        if Path(file).suffix 
+#        if Path(file).suffix
 
         # TODO: check and cleanup RDF
         e = ValidationError("")

@@ -7,9 +7,18 @@ from .errors import ServerError
 
 prefixes = read_json(Path(__file__).parent.parent / 'prefixes.json')
 
+# TODO use this to load context documents from disk
+# jsonld.set_document_loader
+jskos_context = read_json(Path(__file__).parent.parent / 'jskos-context.json')
+iiif_context = read_json(Path(__file__).parent.parent /
+                         'iiif-context.json')  # TODO: this is incomplete
+jskos_context["@context"]["media"]["@context"] = iiif_context
+
 
 def to_rdf(doc, context):
     if type(doc) is list:
+        for e in doc:
+            e.pop("@context", None)
         doc = {"@context": context, "@graph": doc}
     else:
         doc["@context"] = context
@@ -25,6 +34,12 @@ def to_rdf(doc, context):
 def write_ttl(file, doc, context):
     with open(file, "w") as f:
         f.write(to_rdf(doc, context).serialize(format='turtle'))
+
+
+def sparql_query(api, query):
+    sparql = SPARQLWrapper(api, returnFormat='json')
+    sparql.setQuery(query)
+    return sparql.queryAndConvert()
 
 
 def sparql_update(api, graph, query):
