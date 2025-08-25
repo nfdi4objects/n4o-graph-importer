@@ -1,6 +1,7 @@
 from pathlib import Path
 from rdflib import Graph, Namespace
 from SPARQLWrapper import SPARQLWrapper
+import requests
 from pyld import jsonld
 from .utils import read_json
 from .errors import ServerError
@@ -54,3 +55,17 @@ def sparql_update(api, graph, query):
 def sparql_insert(api, graph, rdf):
     query = "INSERT DATA { GRAPH <%s> { %s } }" % (graph, rdf)
     sparql_update(api, graph, query)
+
+
+def load_graph_from_file(api, graph, file, fmt):
+    mime = "text/turtle" if fmt == "ttl" else "application/rdf+xml"
+    headers = {"content-type": mime}
+    print(file)
+    print(headers)
+    res = requests.put(api, data=open(file, 'rb'), headers=headers)
+    print(res.status_code)
+    return res.status_code == 200
+    # TODO
+    # curl --fail-with-body --silent -X PUT "$SPARQL_STORE" --header "Content-Type: text/turtle" \
+    #    --url-query "graph=$graph" \
+    #    --upload-file "$file"

@@ -82,7 +82,9 @@ def test_terminology(client):
     resp = client.post('/terminology/18274/receive?from=skos.rdf')
     assert resp.status_code == 200
 
-    # TODO: load terminology
+    resp = client.post('/terminology/18274/load')
+    assert resp.status_code == 200
+
 
 def test_api(client):
 

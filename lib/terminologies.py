@@ -5,7 +5,7 @@ import shutil
 from urllib.request import urlretrieve
 from .utils import read_json, write_json
 from .errors import NotFound, ValidationError
-from .rdf import to_rdf, sparql_insert, sparql_update
+from .rdf import to_rdf, sparql_insert, sparql_update, load_graph_from_file
 
 context = read_json(Path(__file__).parent.parent / 'jskos-context.json')
 
@@ -72,7 +72,8 @@ class TerminologyRegistry:
             fmt = "ndjson"
             # TODO: convert JSKOS to N-Triples
             # npm run --silent -- jsonld2rdf -c jskos-context.json "$original" > "$stage/original.nt"
-            raise Exception("Support of JSKOS terminologies not supported yet!")
+            raise Exception(
+                "Support of JSKOS terminologies not supported yet!")
 
         original = self.stage / str(id) / f"original.{fmt}"
 
@@ -84,16 +85,18 @@ class TerminologyRegistry:
         else:  # TODO: test this
             urlretrieve(file, original)
 
-
         # TODO: check and cleanup RDF
         e = ValidationError("")
-
-        pass
+        
+        # TODO: return validation result
+        return { "ok": True }
 
     def load(self, id):
-        file = self.stage / str(id) / "filtered.nt"
+        # file = self.stage / str(id) / "filtered.nt"
+        file = self.stage / str(id) / "original.xml" # TODO: use filtered!
+        uri = self.get(id)["uri"]
         if file.is_file():
-            # TODO
-            pass
+            load_graph_from_file(self.sparql, uri, file, file.suffix[1:])
+            return {"uri": uri}
         else:
             raise NotFound("Terminology data has not been received!")

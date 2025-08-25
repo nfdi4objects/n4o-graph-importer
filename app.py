@@ -59,7 +59,6 @@ def put_terminology(id):
 @app.route('/terminology/<int:id>/receive', methods=['POST'])
 def receive_terminology(id):
     try:
-        print(request.args)
         return jsonify(terminologyRegistry.receive(id, request.args.get('from', None)))
     except Exception as e:
         code = 500 if isinstance(e, ServerError) else 400
@@ -71,7 +70,6 @@ def load_terminology(id):
     try:
         return jsonify(terminologyRegistry.load(id))
     except Exception as e:
-        print(e)
         code = 500 if isinstance(e, ServerError) else 400
         return jsonify(error=f"Failed to load collection {id}: {e}"), code
 
@@ -166,4 +164,4 @@ if __name__ == '__main__':
         print(f"Starting WSGI server at http://localhost:{args.port}/")
         serve(app, host="0.0.0.0", port=args.port, threads=8)
     else:
-        app.run(host="0.0.0.0", port=args.port, debug=config["debug"])
+        app.run(host="0.0.0.0", port=args.port, debug=args.debug)
