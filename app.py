@@ -42,9 +42,18 @@ def terminologies():
     return jsonify(terminologyRegistry.list())
 
 
+@app.route('/terminology/namespaces.json', methods=['GET'])
+def terminology_namspeaces():
+    return jsonify(terminologyRegistry.namespaces())
+
+
 @app.route('/terminology/<int:id>', methods=['PUT'])
 def put_terminology(id):
-    return jsonify(terminologyRegistry.add(id))
+    try:
+        return jsonify(terminologyRegistry.add(id))
+    except Exception as e:
+        code = 500 if isinstance(e, ServerError) else 400
+        return jsonify(error=f"Failed to register terminology {id}: {e}"), code
 
 
 @app.route('/terminology/<int:id>/receive', methods=['POST'])
@@ -53,7 +62,6 @@ def receive_terminology(id):
         print(request.args)
         return jsonify(terminologyRegistry.receive(id, request.args.get('from', None)))
     except Exception as e:
-        print(e)
         code = 500 if isinstance(e, ServerError) else 400
         return jsonify(error=f"Failed to receive collection {id}: {e}"), code
 
@@ -153,9 +161,9 @@ if __name__ == '__main__':
                         default=5020, help="Server port")
     parser.add_argument('-d', '--debug', action=argparse.BooleanOptionalAction)
     args = parser.parse_args()
-    opts = {"port": args.port}
     init()
     if args.wsgi:
-        serve(app, host="0.0.0.0", **opts)
+        print(f"Starting WSGI server at http://localhost:{args.port}/")
+        serve(app, host="0.0.0.0", port=args.port, threads=8)
     else:
-        app.run(host="0.0.0.0", **opts)
+        app.run(host="0.0.0.0", port=args.port, debug=config["debug"])

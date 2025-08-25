@@ -2,6 +2,7 @@ import unittest
 import responses
 import tempfile
 import re
+import os
 from pathlib import Path
 import pytest
 import json
@@ -9,8 +10,7 @@ import json
 from lib import sparql_query, read_json
 from app import app, init
 
-docker_port = 3033
-sparql = f"http://localhost:{docker_port}/n4o"
+sparql = os.getenv('SPARQL', 'http://localhost:3033/n4o')
 
 base = "https://graph.nfdi4objects.net/collection/"
 terminology_graph = "https://graph.nfdi4objects.net/terminology/"
@@ -59,10 +59,11 @@ def test_terminology(client):
     with responses.RequestsMock() as mock:
         mock.get(
             f"https://bartoc.org/api/data?uri={uri}",
-            json=[ bartoc_18274 ]
+            json=bartoc_18274
         )
         resp = client.put('/terminology/18274')
         assert resp.status_code == 200
+        assert type(resp.get_json()) is dict
 
     resp = client.get('/terminology/')
     assert resp.status_code == 200
@@ -72,7 +73,8 @@ def test_terminology(client):
     resp = sparql_query(sparql, query)
     assert len(resp["results"]["bindings"]) == 1
 
-    # TODO: check list of prefixes
+    resp = client.get("/terminology/namespaces.json")
+    assert resp.get_json() == {"http://bartoc.org/en/node/18274": "http://www.w3.org/2004/02/skos/core#"}
 
     resp = client.post('/terminology/18274/receive')
     assert resp.status_code == 400

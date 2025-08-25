@@ -7,12 +7,8 @@ from .errors import ServerError
 
 prefixes = read_json(Path(__file__).parent.parent / 'prefixes.json')
 
-# TODO use this to load context documents from disk
-# jsonld.set_document_loader
+# TODO: https://github.com/nfdi4objects/n4o-graph-importer/issues/12
 jskos_context = read_json(Path(__file__).parent.parent / 'jskos-context.json')
-iiif_context = read_json(Path(__file__).parent.parent /
-                         'iiif-context.json')  # TODO: this is incomplete
-jskos_context["@context"]["media"]["@context"] = iiif_context
 
 
 def to_rdf(doc, context):

@@ -5,7 +5,9 @@ import shutil
 from urllib.request import urlretrieve
 from .utils import read_json, write_json
 from .errors import NotFound, ValidationError
-from .rdf import to_rdf, jskos_context, sparql_insert, sparql_update
+from .rdf import to_rdf, sparql_insert, sparql_update
+
+context = read_json(Path(__file__).parent.parent / 'jskos-context.json')
 
 
 class TerminologyRegistry:
@@ -26,6 +28,13 @@ class TerminologyRegistry:
                  ".json" and re.match('^[0-9]+$', f.stem)]
         return [read_json(f) for f in files]
 
+    def namespaces(self):
+        namespaces = {}
+        for voc in self.list():
+            if "namespace" in voc:
+                namespaces[voc["uri"]] = voc["namespace"]
+        return namespaces
+
     def get(self, id):
         try:
             return read_json(self.stage / f"{int(id)}.json")
@@ -42,10 +51,11 @@ class TerminologyRegistry:
             voc = voc[0]
             write_json(self.stage / f"{id}.json", voc)
             (self.stage / str(id)).mkdir(exist_ok=True)
-            rdf = to_rdf(voc, jskos_context).serialize(format='ntriples')
+            rdf = to_rdf(voc, context).serialize(format='ntriples')
             query = "DELETE { ?s ?p ?o } WHERE { VALUES ?s { <%s> } ?s ?p ?o }" % uri
             sparql_update(self.sparql, self.graph, query)
             sparql_insert(self.sparql, self.graph, rdf)
+            return voc
         except (ValueError, TypeError):
             raise NotFound("Malformed terminology identitfier")
 
@@ -54,7 +64,16 @@ class TerminologyRegistry:
         if not file:
             raise Exception("Missing URL or file to receive data from")
 
-        fmt = "ttl" if Path(file).suffix in [".nt", ".ttl"] else "rdf"
+        if Path(file).suffix in [".nt", ".ttl"]:
+            fmt = "ttl"
+        elif Path(file).suffix in [".rdf", ".xml"]:
+            fmt = "xml"
+        elif Path(file).suffix == ".ndjson":
+            fmt = "ndjson"
+            # TODO: convert JSKOS to N-Triples
+            # npm run --silent -- jsonld2rdf -c jskos-context.json "$original" > "$stage/original.nt"
+            raise Exception("Support of JSKOS terminologies not supported yet!")
+
         original = self.stage / str(id) / f"original.{fmt}"
 
         if "/" not in file:
@@ -65,7 +84,6 @@ class TerminologyRegistry:
         else:  # TODO: test this
             urlretrieve(file, original)
 
-#        if Path(file).suffix
 
         # TODO: check and cleanup RDF
         e = ValidationError("")

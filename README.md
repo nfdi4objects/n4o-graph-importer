@@ -73,6 +73,10 @@ Load received terminology data into the triple store.
 
 Get latest load log of a terminology. *Not implemented yet!*
 
+### GET /terminology/namespaces.json
+
+Return registered URI namespaces forbidden to be used in RDF subjects. The result is a JSON object with terminology URIs as keys and namespaces as values. For instance the SKOS (<http://bartoc.org/en/node/18274>) namespace is <http://www.w3.org/2004/02/skos/core#> so RDF triples with subjects in this namespace can only be added to the knowledge graph via `/terminology/18274`.
+
 ### GET /collection/
 
 Return the list of registered collections (metadata only).

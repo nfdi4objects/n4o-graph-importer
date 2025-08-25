@@ -7,7 +7,6 @@
     "ajv": "ajv --spec draft2020 -c ajv-formats",
     "jsonld2rdf": "jsonld2rdf",
     "csv2json": "node js/csv2json.js",
-    "update-terminologies": "node js/update-terminologies.js",
     "api": "nodemon --exec .venv/bin/python app.py"
   },
   "dependencies": {

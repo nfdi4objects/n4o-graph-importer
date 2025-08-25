@@ -1,4 +1,9 @@
 #!/usr/bin/bash
-. utils.sh
+set -euo pipefail
 
-npm run --silent update-terminologies
+curl -s 'https://bartoc.org/api/voc?partOf=http%3A%2F%2Fbartoc.org%2Fen%2Fnode%2F18961&limit=500' \
+| jq -r '.[].uri|split("/")[-1]' \
+| while IFS= read -r id; do
+    echo $id
+    curl --verbose -X PUT "http://127.0.0.1:5020/terminology/$id"
+done
