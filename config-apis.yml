@@ -1,0 +1,15 @@
+# configuration of n4o-graph-apis
+
+debug: false
+
+sparql:
+  endpoint: http://fuseki:3030/n4o
+  examples:
+    # examples given in files
+    #- queries/*.rq
+    # example given in config file
+    - name: List all classes
+      query: |
+        SELECT DISTINCT ?class WHERE { [] a ?class }  examples:
+
+stage: ./stage

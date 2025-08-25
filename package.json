@@ -7,7 +7,7 @@
     "ajv": "ajv --spec draft2020 -c ajv-formats",
     "jsonld2rdf": "jsonld2rdf",
     "csv2json": "node js/csv2json.js",
-    "api": "nodemon --exec .venv/bin/python app.py"
+    "api": "nodemon --exec .venv/bin/python app.py --debug"
   },
   "dependencies": {
     "ajv-cli": "^5.0.0",
