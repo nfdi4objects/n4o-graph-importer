@@ -93,3 +93,49 @@ class CollectionRegistry:
         cols = [self.collection_metadata(c) for c in cols]
         self.update_collections(cols)
         return cols
+
+    def receive(self, id, file=None, format=None):
+        col = self.get(id)
+
+        if "access" in col:
+            if not file:
+                file = col["access"].get("url")
+            if not format:
+                format = col["access"].get("format")
+
+        if format:
+            format = format.removeprefix('https://format.gbv.de/')
+        else:
+            format = "rdf"
+        if format != "rdf":
+            raise ServerException(
+                f"Only RDF data supported so far, got {format}")
+
+        if not file:
+            raise NotFound("Missing url to receive data from")
+
+        print(f"TODO: Receive {format} data from {file}")
+
+        # TODO: migrate from bash script to Python
+        """
+        # TODO: support OAI-PMH for LIDO/XML
+        inbox=$STAGE/inbox/$id
+        download_dir=$stage/download
+
+        rm -rf $download_dir
+        mkdir -p $download_dir
+
+        if [[ $url == *doi.org* ]]; then
+          ./download-from-repository.py $url $download_dir
+        elif [[ $url == http* ]]; then
+          wget -q $url --directory-prefix $download_dir
+        elif [[ -d $inbox ]]; then
+          cp $inbox/* $download_dir
+        else
+          error "No valid source $url"
+        fi
+
+        # TODO: support LIDO/XML via repository
+        ./extract-rdf.py $download_dir $stage/triples.nt
+        ./transform-rdf $stage/triples.nt     # includes validation
+        """

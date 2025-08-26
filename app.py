@@ -106,17 +106,9 @@ def delete_collection(id):
 
 @app.route('/collection/<int:id>/receive', methods=['POST'])
 def collection_receive_id(id):
-    '''Receive the data of a collection entry by.'''
-    cmds = ['./receive-collection', str(id)]
-    if other_src := request.args.get('from', None):
-        cmds.append(other_src)
-        if fmt := request.args.get('format', None):
-            cmds.append(fmt)
-    response = subprocess.run(cmds, capture_output=True, text=True)
-    if response.stderr:
-        return jsonify(error=response.stderr), 500
-    else:
-        return jsonify(message=f"receive {id} executed.", output=response.stdout, id=id), 200
+    file = request.args.get('from', None)
+    format = request.args.get('format', None)
+    return jsonify(collectionRegistry.receive(id, file, format))
 
 
 @app.route('/collection/<int:id>/import', methods=['POST'])

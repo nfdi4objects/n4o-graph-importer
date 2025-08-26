@@ -79,6 +79,9 @@ def test_terminology(client):
     resp = client.post('/terminology/18274/receive')
     assert resp.status_code == 400
 
+    resp = client.post('/terminology/18274/load')
+    assert resp.status_code == 404
+
     resp = client.post('/terminology/18274/receive?from=skos.rdf')
     assert resp.status_code == 200
 
@@ -144,3 +147,9 @@ def test_api(client):
     resp = client.post('/collection/', json=collection_0)
     assert resp.status_code == 200  # TODO: should be 201 Created
     assert resp.get_json()["id"] == "4"
+
+    # receive data 
+    resp = client.post('/collection/1/receive')
+    assert resp.status_code == 404
+
+
