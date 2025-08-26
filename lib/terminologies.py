@@ -4,7 +4,7 @@ import re
 import shutil
 from urllib.request import urlretrieve
 from .utils import read_json, write_json
-from .errors import NotFound, ValidationError
+from .errors import NotFound, ServerError, ClientError, ValidationError
 from .rdf import to_rdf, sparql_insert, sparql_update, load_graph_from_file
 
 context = read_json(Path(__file__).parent.parent / 'jskos-context.json')
@@ -38,7 +38,7 @@ class TerminologyRegistry:
     def get(self, id):
         try:
             return read_json(self.stage / f"{int(id)}.json")
-        except Exception:
+        except NotFound:
             raise NotFound(f"Terminology not found: {id}")
 
     def add(self, id):
@@ -62,7 +62,7 @@ class TerminologyRegistry:
     def receive(self, id, file):
         self.get(id)  # make sure terminology has been registered
         if not file:
-            raise Exception("Missing URL or file to receive data from")
+            raise ClientError("Missing URL or file to receive data from")
 
         if Path(file).suffix in [".nt", ".ttl"]:
             fmt = "ttl"
@@ -72,7 +72,7 @@ class TerminologyRegistry:
             fmt = "ndjson"
             # TODO: convert JSKOS to N-Triples
             # npm run --silent -- jsonld2rdf -c jskos-context.json "$original" > "$stage/original.nt"
-            raise Exception(
+            raise ServerError(
                 "Support of JSKOS terminologies not supported yet!")
 
         original = self.stage / str(id) / f"original.{fmt}"
@@ -80,20 +80,20 @@ class TerminologyRegistry:
         if "/" not in file:
             file = self.data / file
             if not file.is_file():
-                raise Exception("File not found: {file}")
+                raise NotFound("File not found: {file}")
             shutil.copy(file, original)
         else:  # TODO: test this
             urlretrieve(file, original)
 
         # TODO: check and cleanup RDF
         e = ValidationError("")
-        
+
         # TODO: return validation result
-        return { "ok": True }
+        return {"ok": True}
 
     def load(self, id):
         # file = self.stage / str(id) / "filtered.nt"
-        file = self.stage / str(id) / "original.xml" # TODO: use filtered!
+        file = self.stage / str(id) / "original.xml"  # TODO: use filtered!
         uri = self.get(id)["uri"]
         if file.is_file():
             load_graph_from_file(self.sparql, uri, file, file.suffix[1:])

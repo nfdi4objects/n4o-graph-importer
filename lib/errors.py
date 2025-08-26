@@ -1,13 +1,21 @@
 from jsonschema import ValidationError  # noqa
 
 
-class NotFound(Exception):
-    pass
+class ApiError(Exception):
+    code = 400
 
 
-class NotAllowed(Exception):
-    pass
+class NotFound(ApiError):
+    code = 404
 
 
-class ServerError(Exception):
-    pass
+class NotAllowed(ApiError):
+    code = 403
+
+
+class ServerError(ApiError):
+    code = 500
+
+
+class ClientError(ApiError):
+    code = 400

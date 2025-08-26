@@ -1,6 +1,6 @@
 from flask import Flask, jsonify, request, render_template
 from waitress import serve
-from lib import CollectionRegistry, TerminologyRegistry, NotFound, NotAllowed, ValidationError, ServerError
+from lib import CollectionRegistry, TerminologyRegistry, ApiError, ValidationError
 import argparse
 import subprocess
 import os
@@ -31,6 +31,16 @@ def init(**config):
     terminologyRegistry = TerminologyRegistry(**app.config)
 
 
+@app.errorhandler(ValidationError)
+def handle_validation_error(e):
+    return jsonify(error=f"Invalid data: {e}"), 400
+
+
+@app.errorhandler(ApiError)
+def handle_error(e):
+    return jsonify(error=str(e)), type(e).code
+
+
 @app.route('/', methods=['GET'])
 def index():
     return render_template('index.html', **app.config)
@@ -49,29 +59,17 @@ def terminology_namspeaces():
 
 @app.route('/terminology/<int:id>', methods=['PUT'])
 def put_terminology(id):
-    try:
-        return jsonify(terminologyRegistry.add(id))
-    except Exception as e:
-        code = 500 if isinstance(e, ServerError) else 400
-        return jsonify(error=f"Failed to register terminology {id}: {e}"), code
+    return jsonify(terminologyRegistry.add(id))
 
 
 @app.route('/terminology/<int:id>/receive', methods=['POST'])
 def receive_terminology(id):
-    try:
-        return jsonify(terminologyRegistry.receive(id, request.args.get('from', None)))
-    except Exception as e:
-        code = 500 if isinstance(e, ServerError) else 400
-        return jsonify(error=f"Failed to receive collection {id}: {e}"), code
+    return jsonify(terminologyRegistry.receive(id, request.args.get('from', None)))
 
 
 @app.route('/terminology/<int:id>/load', methods=['POST'])
 def load_terminology(id):
-    try:
-        return jsonify(terminologyRegistry.load(id))
-    except Exception as e:
-        code = 500 if isinstance(e, ServerError) else 400
-        return jsonify(error=f"Failed to load collection {id}: {e}"), code
+    return jsonify(terminologyRegistry.load(id))
 
 
 @app.route('/collection', methods=['GET'])
@@ -83,47 +81,27 @@ def collections():
 @app.route('/collection', methods=['PUT', 'POST'])
 @app.route('/collection/', methods=['PUT', 'POST'])
 def put_post_collections():
-    try:
-        data = request.get_json(force=True)
-        if request.method == "PUT":
-            return jsonify(collectionRegistry.set_all(data)), 200
-        else:
-            return jsonify(collectionRegistry.add(data)), 200
-    except ValidationError as e:
-        return jsonify(error=f"Invalid collection metadata: {e}"), 400
-    except NotAllowed:
-        return jsonify(error="Not allowed"), 403
-    except Exception as e:
-        return jsonify(error=f"Missing or malformed JSON body: {e}"), 400
+    data = request.get_json(force=True)
+    if request.method == "PUT":
+        return jsonify(collectionRegistry.set_all(data)), 200
+    else:
+        return jsonify(collectionRegistry.add(data)), 200
 
 
 @app.route('/collection/<int:id>', methods=['GET'])
 def get_collection(id):
-    try:
-        return jsonify(collectionRegistry.get(id))
-    except NotFound:
-        return jsonify(error="collection {id} not found"), 404
+    return jsonify(collectionRegistry.get(id))
 
 
 @app.route('/collection/<int:id>', methods=['PUT'])
 def put_collection(id):
-    try:
-        col = collectionRegistry.set(id, request.get_json(force=True))
-        return jsonify(col)
-    # except NotFound:
-    #    return jsonify(error="collection {id} not found"), 404
-    except ValidationError as e:
-        return jsonify(error=f"Invalid collection metadata: {e}"), 400
-    except Exception as e:
-        return jsonify(error=f"Missing or malformed JSON body: {e}"), 400
+    col = collectionRegistry.set(id, request.get_json(force=True))
+    return jsonify(col)
 
 
 @app.route('/collection/<int:id>', methods=['DELETE'])
 def delete_collection(id):
-    try:
-        return jsonify(collectionRegistry.delete(id))
-    except NotFound:
-        return jsonify(error="collection {id} not found"), 404
+    return jsonify(collectionRegistry.delete(id))
 
 
 @app.route('/collection/<int:id>/receive', methods=['POST'])

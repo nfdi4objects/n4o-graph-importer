@@ -47,7 +47,7 @@ def sparql_update(api, graph, query):
     try:
         res = sparql.query()
         if res.response.code != 200:
-            raise Exception(f"HTTP Status code {res.response.code}")
+            raise ServerError(f"HTTP Status code {res.response.code}")
     except Exception as e:
         raise ServerError(f"SPARQL UPDATE failed: {e}")
 

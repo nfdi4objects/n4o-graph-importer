@@ -103,7 +103,7 @@ def test_api(client):
     # add collection
     resp = client.put('/collection/', json={})
     assert resp.status_code == 400
-    assert b"Invalid collection metadata" in resp.data
+    assert b"Expected list of collections" in resp.data
 
     resp = client.put('/collection/', json=[collection_1])
     assert resp.status_code == 200
