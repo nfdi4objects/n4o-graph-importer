@@ -28,6 +28,10 @@ def to_rdf(doc, context):
     return g
 
 
+def jskos_to_rdf(doc):
+    return to_rdf(doc, jskos_context)
+
+
 def write_ttl(file, doc, context):
     with open(file, "w") as f:
         f.write(to_rdf(doc, context).serialize(format='turtle'))
@@ -58,9 +62,15 @@ def sparql_insert(api, graph, rdf):
 
 
 def load_graph_from_file(api, graph, file, fmt):
+    print(f"Storing RDF graph {graph} from {file} at {api}")
     mime = "text/turtle" if fmt == "ttl" else "application/rdf+xml"
     headers = {"content-type": mime}
-    res = requests.put(api, data=open(file, 'rb'), headers=headers)
+    res = requests.put(f"{api}?graph={graph}", data=open(file, 'rb'), headers=headers)
     return res.status_code == 200
     # TODO: detect error?
 
+def rdf_convert(source, target):
+    graph = Graph()
+    graph.parse(source)
+    with open(target, "w") as f:
+        f.write(graph.serialize(format='ntriples'))

@@ -15,7 +15,10 @@ sparql = os.getenv('SPARQL', 'http://localhost:3033/n4o')
 base = "https://graph.nfdi4objects.net/collection/"
 terminology_graph = "https://graph.nfdi4objects.net/terminology/"
 
-bartoc_18274 = read_json("tests/18274.json")
+bartoc = {
+  "18274": read_json("tests/18274.json"),
+  "20533": read_json("tests/20533.json")
+}
 
 collection_1 = {
   "id": "1",
@@ -53,17 +56,27 @@ def client(stage):
     with app.test_client() as client:
         yield client
 
-
-def test_terminology(client):
-    uri = "http://bartoc.org/en/node/18274"
+def register_terminology(client, id):
     with responses.RequestsMock() as mock:
         mock.get(
-            f"https://bartoc.org/api/data?uri={uri}",
-            json=bartoc_18274
+            f"https://bartoc.org/api/data?uri=http://bartoc.org/en/node/{id}",
+            json=[ bartoc[id] ]
         )
-        resp = client.put('/terminology/18274')
+        resp = client.put(f'/terminology/{id}')
         assert resp.status_code == 200
         assert type(resp.get_json()) is dict
+
+
+def test_terminology(client):
+
+    resp = client.get("/terminology/18274")
+    assert resp.status_code == 404
+
+    uri = "http://bartoc.org/en/node/18274"
+    register_terminology(client, "18274")
+
+    resp = client.get("/terminology/18274")
+    assert resp.status_code == 200
 
     resp = client.get('/terminology/')
     assert resp.status_code == 200
@@ -87,6 +100,19 @@ def test_terminology(client):
 
     resp = client.post('/terminology/18274/load')
     assert resp.status_code == 200
+
+    register_terminology(client, "20533")
+
+    resp = client.post('/terminology/20533/receive?from=20533.concepts.ndjson')
+    assert resp.status_code == 200
+
+    resp = client.post('/terminology/20533/load')
+    assert resp.status_code == 200
+
+    query = "SELECT DISTINCT ?g { GRAPH ?g { ?s ?p ?o } }"
+    resp = sparql_query(sparql, query)
+    graphs = set([ b["g"]["value"] for b in resp["results"]["bindings"] ])
+    assert graphs == {'https://graph.nfdi4objects.net/terminology/', "http://bartoc.org/en/node/18274", "http://bartoc.org/en/node/20533"}
 
 
 def test_api(client):

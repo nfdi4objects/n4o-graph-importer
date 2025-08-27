@@ -56,6 +56,9 @@ def terminologies():
 def terminology_namspeaces():
     return jsonify(terminologyRegistry.namespaces())
 
+@app.route('/terminology/<int:id>', methods=['GET'])
+def get_terminology(id):
+    return jsonify(terminologyRegistry.get(id))
 
 @app.route('/terminology/<int:id>', methods=['PUT'])
 def put_terminology(id):

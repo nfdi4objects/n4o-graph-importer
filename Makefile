@@ -18,3 +18,6 @@ lint:
 fix:
 	@.venv/bin/autopep8 --in-place *.py lib/*.py
 
+tests/20533.concepts.ndjson:
+	curl -s https://api.dante.gbv.de/export/download/kenom_material/default/kenom_material__default.jskos.ndjson | \
+	jq -c 'del(.publisher,.qualifiedLiterals,.ancestors,.created,.modified,."@context",.issued,.mappings)' > $@

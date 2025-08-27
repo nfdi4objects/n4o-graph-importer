@@ -3,11 +3,9 @@ import requests
 import re
 import shutil
 from urllib.request import urlretrieve
-from .utils import read_json, write_json
-from .errors import NotFound, ServerError, ClientError, ValidationError
-from .rdf import to_rdf, sparql_insert, sparql_update, load_graph_from_file
-
-context = read_json(Path(__file__).parent.parent / 'jskos-context.json')
+from .utils import read_json, read_ndjson, write_json
+from .errors import NotFound, ClientError
+from .rdf import jskos_to_rdf, sparql_insert, sparql_update, load_graph_from_file, rdf_convert
 
 
 class TerminologyRegistry:
@@ -19,9 +17,6 @@ class TerminologyRegistry:
         self.data.mkdir(exist_ok=True)
         self.graph = "https://graph.nfdi4objects.net/terminology/"
         self.sparql = config['sparql']
-
-    def json_file(self, id):
-        return self.stage / str(id)
 
     def list(self):
         files = [f for f in self.stage.iterdir() if f.suffix ==
@@ -38,7 +33,7 @@ class TerminologyRegistry:
     def get(self, id):
         try:
             return read_json(self.stage / f"{int(id)}.json")
-        except NotFound:
+        except (NotFound, FileNotFoundError):
             raise NotFound(f"Terminology not found: {id}")
 
     def add(self, id):
@@ -51,7 +46,7 @@ class TerminologyRegistry:
             voc = voc[0]
             write_json(self.stage / f"{id}.json", voc)
             (self.stage / str(id)).mkdir(exist_ok=True)
-            rdf = to_rdf(voc, context).serialize(format='ntriples')
+            rdf = jskos_to_rdf(voc).serialize(format='ntriples')
             query = "DELETE { ?s ?p ?o } WHERE { VALUES ?s { <%s> } ?s ?p ?o }" % uri
             sparql_update(self.sparql, self.graph, query)
             sparql_insert(self.sparql, self.graph, rdf)
@@ -61,6 +56,7 @@ class TerminologyRegistry:
 
     def receive(self, id, file):
         self.get(id)  # make sure terminology has been registered
+
         if not file:
             raise ClientError("Missing URL or file to receive data from")
 
@@ -70,10 +66,6 @@ class TerminologyRegistry:
             fmt = "xml"
         elif Path(file).suffix == ".ndjson":
             fmt = "ndjson"
-            # TODO: convert JSKOS to N-Triples
-            # npm run --silent -- jsonld2rdf -c jskos-context.json "$original" > "$stage/original.nt"
-            raise ServerError(
-                "Support of JSKOS terminologies not supported yet!")
 
         original = self.stage / str(id) / f"original.{fmt}"
 
@@ -85,18 +77,25 @@ class TerminologyRegistry:
         else:  # TODO: test this
             urlretrieve(file, original)
 
-        # TODO: check and cleanup RDF
-        e = ValidationError("")
+        # convert JSKOS to RDF
+        if fmt == "ndjson":
+            jskos = read_ndjson(original)
+            rdf = jskos_to_rdf(jskos).serialize(format='ntriples')
+            fmt = "ttl"
+            original = self.stage / str(id) / f"original.{fmt}"
+            with open(original, "w") as f:
+                f.write(rdf)
 
-        # TODO: return validation result
+        # TODO: also validate and filter RDF
+        rdf_convert(original, self.stage / str(id) / "filtered.nt")
+
         return {"ok": True}
 
     def load(self, id):
-        # file = self.stage / str(id) / "filtered.nt"
-        file = self.stage / str(id) / "original.xml"  # TODO: use filtered!
+        file = self.stage / str(id) / "filtered.nt"
         uri = self.get(id)["uri"]
         if file.is_file():
-            load_graph_from_file(self.sparql, uri, file, file.suffix[1:])
+            load_graph_from_file(self.sparql, uri, file, "ttl")
             return {"uri": uri}
         else:
             raise NotFound("Terminology data has not been received!")
