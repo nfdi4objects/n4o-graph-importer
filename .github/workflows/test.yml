@@ -24,6 +24,6 @@ jobs:
           pip install -r requirements.txt    
           pip install -r requirements-dev.txt   
       - name: Run tests and coverage report
-      - run: |
+        run: |
           ./tests/test_api.sh
           coverage report -m
