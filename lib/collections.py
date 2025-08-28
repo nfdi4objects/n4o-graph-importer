@@ -4,7 +4,8 @@ from jsonschema import validate
 # from SPARQLWrapper import SPARQLWrapper
 from .utils import read_json, write_json
 from .errors import NotFound, NotAllowed, ValidationError
-from .rdf import write_ttl
+from .rdf import write_ttl, load_graph_from_file
+from .log import Log
 
 JSON_SCHEMA = read_json(Path(__file__).parent.parent /
                         'collection-schema.json')

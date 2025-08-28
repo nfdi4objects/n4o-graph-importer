@@ -6,18 +6,16 @@ import sys
 from urllib.request import urlretrieve
 from .utils import read_json, read_ndjson, write_json
 from .errors import NotFound, ClientError
-from .rdf import jskos_to_rdf, sparql_insert, sparql_update, load_graph_from_file, rdf_convert
+from .rdf import jskos_to_rdf, sparql_insert, sparql_update, rdf_convert
+from .log import Log
+from .registry import Registry
 
 
-class TerminologyRegistry:
+class TerminologyRegistry(Registry):
 
     def __init__(self, **config):
-        self.stage = Path(config.get('stage', 'stage')) / "terminology"
-        self.stage.mkdir(exist_ok=True)
-        self.data = Path(config.get('data', 'data'))
-        self.data.mkdir(exist_ok=True)
+        super().__init__("terminology", **config)
         self.graph = "https://graph.nfdi4objects.net/terminology/"
-        self.sparql = config['sparql']
 
     def list(self):
         files = [f for f in self.stage.iterdir() if f.suffix ==
@@ -32,10 +30,7 @@ class TerminologyRegistry:
         return namespaces
 
     def get(self, id):
-        try:
-            return read_json(self.stage / f"{int(id)}.json")
-        except (NotFound, FileNotFoundError):
-            raise NotFound(f"Terminology not found: {id}")
+        return read_json(self.stage / f"{int(id)}.json")
 
     def add(self, id):
         try:
@@ -70,18 +65,24 @@ class TerminologyRegistry:
         elif Path(file).suffix == ".ndjson":
             fmt = "ndjson"
 
+        log = Log(self.stage / str(id) / "receive.log",
+                  f"Receiving terminology {id}")
+
         original = self.stage / str(id) / f"original.{fmt}"
 
         if "/" not in file:
             file = self.data / file
             if not file.is_file():
                 raise NotFound("File not found: {file}")
+            log.append(f"Retrieving file {file} from data directory")
             shutil.copy(file, original)
         else:  # TODO: test this
+            log.append(f"Retrieving file from {file}")
             urlretrieve(file, original)
 
         # convert JSKOS to RDF
         if fmt == "ndjson":
+            log.append("Converting JSKOS to RDF")
             jskos = read_ndjson(original)
             rdf = jskos_to_rdf(jskos).serialize(format='ntriples')
             fmt = "ttl"
@@ -92,13 +93,10 @@ class TerminologyRegistry:
         # TODO: also validate and filter RDF
         rdf_convert(original, self.stage / str(id) / "filtered.nt")
 
-        return {"ok": True}
+        return log.done()
 
-    def load(self, id):
-        file = self.stage / str(id) / "filtered.nt"
-        uri = self.get(id)["uri"]
-        if file.is_file():
-            load_graph_from_file(self.sparql, uri, file, "ttl")
-            return {"uri": uri}
-        else:
-            raise NotFound("Terminology data has not been received!")
+    def receive_log(self, id):
+        return Log(self.stage / str(id) / "receive.log").load()
+
+    def load_log(self, id):
+        return Log(self.stage / str(id) / "load.log").load()

@@ -1,14 +1,21 @@
 import json
+from .errors import NotFound
 
 
 def read_json(file):
-    with open(file) as f:
-        return json.load(f)
+    try:
+        with open(file) as f:
+            return json.load(f)
+    except FileNotFoundError as e:
+        raise NotFound(e)
 
 
 def read_ndjson(file):
-    with open(file) as file:
-        return [json.loads(line) for line in file]
+    try:
+        with open(file) as file:
+            return [json.loads(line) for line in file]
+    except FileNotFoundError as e:
+        raise NotFound(e)
 
 
 def write_json(file, data):

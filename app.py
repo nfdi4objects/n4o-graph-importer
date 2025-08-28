@@ -70,9 +70,19 @@ def receive_terminology(id):
     return jsonify(terminologyRegistry.receive(id, request.args.get('from', None)))
 
 
+@app.route('/terminology/<int:id>/receive', methods=['GET'])
+def receive_terminology_log(id):
+    return jsonify(terminologyRegistry.receive_log(id))
+
+
 @app.route('/terminology/<int:id>/load', methods=['POST'])
 def load_terminology(id):
     return jsonify(terminologyRegistry.load(id))
+
+
+@app.route('/terminology/<int:id>/load', methods=['GET'])
+def load_terminology_log(id):
+    return jsonify(terminologyRegistry.load_log(id))
 
 
 @app.route('/collection', methods=['GET'])
@@ -119,8 +129,13 @@ def collection_receive_id(id):
     return jsonify(collectionRegistry.receive(id, file, format))
 
 
-@app.route('/collection/<int:id>/import', methods=['POST'])
-def collection_import_id(id):
+@app.route('/collection/<int:id>/receive', methods=['GET'])
+def receive_collection_log(id):
+    return jsonify(collectionRegistry.receive_log(id))
+
+
+@app.route('/collection/<int:id>/load', methods=['POST'])
+def collection_load_id(id):
     # TODO: move to Python library
     '''Import the data of an collection entry.'''
     response = subprocess.run(
@@ -128,6 +143,11 @@ def collection_import_id(id):
     if response.stderr:
         return jsonify(error=response.stderr), 500
     return jsonify(message=f"import {id} executed.", output=response.stdout, id=id), 200
+
+
+@app.route('/collection/<int:id>/load', methods=['GET'])
+def load_collection_log(id):
+    return jsonify(collectionRegistry.load_log(id))
 
 
 if __name__ == '__main__':
