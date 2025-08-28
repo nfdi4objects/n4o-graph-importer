@@ -1,6 +1,6 @@
 from flask import Flask, jsonify, request, render_template
 from waitress import serve
-from lib import CollectionRegistry, TerminologyRegistry, ApiError, ValidationError
+from lib import CollectionRegistry, TerminologyRegistry, ApiError, ValidationError, read_json
 import argparse
 import subprocess
 import os
@@ -11,8 +11,6 @@ app.json.compact = False
 
 collectionRegistry = None
 terminologyRegistry = None
-
-# TODO: catch ServerError and return 500 response (e.g. backend not available)
 
 
 def init(**config):
@@ -56,12 +54,14 @@ def terminologies():
 def terminology_namspeaces():
     return jsonify(terminologyRegistry.namespaces())
 
+
 @app.route('/terminology/<int:id>', methods=['GET'])
 def get_terminology(id):
     return jsonify(terminologyRegistry.get(id))
 
+
 @app.route('/terminology/<int:id>', methods=['PUT'])
-def put_terminology(id):
+def register_terminology(id):
     return jsonify(terminologyRegistry.add(id))
 
 
@@ -91,6 +91,11 @@ def put_post_collections():
         return jsonify(collectionRegistry.add(data)), 200
 
 
+@app.route('/collection/schema.json', methods=['GET'])
+def collection_schema():
+    return jsonify(read_json("collection-schema.json"))
+
+
 @app.route('/collection/<int:id>', methods=['GET'])
 def get_collection(id):
     return jsonify(collectionRegistry.get(id))
@@ -116,6 +121,7 @@ def collection_receive_id(id):
 
 @app.route('/collection/<int:id>/import', methods=['POST'])
 def collection_import_id(id):
+    # TODO: move to Python library
     '''Import the data of an collection entry.'''
     response = subprocess.run(
         f'./import-collection {id}', shell=True, capture_output=True, text=True)
@@ -128,8 +134,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '-w', '--wsgi', action=argparse.BooleanOptionalAction, help="Use WSGI server")
-    parser.add_argument('-p', '--port', type=int,
-                        default=5020, help="Server port")
+    parser.add_argument('-p', '--port', type=int, default=5020)
     parser.add_argument('-d', '--debug', action=argparse.BooleanOptionalAction)
     args = parser.parse_args()
     init()

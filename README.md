@@ -53,7 +53,7 @@ Return metadata of a registered terminology.
 
 ### PUT /terminology/:id
 
-Add or update metadata of a registered terminology from BARTOC. The metadata is directly added to the triple store. Updates may lead to errors in description of terminologies because removal of statements is limited to simple triples with terminology URI as subject!
+Register a terminology or update its metadata from BARTOC. The metadata is directly added to the triple store. Updates may lead to errors in description of terminologies because removal of statements is limited to simple triples with terminology URI as subject!
 
 ### POST /terminology/:id/receive
 
@@ -81,15 +81,19 @@ Return registered URI namespaces forbidden to be used in RDF subjects. The resul
 
 Return the list of registered collections (metadata only).
 
+### GET /collection/schema.json
+
+Return the JSON Schema used to validation collection metadata. See file [collection-schema.json](collection-schema.json).
+
 ### PUT /collection/
 
-Replace the list of registered collections. Only allowed if the current list is empty. 
+Replace the list of registered collections. Only allowed if the current list is empty. Collections metadata must conform to the Collection JSON Schema.
 
 *The metadata is not imported into the triple store!*
 
 ### POST /collection/
 
-Register a new collection or update metadata of a registered collection.
+Register a new collection or update metadata of a registered collection. Collection metadata must conform to the Collection JSON Schema.
 
 *The metadata is not imported into the triple store!*
 

@@ -6,6 +6,7 @@ from pyld import jsonld
 from .utils import read_json
 from .errors import ServerError
 
+# Namespace prefixes for pretty RDF/Turtle
 prefixes = read_json(Path(__file__).parent.parent / 'prefixes.json')
 
 # TODO: https://github.com/nfdi4objects/n4o-graph-importer/issues/12
@@ -65,12 +66,42 @@ def load_graph_from_file(api, graph, file, fmt):
     print(f"Storing RDF graph {graph} from {file} at {api}")
     mime = "text/turtle" if fmt == "ttl" else "application/rdf+xml"
     headers = {"content-type": mime}
-    res = requests.put(f"{api}?graph={graph}", data=open(file, 'rb'), headers=headers)
+    res = requests.put(f"{api}?graph={graph}",
+                       data=open(file, 'rb'), headers=headers)
     return res.status_code == 200
     # TODO: detect error?
+
 
 def rdf_convert(source, target):
     graph = Graph()
     graph.parse(source)
     with open(target, "w") as f:
         f.write(graph.serialize(format='ntriples'))
+
+
+# TODO: cleanup and analyze RDF
+
+"""
+rapper -q -i "${formats[$format]}" "$original" | sort | uniq -d > "$duplicated"
+
+mv "$tmp" "$unique"
+
+echo "$original ist syntaktisch korrektes RDF. "
+echo
+echo "Anzahl mehrfacher        Tripel: **$(<$duplicated wc -l)**"
+echo "Anzahl unterschiedlicher Tripel: **$(<$unique wc -l)**"
+
+filtered=$stage/filtered.nt
+removed=$stage/removed.nt
+namespace=$(jq -r --arg uri "$uri" '.[$uri]' $STAGE/terminology/namespaces.json)
+
+export RDFFILTER_ALLOW_NAMESPACE=$namespace
+npm run --silent -- rdffilter $unique -o $filtered --stats -f ./js/rdffilter.js
+# TODO: extend rdffilter for one-pass
+npm run --silent -- rdffilter $unique -o $removed -r -f ./js/rdffilter.js
+unset RDFFILTER_ALLOW_NAMESPACE
+
+wc -l $duplicated
+wc -l $removed
+wc -l $filtered
+"""

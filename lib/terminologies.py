@@ -2,6 +2,7 @@ from pathlib import Path
 import requests
 import re
 import shutil
+import sys
 from urllib.request import urlretrieve
 from .utils import read_json, read_ndjson, write_json
 from .errors import NotFound, ClientError
@@ -40,6 +41,7 @@ class TerminologyRegistry:
         try:
             id = int(id)
             uri = f"http://bartoc.org/en/node/{id}"
+            print(uri)
             voc = requests.get(f"https://bartoc.org/api/data?uri={uri}").json()
             if not len(voc):
                 raise NotFound(f"Terminology not found: {uri}")
@@ -48,6 +50,7 @@ class TerminologyRegistry:
             (self.stage / str(id)).mkdir(exist_ok=True)
             rdf = jskos_to_rdf(voc).serialize(format='ntriples')
             query = "DELETE { ?s ?p ?o } WHERE { VALUES ?s { <%s> } ?s ?p ?o }" % uri
+            print('FIXME: the following sometimes crashes', flush=True)
             sparql_update(self.sparql, self.graph, query)
             sparql_insert(self.sparql, self.graph, rdf)
             return voc
