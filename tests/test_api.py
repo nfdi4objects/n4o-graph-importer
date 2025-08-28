@@ -16,103 +16,118 @@ base = "https://graph.nfdi4objects.net/collection/"
 terminology_graph = "https://graph.nfdi4objects.net/terminology/"
 
 bartoc = {
-  "18274": read_json("tests/18274.json"),
-  "20533": read_json("tests/20533.json")
+    "18274": [read_json("tests/18274.json")],
+    "20533": [read_json("tests/20533.json")],
+    "0": []
 }
 
 collection_1 = {
-  "id": "1",
-  "name": "test collection",
-  "url": "https://example.org/",
-  "uri": f"{base}1"
+    "id": "1",
+    "name": "test collection",
+    "url": "https://example.org/",
+    "uri": f"{base}1"
 }
 collection_1_full = {
     **collection_1,
-    "partOf": [ base ]
+    "partOf": [base]
 }
 collection_0 = {
-  "name": "another test collection",
-  "url": "https://example.com/",
+    "name": "another test collection",
+    "url": "https://example.com/",
 }
 collection_3_full = {
-  **collection_0,
-  "id": "3",
-  "uri": f"{base}3",
-  "partOf": [ base ]
+    **collection_0,
+    "id": "3",
+    "uri": f"{base}3",
+    "partOf": [base]
 }
+
 
 @pytest.fixture
 def stage():
     with tempfile.TemporaryDirectory() as tempdir:
         yield tempdir
 
+
 @pytest.fixture
 def client(stage):
     app.testing = True
 
     data = Path(__file__).parent
-    init(title="N4O Graph Import API TEST", stage=stage, sparql=sparql, data=data)
+    init(title="N4O Graph Import API TEST",
+         stage=stage, sparql=sparql, data=data)
 
     with app.test_client() as client:
         yield client
+
 
 def register_terminology(client, id):
     with responses.RequestsMock() as mock:
         mock.get(
             f"https://bartoc.org/api/data?uri=http://bartoc.org/en/node/{id}",
-            json=[ bartoc[id] ]
+            json=bartoc[id]
         )
-        resp = client.put(f'/terminology/{id}')
-        assert resp.status_code == 200
-        assert type(resp.get_json()) is dict
+        res = client.put(f'/terminology/{id}')
+        assert type(res.get_json()) is dict
+        return res
 
 
 def test_terminology(client):
 
-    resp = client.get("/terminology/18274")
-    assert resp.status_code == 404
+    # get unregisterd terminology
+    assert client.get("/terminology/18274").status_code == 404
 
-    uri = "http://bartoc.org/en/node/18274"
-    register_terminology(client, "18274")
+    # register terminology, get afterwards
+    assert register_terminology(client, "18274").status_code == 200
+    assert client.get("/terminology/18274").status_code == 200
 
-    resp = client.get("/terminology/18274")
-    assert resp.status_code == 200
+    # try to register non-existing terminology
+    assert register_terminology(client, "0").status_code == 404
 
+    # get list of terminologies
     resp = client.get('/terminology/')
     assert resp.status_code == 200
     assert len(resp.get_json()) == 1
 
-    query = "SELECT * { GRAPH <%s> { <%s> a ?type } } LIMIT 1" % (terminology_graph, uri)
+    # get list terminology namespaces
+    assert client.get("/terminology/namespaces.json").get_json() == {
+        "http://bartoc.org/en/node/18274": "http://www.w3.org/2004/02/skos/core#"}
+
+    # receive terminology data and check log
+    assert client.get('/terminology/18274/receive').status_code == 404
+    assert client.post('/terminology/18274/receive').status_code == 400
+    assert client.post(
+        '/terminology/18274/receive?from=abc').status_code == 400
+    assert client.post(
+        '/terminology/18274/receive?from=skos.rdf').status_code == 200
+    assert client.get('/terminology/18274/receive').status_code == 200
+
+    # load terminology data and check log
+    assert client.get('/terminology/18274/load').status_code == 404
+    assert client.post('/terminology/18274/load').status_code == 200
+    assert client.get('/terminology/18274/load').status_code == 200
+
+    # try to receive and load an unregistered terminology
+    assert client.post(
+        '/terminology/20533/receive?from=abc').status_code == 404
+    assert client.post('/terminology/20533/load').status_code == 404
+
+    # register, receive, and load another terminology
+    assert register_terminology(client, "20533").status_code == 200
+    assert client.post(
+        '/terminology/20533/receive?from=20533.concepts.ndjson').status_code == 200
+    assert client.post('/terminology/20533/load').status_code == 200
+
+    # check size of terminology graphs
+    query = "SELECT ?g (count(*) as ?t) { GRAPH ?g {?s ?p ?o} } GROUP BY ?g ORDER BY ?t"
     resp = sparql_query(sparql, query)
-    assert len(resp["results"]["bindings"]) == 1
-
-    resp = client.get("/terminology/namespaces.json")
-    assert resp.get_json() == {"http://bartoc.org/en/node/18274": "http://www.w3.org/2004/02/skos/core#"}
-
-    resp = client.post('/terminology/18274/receive')
-    assert resp.status_code == 400
-
-    resp = client.post('/terminology/18274/load')
-    assert resp.status_code == 404
-
-    resp = client.post('/terminology/18274/receive?from=skos.rdf')
-    assert resp.status_code == 200
-
-    resp = client.post('/terminology/18274/load')
-    assert resp.status_code == 200
-
-    register_terminology(client, "20533")
-
-    resp = client.post('/terminology/20533/receive?from=20533.concepts.ndjson')
-    assert resp.status_code == 200
-
-    resp = client.post('/terminology/20533/load')
-    assert resp.status_code == 200
-
-    query = "SELECT DISTINCT ?g { GRAPH ?g { ?s ?p ?o } }"
-    resp = sparql_query(sparql, query)
-    graphs = set([ b["g"]["value"] for b in resp["results"]["bindings"] ])
-    assert graphs == {'https://graph.nfdi4objects.net/terminology/', "http://bartoc.org/en/node/18274", "http://bartoc.org/en/node/20533"}
+    assert resp == [
+        {'g': {'type': 'uri', 'value': 'https://graph.nfdi4objects.net/terminology/'},
+         't': {'type': 'literal', 'datatype': 'http://www.w3.org/2001/XMLSchema#integer', 'value': '29'}},
+        {'g': {'type': 'uri', 'value': 'http://bartoc.org/en/node/18274'},
+         't': {'type': 'literal', 'datatype': 'http://www.w3.org/2001/XMLSchema#integer', 'value': '377'}},
+        {'g': {'type': 'uri', 'value': 'http://bartoc.org/en/node/20533'},
+         't': {'type': 'literal', 'datatype': 'http://www.w3.org/2001/XMLSchema#integer', 'value': '679'}}]
 
 
 def test_api(client):
@@ -126,16 +141,14 @@ def test_api(client):
     assert resp.status_code == 200
     assert resp.get_json() == []
 
-    resp = client.get('/collection/1')
-    assert resp.status_code == 404
+    assert client.get('/collection/1').status_code == 404
 
     # add collection
     resp = client.put('/collection/', json={})
     assert resp.status_code == 400
     assert b"Expected list of collections" in resp.data
 
-    resp = client.put('/collection/', json=[collection_1])
-    assert resp.status_code == 200
+    assert client.put('/collection/', json=[collection_1]).status_code == 200
 
     resp = client.get('/collection/')
     assert resp.status_code == 200
@@ -150,11 +163,12 @@ def test_api(client):
     assert resp.status_code == 403
 
     # delete collection
-    resp = client.delete('/collection/1')
-    assert resp.status_code == 200
+    assert client.delete('/collection/1').status_code == 200
+    assert client.get('/collection/1').status_code == 404
 
-    resp = client.get('/collection/1')
-    assert resp.status_code == 404
+    # try to receive and load non-existing collection
+    assert client.post('/collection/1/receive').status_code == 404
+    # assert client.post('/collection/1/load').status_code == 404
 
     # add again
     resp = client.put('/collection/1', json=collection_1)
@@ -174,8 +188,6 @@ def test_api(client):
     assert resp.status_code == 200  # TODO: should be 201 Created
     assert resp.get_json()["id"] == "4"
 
-    # receive data 
-    resp = client.post('/collection/1/receive')
-    assert resp.status_code == 404
-
-
+    # try to receive and load collection
+    assert client.post('/collection/1/receive').status_code == 404
+    # assert client.post('/collection/1/load').status_code == 404

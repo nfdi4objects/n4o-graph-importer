@@ -41,7 +41,7 @@ def write_ttl(file, doc, context):
 def sparql_query(api, query):
     sparql = SPARQLWrapper(api, returnFormat='json')
     sparql.setQuery(query)
-    return sparql.queryAndConvert()
+    return sparql.queryAndConvert()["results"]["bindings"]
 
 
 def sparql_update(api, graph, query):

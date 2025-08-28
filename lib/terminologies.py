@@ -33,28 +33,23 @@ class TerminologyRegistry(Registry):
         return read_json(self.stage / f"{int(id)}.json")
 
     def add(self, id):
-        try:
-            id = int(id)
-            uri = f"http://bartoc.org/en/node/{id}"
-            print(uri)
-            voc = requests.get(f"https://bartoc.org/api/data?uri={uri}").json()
-            if not len(voc):
-                raise NotFound(f"Terminology not found: {uri}")
-            voc = voc[0]
-            write_json(self.stage / f"{id}.json", voc)
-            (self.stage / str(id)).mkdir(exist_ok=True)
-            rdf = jskos_to_rdf(voc).serialize(format='ntriples')
-            query = "DELETE { ?s ?p ?o } WHERE { VALUES ?s { <%s> } ?s ?p ?o }" % uri
-            print('FIXME: the following sometimes crashes', flush=True)
-            sparql_update(self.sparql, self.graph, query)
-            sparql_insert(self.sparql, self.graph, rdf)
-            return voc
-        except (ValueError, TypeError):
-            raise NotFound("Malformed terminology identitfier")
+        uri = f"http://bartoc.org/en/node/{int(id)}"
+        voc = requests.get(f"https://bartoc.org/api/data?uri={uri}").json()
+        if not len(voc):
+            raise NotFound(f"Terminology not found: {uri}")
+        voc = voc[0]
+        write_json(self.stage / f"{id}.json", voc)
+        (self.stage / str(id)).mkdir(exist_ok=True)
+        rdf = jskos_to_rdf(voc).serialize(format='ntriples')
+        query = "DELETE { ?s ?p ?o } WHERE { VALUES ?s { <%s> } ?s ?p ?o }" % uri
+
+        print('FIXME: the following sometimes crashes', flush=True)
+        sparql_update(self.sparql, self.graph, query)
+        sparql_insert(self.sparql, self.graph, rdf)
+        return voc
 
     def receive(self, id, file):
         self.get(id)  # make sure terminology has been registered
-
         if not file:
             raise ClientError("Missing URL or file to receive data from")
 
@@ -64,6 +59,8 @@ class TerminologyRegistry(Registry):
             fmt = "xml"
         elif Path(file).suffix == ".ndjson":
             fmt = "ndjson"
+        else:
+            raise ClientError("Unknown file extension of file {file}")
 
         log = Log(self.stage / str(id) / "receive.log",
                   f"Receiving terminology {id}")
@@ -72,8 +69,6 @@ class TerminologyRegistry(Registry):
 
         if "/" not in file:
             file = self.data / file
-            if not file.is_file():
-                raise NotFound("File not found: {file}")
             log.append(f"Retrieving file {file} from data directory")
             shutil.copy(file, original)
         else:  # TODO: test this

@@ -140,3 +140,6 @@ class CollectionRegistry:
         ./extract-rdf.py $download_dir $stage/triples.nt
         ./transform-rdf $stage/triples.nt     # includes validation
         """
+
+    def load(self, id):
+        col = self.get(id)

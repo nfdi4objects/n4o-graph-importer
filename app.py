@@ -134,15 +134,9 @@ def receive_collection_log(id):
     return jsonify(collectionRegistry.receive_log(id))
 
 
-@app.route('/collection/<int:id>/load', methods=['POST'])
-def collection_load_id(id):
-    # TODO: move to Python library
-    '''Import the data of an collection entry.'''
-    response = subprocess.run(
-        f'./import-collection {id}', shell=True, capture_output=True, text=True)
-    if response.stderr:
-        return jsonify(error=response.stderr), 500
-    return jsonify(message=f"import {id} executed.", output=response.stdout, id=id), 200
+@app.route('/terminology/<int:id>/load', methods=['POST'])
+def load_collection(id):
+    return jsonify(terminologyRegistry.load(id))
 
 
 @app.route('/collection/<int:id>/load', methods=['GET'])
