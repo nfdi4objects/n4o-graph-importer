@@ -67,7 +67,7 @@
       </li>
       <li>
         <b>GET <a href="javascript:;" onclick="visit('/terminology/'+getValue('trm0'))">/terminology/</a>{{ input_id("trm0") }}</b>
-        {{ help("Return metadata of a registered terminology","get-terminology_id") }}
+        {{ help("Return metadata of a registered terminology","get-terminologyid") }}
       </li>
       <li>
         <b>PUT <a href="javascript:;" onclick="registerTerminology()">/terminology/</a>{{ input_id("trm1") }}</b>
@@ -75,14 +75,26 @@
         {{ help("Register a terminology or update its metadata from BARTOC","put-terminologyid") }}
       </li>
       <li>
+        <b>DELETE <a href="javascript:;" onclick="deleteTerminology()">/terminology/</a>{{ input_id("trm1a") }}</b>
+        <span id="msg1a"></span>
+        {{ help("Unregister a terminology and remove it from stage area and triple store","delete-terminologyid") }}
+      </li>
+      <li class="disabled">
+        <b>PUT <a href="javascript:;" onclick="putTerminologies()">/terminology/</a></b>
+        ? from=<input type="text" placeholder="URL or file" id="allTerminologiesFrom" />
+        <!-- TODO: file upload -->
+        <span id="msg1b"></span>
+        {{ help("Register a list of terminologies.","put-terminology") }}
+      </li>
+      <li>
         <b>POST <a href="javascript:;" onclick="receiveTerminology()">/terminology/</a>{{ input_id("trm2") }}/receive</b>
         ? from=<input type="text" placeholder="URL or file" id="terminologyFrom" />
         <span id="msg2"></span>
-        {{ help("Receive terminology data","post-terminology_id_receive") }}
+        {{ help("Receive terminology data","post-terminologyidreceive") }}
       </li>
       <li>
         <b>GET <a href="javascript:;" onclick="visit('/terminology/'+getValue('trm3')+'/receive')">/terminology/</a>{{ input_id("trm3") }}/receive</b>
-        {{ help("Get latest receive log of a terminology","get-terminology_id_receive") }}
+        {{ help("Get latest receive log of a terminology","get-terminologyidreceive") }}
       </li>
       <li>
         <b>POST <a href="javascript:;" onclick="loadTerminology()">/terminology/</a>{{ input_id("trm4") }}/load</b>
@@ -95,7 +107,7 @@
       </li>
       <li>
         <b>GET <a href="/terminology/namespaces.json">/terminology/namespaces.json</a></b>
-        {{ help("Return the list of registered URI namespaces forbidden to be used in RDF subjects","get-terminology-namespaces_json") }}
+        {{ help("Return the list of registered URI namespaces forbidden to be used in RDF subjects","get-terminologynamespacesjson") }}
       </li>
     </ul>
     <h2>Collection endpoints</h2>
@@ -111,6 +123,7 @@
       <li>
         <b>PUT /collection/</b>
         ? from=<input type="text" placeholder="URL or file" id="allCollectionsFrom" />
+        <!-- TODO: file upload -->
         <span id="msg4"></span>
         {{ help("Update list of registered collections","put-collection") }}
       </li>
@@ -132,7 +145,7 @@
       <li>
         <b>DELETE /collection/{{ input_id("col2") }}</b>
         <span id="msg7"></span>
-        {{ help("Unregister a collection and remove it from the knowledge graph","delete-collectionid") }}
+        {{ help("Unregister a collection and remove it from the triple store and staging area","delete-collectionid") }}
       </li>
       <li>
         <b>POST /collection/{{ input_id("col3") }}/receive</b>
@@ -155,7 +168,7 @@
       <li>
         <b>POST /collection/{{ input_id("col7") }}:id/remove</b>
         <span id="msg10"></span>
-        {{ help("Remove collection data and metadata from the knowledge graph and from staging area","post-collectioniddelete") }}
+        {{ help("Remove collection data and metadata from the triple store from staging area","post-collectioniddelete") }}
       </li>
       <li class="disabled">
         <b>GET /collection/{{ input_id("col8") }}/remove</b>
@@ -173,7 +186,7 @@ const visit = url => window.location.href = url
 var trmId, colId
 
 const request = async (url, method, msg) => {
-  for (let m of [1,2,3,4,5,6,7,8,9].map(i => $("msg"+i))) {
+  for (let m of [1,'1a','1b',2,3,4,5,6,7,8,9].map(i => $("msg"+i))) {
     m.textContent = ""
     m.className = ""
   }
@@ -198,6 +211,8 @@ const request = async (url, method, msg) => {
 }
 
 const registerTerminology = async () => await request("./terminology/"+trmId[1].value, "PUT", "msg1")
+const deleteTerminology = async () => await request("./terminology/"+trmId[1].value, "DELETE", "msg1a")
+
 const receiveTerminology = async () => await request("./terminology/"+trmId[2].value+"/receive?from="+getValue("terminologyFrom"), "POST", "msg2")
 const loadTerminology = async () => await request("./terminology/"+trmId[4].value+"/load", "POST", "msg3")
 

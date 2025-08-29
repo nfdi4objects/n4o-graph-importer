@@ -16,6 +16,30 @@ See [n4o-graph](https://github.com/nfdi4objects/n4o-graph) for full documentatio
 
 - [Usage](#usage)
 - [API](#api)
+  - [Terminologies](#terminologies)
+    - [GET /terminology](#get-terminology)
+    - [GET /terminology/:id](#get-terminologyid)
+    - [PUT /terminology/:id](#put-terminologyid)
+    - [DELETE /terminology/:id](#delete-terminologyid)
+    - [PUT /terminology/](#put-terminology)
+    - [POST /terminology/:id/receive](#post-terminologyidreceive)
+    - [GET /terminology/:id/receive](#get-terminologyidreceive)
+    - [POST /terminology/:id/load](#post-terminologyidload)
+    - [GET /terminology/:id/load](#get-terminologyidload)
+    - [GET /terminology/namespaces.json](#get-terminologynamespacesjson)
+  - [Collections](#collections)
+    - [GET /collection/](#get-collection)
+    - [GET /collection/schema.json](#get-collectionschemajson)
+    - [PUT /collection/](#put-collection)
+    - [POST /collection/](#post-collection)
+    - [GET /collection/:id](#get-collectionid)
+    - [PUT /collection/:id](#put-collectionid)
+    - [DELETE /collection/:id](#delete-collectionid)
+    - [POST /collection/:id/receive](#post-collectionidreceive)
+    - [GET /collection/:id/receive](#get-collectionidreceive)
+    - [POST /collection/:id/load](#post-collectionidload)
+    - [GET /collection/:id/load](#get-collectionidload)
+    - [POST /collection/:id/remove](#post-collectionidremove)
 - [Configuration](#configuration)
 - [Development](#development)
 - [License](#license)
@@ -39,110 +63,121 @@ Import is three steps:
 
 ## API
 
+### Terminologies
+
 Terminologies are identified by their BARTOC identifier. Terminology data should be imported before collection data, to detect use of terminologies in collections. 
 
-Collections are described in a custom JSON format described by JSON Schema [collection-schema.json](collection-schema.json). The JSON is internally converted to RDF for import into the knowledge graph.
-
-### GET /terminology
+#### GET /terminology
 
 Return the list of registered terminologies.
 
-### GET /terminology/:id
+#### GET /terminology/:id
 
 Return metadata of a registered terminology.
 
-### PUT /terminology/:id
+#### PUT /terminology/:id
 
 Register a terminology or update its metadata from BARTOC. The metadata is directly added to the triple store. Updates may lead to errors in description of terminologies because removal of statements is limited to simple triples with terminology URI as subject!
 
-### POST /terminology/:id/receive
+#### DELETE /terminology/:id
+
+Unregister a terminology and remove it from stage area and triple store.
+
+#### PUT /terminology/
+
+Register a list of terminologies. This is only allowed as long as the current list is empty. The response body is expected to be a JSON array with objects having key `uri` with the BARTOC URI like this:
+
+~~~json
+[
+ { "uri": "http://bartoc.org/en/node/18274" },
+ { "uri": "http://bartoc.org/en/node/20533" }
+]
+~~~
+
+Other fields are ignored so the return value of [GET /terminology/](#get-terminology) can be used as payload.
+
+#### POST /terminology/:id/receive
 
 Receive terminology data. Arguments passed as query parameters:
 
 - `from` with an URL or with the name of a file in data directory. Format must be RDF/Turtle for file extension `.ttl` or `.nt`, otherwise RDF/XML.
 
-### GET /terminology/:id/receive
+#### GET /terminology/:id/receive
 
 Get latest receive log of a terminology. *Not implemented yet!*
 
-### POST /terminology/:id/load
+#### POST /terminology/:id/load
 
 Load received terminology data into the triple store.
 
-### GET /terminology/:id/load
+#### GET /terminology/:id/load
 
 Get latest load log of a terminology. *Not implemented yet!*
 
-### GET /terminology/namespaces.json
+#### GET /terminology/namespaces.json
 
 Return registered URI namespaces forbidden to be used in RDF subjects. The result is a JSON object with terminology URIs as keys and namespaces as values. For instance the SKOS (<http://bartoc.org/en/node/18274>) namespace is <http://www.w3.org/2004/02/skos/core#> so RDF triples with subjects in this namespace can only be added to the knowledge graph via `/terminology/18274`.
 
-### GET /collection/
+### Collections
+
+Collections are described in a custom JSON format described by JSON Schema [collection-schema.json](collection-schema.json). This JSON data is internally converted to RDF for import into the knowledge graph.
+
+#### GET /collection/
 
 Return the list of registered collections (metadata only).
 
-### GET /collection/schema.json
+#### GET /collection/schema.json
 
 Return the JSON Schema used to validation collection metadata. See file [collection-schema.json](collection-schema.json).
 
-### PUT /collection/
+#### PUT /collection/
 
 Replace the list of registered collections. Only allowed if the current list is empty. Collections metadata must conform to the Collection JSON Schema.
 
 *The metadata is not imported into the triple store!*
 
-### POST /collection/
+#### POST /collection/
 
 Register a new collection or update metadata of a registered collection. Collection metadata must conform to the Collection JSON Schema.
 
 *The metadata is not imported into the triple store!*
 
-### GET /collection/:id
+#### GET /collection/:id
 
 Return metadata of a specific registered collection.
 
-### PUT /collection/:id
+#### PUT /collection/:id
 
 Update metadata of a specific registered collection or register a new collection.
 
 *The metadata is not imported into the triple store!*
 
-### DELETE /collection/:id 
+#### DELETE /collection/:id 
 
-Unregister a collection by removing its metadata and its staging are.
+Unregister a collection and remove it from the triple store and staging area. This implies [DELETE /collection/:id/remove](#delete-collectionidremove).
 
-*This does not remove any data from the triple store!*
-
-### POST /collection/:id/receive
+#### POST /collection/:id/receive
 
 Receive and process collection data. Optional query parameters:
 
 - from (URL or local file in data directory)
 - format
 
-### GET /collection/:id/receive
+#### GET /collection/:id/receive
 
 Get latest receive log of a collection. *Not implemented yet!*
 
-### POST /collection/:id/load
+#### POST /collection/:id/load
 
 Load received and processed collection data into the triple store.
 
-### GET /collection/:id/load
+#### GET /collection/:id/load
 
 Get latest load log of a collection. *Not implemented yet!*
 
+#### POST /collection/:id/remove
 
-### POST /collection/:id/remove
-
-Remove collection data from the knowledge graph and from staging area.
-
-*The collection will still be registered.*
-
-### GET /collection/:id/remove
-
-Get latest remove log of a collection. *Not implemented yet!*
-
+Remove collection data from the triple store and from staging area. The collection will still be registered and collection metadata is not removed from the triple store.
 
 ## Configuration
 
