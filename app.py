@@ -91,6 +91,11 @@ def collections():
     return jsonify(collectionRegistry.collections())
 
 
+@app.route('/collection/schema.json', methods=['GET'])
+def collection_schema():
+    return jsonify(read_json("collection-schema.json"))
+
+
 @app.route('/collection', methods=['PUT', 'POST'])
 @app.route('/collection/', methods=['PUT', 'POST'])
 def put_post_collections():
@@ -101,11 +106,6 @@ def put_post_collections():
         return jsonify(collectionRegistry.add(data)), 200
 
 
-@app.route('/collection/schema.json', methods=['GET'])
-def collection_schema():
-    return jsonify(read_json("collection-schema.json"))
-
-
 @app.route('/collection/<int:id>', methods=['GET'])
 def get_collection(id):
     return jsonify(collectionRegistry.get(id))
@@ -113,8 +113,7 @@ def get_collection(id):
 
 @app.route('/collection/<int:id>', methods=['PUT'])
 def put_collection(id):
-    col = collectionRegistry.set(id, request.get_json(force=True))
-    return jsonify(col)
+    return jsonify(collectionRegistry.set(id, request.get_json(force=True)))
 
 
 @app.route('/collection/<int:id>', methods=['DELETE'])
@@ -124,14 +123,14 @@ def delete_collection(id):
 
 @app.route('/collection/<int:id>/receive', methods=['POST'])
 def collection_receive_id(id):
-    file = request.args.get('from', None)
-    format = request.args.get('format', None)
-    return jsonify(collectionRegistry.receive(id, file, format))
+    return jsonify(collectionRegistry.receive(id, **request.args))
 
 
 @app.route('/collection/<int:id>/receive', methods=['GET'])
 def receive_collection_log(id):
-    return jsonify(collectionRegistry.receive_log(id))
+    file = request.args.get('from', None)
+    format = request.args.get('format', None)
+    return jsonify(collectionRegistry.receive(id, file, format))
 
 
 @app.route('/terminology/<int:id>/load', methods=['POST'])
@@ -142,6 +141,11 @@ def load_collection(id):
 @app.route('/collection/<int:id>/load', methods=['GET'])
 def load_collection_log(id):
     return jsonify(collectionRegistry.load_log(id))
+
+
+@app.route('/terminology/<int:id>/remove', methods=['POST'])
+def remove_collection(id):
+    return jsonify(terminologyRegistry.remove(id))
 
 
 if __name__ == '__main__':
