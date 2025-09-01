@@ -1,12 +1,12 @@
 import json
-from .errors import NotFound
+from .errors import NotFound, ServerError
 
 
 def read_json(file):
     try:
         with open(file) as f:
             return json.load(f)
-    except FileNotFoundError as e:
+    except Exception as e:
         raise NotFound(e)
 
 
@@ -19,5 +19,8 @@ def read_ndjson(file):
 
 
 def write_json(file, data):
-    with open(file, "w") as f:
-        f.write(json.dumps(data, indent=4))
+    try:
+        with open(file, "w") as f:
+            f.write(json.dumps(data, indent=4))
+    except Exception as e:
+        raise ServerError(str(e))
