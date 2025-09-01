@@ -1,4 +1,5 @@
 from pathlib import Path
+import shutil
 from .rdf import load_graph_from_file
 from .log import Log
 from .errors import NotFound
@@ -22,3 +23,18 @@ class Registry:
         log = Log(stage / "load.log", f"Loading {self.what} {uri} from {file}")
         load_graph_from_file(self.sparql, uri, file, "ttl")
         return log.done()
+
+    def receive_log(self, id):
+        return Log(self.stage / str(id) / "receive.log").load()
+
+    def load_log(self, id):
+        return Log(self.stage / str(id) / "load.log").load()
+
+    def receive_file(self, log, file, target):
+        if "/" not in file:
+            file = self.data / file
+            log.append(f"Retrieving file {file} from data directory")
+            shutil.copy(file, target)
+        else:  # TODO: test this
+            log.append(f"Retrieving file from {file}")
+            urlretrieve(file, target)

@@ -1,5 +1,6 @@
 from pathlib import Path
 from shutil import rmtree
+from urllib.parse import urlparse
 from jsonschema import validate
 # from SPARQLWrapper import SPARQLWrapper
 from .utils import read_json, write_json
@@ -112,10 +113,24 @@ class CollectionRegistry:
             raise ServerException(
                 f"Only RDF data supported so far, got {format}")
 
-        if not file:
-            raise NotFound("Missing url to receive data from")
+        #try:
+        #    urlparse(file or "?")
+        #except Exception:
+        raise NotFound("Missing url or malformed URL to receive data from")
+
+        # TODO: fmt => rdf/xml or nt / ttl
+        #
+        #log = Log(self.stage / str(id) / "receive.log",
+        #          f"Receiving collection {id}")
+        #
+        #original = self.stage / str(id) / f"original.{fmt}"
+
+
+        # self.receive_file(log, file, target)
 
         print(f"TODO: Receive {format} data from {file}")
+
+        #transform_rdf
 
         # TODO: migrate from bash script to Python
         """

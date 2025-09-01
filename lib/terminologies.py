@@ -1,7 +1,6 @@
 from pathlib import Path
 import requests
 import re
-import shutil
 import sys
 from urllib.request import urlretrieve
 from .utils import read_json, read_ndjson, write_json
@@ -67,13 +66,7 @@ class TerminologyRegistry(Registry):
 
         original = self.stage / str(id) / f"original.{fmt}"
 
-        if "/" not in file:
-            file = self.data / file
-            log.append(f"Retrieving file {file} from data directory")
-            shutil.copy(file, original)
-        else:  # TODO: test this
-            log.append(f"Retrieving file from {file}")
-            urlretrieve(file, original)
+        self.receive_file(log, file, original)
 
         # convert JSKOS to RDF
         if fmt == "ndjson":
@@ -90,8 +83,4 @@ class TerminologyRegistry(Registry):
 
         return log.done()
 
-    def receive_log(self, id):
-        return Log(self.stage / str(id) / "receive.log").load()
 
-    def load_log(self, id):
-        return Log(self.stage / str(id) / "load.log").load()
