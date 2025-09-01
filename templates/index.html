@@ -208,14 +208,14 @@ const request = async (url, method, msg) => {
 const registerTerminology  = () => request(`./terminology/${idValue.trm}`, "PUT", "registerTerminology")
 const replaceTerminologies = () => request(`./terminology/${idValue.trm}?from=${getValue('allTerminologiesFrom')}`, "PUT", "replaceTerminologies")
 const deleteTerminology    = () => request(`./terminology/${idValue.trm}`, "DELETE", "deleteTerminology")
-const receiveTerminology   = () => request(`./terminology/${idValue.trm}/receive?from=${getValue('terminologyFrom')}`, "POST", "receiveTerminology")
+const receiveTerminology   = () => request(`./terminology/${idValue.trm}/receive?from=${getValue('receiveTerminology')}`, "POST", "receiveTerminology")
 const loadTerminology      = () => request(`./terminology/${idValue.trm}/load`, "POST", "loadTerminology")
 
 const registerCollection   = () => request(`./collection/${idValue.col}?from=${getValue('registerCollectionFrom')}`, "POST", "registerCollection")
 const replaceCollections   = () => request(`./collection/${idValue.col}?from=${getValue('allCollectionsFrom')}`, "PUT", "replaceCollections")
 const updateCollection     = () => request(`./collection/${idValue.col}?from=${getValue('updateCollectionsFrom')}`, "PUT", "updateCollections")
 const deleteCollection     = () => request(`./terminology/${idValue.col}`, "DELETE", "deleteCollection")
-const receiveCollection    = () => request(`./collection/${idValue.col}/receive?from=${getValue('receiveCollectionFrom')}`, "POST", "receiveCollection")
+const receiveCollection    = () => request(`./collection/${idValue.col}/receive?from=${getValue('receiveCollection')}`, "POST", "receiveCollection")
 const loadCollection       = () => request(`./collection/${idValue.col}/load`, "POST", "loadCollection")
 const removeCollection     = () => request(`./collection/${idValue.col}/remove`, "POST", "removeCollection")
 
