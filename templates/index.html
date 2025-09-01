@@ -18,12 +18,18 @@
       padding-left: 2.5em;
       margin-bottom: 0.2em;
     }
-    a:link, a:visited {
+    a {
       text-decoration: none;
       color: rgb(96, 143, 219);
     }
     a:hover, a:active {
       text-decoration: underline;
+    }
+    a.disabled {
+      color: currentColor;
+      cursor: not-allowed;
+      opacity: 0.5;
+      text-decoration: none;
     }
     .ws-endpoint {
       display: inline-block;
@@ -42,6 +48,7 @@
   <body>
 
     {% macro help(text, id) -%}
+      <span class="msg" id="{{id}}"></span>
       <br>{{ text }}
       ⇒ <a href="https://github.com/nfdi4objects/n4o-graph-importer#{{id}}" target="_blank">documentation</a>
     {%- endmacro -%}
@@ -62,43 +69,37 @@
         {{ help("Return the list of registered terminology metadata", "get-terminology") }}
       </li>
       <li>
-        <b>GET <a href="javascript:;" onclick="visit('/terminology/'+idValue.trm)">/terminology/</a>{{ input_id("trm") }}</b>
+        <b>GET <a onclick="visit('/terminology/'+idValue.ter)">/terminology/</a>{{ input_id("ter") }}</b>
         {{ help("Return metadata of a registered terminology","get-terminologyid") }}
       </li>
       <li>
-        <b>PUT <a href="javascript:;" onclick="registerTerminology()">/terminology/</a>{{ input_id("trm") }}</b>
-        <span class="msg" id="registerTerminology"></span>
+        <b>PUT <a onclick="registerTerminology(this)">/terminology/</a>{{ input_id("ter") }}</b>
         {{ help("Register a terminology or update its metadata from BARTOC","put-terminologyid") }}
       </li>
       <li>
-        <b>DELETE <a href="javascript:;" onclick="deleteTerminology()">/terminology/</a>{{ input_id("trm") }}</b>
-        <span class="msg" id="deleteTerminology"></span>
+        <b>DELETE <a onclick="deleteTerminology(this)">/terminology/</a>{{ input_id("ter") }}</b>
         {{ help("Unregister a terminology and remove it from stage area and triple store","delete-terminologyid") }}
       </li>
       <li>
-        <b>PUT <a href="javascript:;" onclick="replaceTerminologies()">/terminology/</a></b>
-        ? from=<input type="text" placeholder="URL or file" id="allTerminologiesFrom" />
-        <!-- TODO: file upload -->
-        <span class="msg" id="replaceTerminologies"></span>
-        {{ help("Initially register a list of terminologies.","put-terminology") }}
+        <b>PUT <a onclick="replaceTerminologies(this)">/terminology/</a></b>
+        <input type="file" name="file" id="put-terminology-file">
+        {{ help("Initially register a list of terminologies","put-terminology") }}
       </li>
       <li>
-        <b>POST <a href="javascript:;" onclick="receiveTerminology()">/terminology/</a>{{ input_id("trm") }}/receive</b>
-        ? from=<input type="text" placeholder="URL or file" id="terminologyFrom" />
-        <span class="msg" id="receiveTerminology"></span>
+        <b>POST <a onclick="receiveTerminology(this)">/terminology/</a>{{ input_id("ter") }}/receive</b>
+        ? from=<input type="text" placeholder="URL or file" id="receiveTerminology" />
         {{ help("Receive terminology data","post-terminologyidreceive") }}
       </li>
       <li>
-        <b>GET <a href="javascript:;" onclick="visit('/terminology/'+idValue.trm+'/receive')">/terminology/</a>{{ input_id("trm") }}/receive</b>
+        <b>GET <a onclick="visit('/terminology/'+idValue.ter+'/receive')">/terminology/</a>{{ input_id("ter") }}/receive</b>
         {{ help("Get latest receive log of a terminology","get-terminologyidreceive") }}
       </li>
       <li>
-        <b>POST <a href="javascript:;" onclick="loadTerminology()">/terminology/</a>{{ input_id("trm") }}/load</b>
-        <span class="msg" id="loadTerminology"></span>
+        <b>POST <a onclick="loadTerminology(this)">/terminology/</a>{{ input_id("ter") }}/load</b>
         {{ help("Import terminology data into the triple store","post-terminologyidload") }}
       </li>
       <li>
-        <b>GET <a href="javascript:;" onclick="visit('/terminology/'+idValue.trm+'/load')">/terminology/</a>{{ input_id("trm") }}/load</b>
+        <b>GET <a onclick="visit('/terminology/'+idValue.ter+'/load')">/terminology/</a>{{ input_id("ter") }}/load</b>
         {{ help("Get latest load log of a terminology","get-terminologyidload") }}
       </li>
       <li>
@@ -117,116 +118,144 @@
         {{ help("Return the JSON Schema used to validation collection metadata","get-collectionschemajson") }}
       </li>
       <li>
-        <b>PUT <a href="javascript:;" onclick="replaceCollections()">/collection/</a></b>
-        ? from=<input type="text" placeholder="URL or file" id="allCollectionsFrom" />
-        <!-- TODO: file upload -->
-        <span class="msg" id="replaceCollections"></span>
-        {{ help("Update list of registered collections","put-collection") }}
+        <b>PUT <a onclick="replaceCollections()">/collection/</a></b>
+        <input type="file" name="file" id="put-collection-file">
+        {{ help("Initially register a list of collections","put-collection") }}
       </li>
       <li>
-        <b>POST <a href="javascript:;" onclick="registerCollection()">/collection/</a></b>
-        ? from=<input type="text" placeholder="URL or file" id="registerCollectionFrom" />
-        <!-- TODO: file upload -->
-        <span class="msg" id="registerCollection"></span>
+        <b>POST <a onclick="registerCollection()">/collection/</a></b>
+        <input type="file" name="file" id="post-collection-file">
         {{ help("Register a new collection or update metadata of a registered collection","post-collection") }}
       </li>
       <li>
-        <b>GET <a href="javascript:;" onclick="visit('/collection/'+idValue.col)">/collection/</a>{{ input_id("col") }}</b>
+        <b>GET <a onclick="visit('/collection/'+idValue.col)">/collection/</a>{{ input_id("col") }}</b>
         {{ help("Return metadata of a specific registered collection","get-collectionid") }}
       </li>
       <li>
-        <b>PUT <a href="javascript:;" onclick="updateCollection()">/collection/</a>{{ input_id("col") }}</b>
-        ? from=<input type="text" placeholder="URL or file" id="updateCollectionFrom" />
-        <!-- TODO: file upload -->
-        <span class="msg" id="upddateCollection"></span>
+        <b>PUT <a onclick="updateCollection()">/collection/</a>{{ input_id("col") }}</b>
+        <input type="file" name="file" id="put-collectionid-file">
         {{ help("Update metadata of a specific registered collection or register a new collection","put-collectionid") }}
       </li>
       <li>
-        <b>DELETE <a href="javascript:;" onclick="deleteCollection()">/collection/</a>{{ input_id("col") }}</b>
-        <span class="msg" id="deleteCollection"></span>
+        <b>DELETE <a onclick="deleteCollection()">/collection/</a>{{ input_id("col") }}</b>
         {{ help("Unregister a collection and remove it from the triple store and staging area","delete-collectionid") }}
       </li>
       <li>
-        <b>POST <a href="javascript:;" onclick="receiveCollection()">/collection/</a>{{ input_id("col") }}/receive</b>
-        <span class="msg" id="receiveCollection"></span>
+        <b>POST <a onclick="receiveCollection()">/collection/</a>{{ input_id("col") }}/receive</b>
+        ? from=<input type="text" placeholder="file" id="receiveCollection" />
         {{ help("Receive and process collection data","post-collectionidreceive") }}
       </li>
       <li>
-        <b>GET <a href="javascript:;" onclick="visit('/collection/'+idValue.col+'/receive')">/collection/</a>{{ input_id("col") }}/receive</b>
+        <b>GET <a onclick="visit('/collection/'+idValue.col+'/receive')">/collection/</a>{{ input_id("col") }}/receive</b>
         {{ help("Get latest receive log of a collection","get-collectionidreceive") }}
       </li>
       <li>
-        <b>POST <a href="javascript:;" onclick="loadCollection()">/collection/</a>{{ input_id("col") }}/load</b>
-        <span class="msg" id="loadCollection"></span>
+        <b>POST <a onclick="loadCollection()">/collection/</a>{{ input_id("col") }}/load</b>
         {{ help("Load received and processed collection data into the triple store","post-collectionidload") }}
       </li>
       <li>
-        <b>GET <a href="javascript:;" onclick="visit('/collection/'+idValue.col+'/load')">/collection/</a>{{ input_id("col") }}/load</b>
+        <b>GET <a onclick="visit('/collection/'+idValue.col+'/load')">/collection/</a>{{ input_id("col") }}/load</b>
         {{ help("Get latest load log of a collection","get-collectionidload") }}
       </li>
       <li>
-        <b>POST <a href="javascript:;" onclick="removeCollection()">/collection/</a>{{ input_id("col") }}/remove</b>
-        <span class="msg" id="removeCollection"></span>
+        <b>POST <a onclick="removeCollection()">/collection/</a>{{ input_id("col") }}/remove</b>
         {{ help("Remove collection data and metadata from the triple store from staging area","post-collectioniddelete") }}
       </li>
     </ul>
   </body>
 </html>
 <script type="text/javascript">
-const idValue = { trm: "", col: "" }
+const idValue = { ter: "", col: "" }
+
+const updateId = (cls, value) => {
+  idValue[cls] = value
+  for (let e of document.getElementsByClassName(cls)) {
+    e.parentNode.getElementsByTagName("a")[0].className = value ? "enabled" : "disabled"
+    e.value = value
+  }
+}
+
+const updateMessage = (id, error) => {
+  for (let e of document.getElementsByClassName("msg")) {
+    if (error && e.id == id) {
+      e.classList.add("error")
+    } else {
+      e.classList.remove("error")
+    }
+    e.textContent = e.id == id ? error || "OK" : ""
+  }
+}
+
 
 const visit = url => window.location.href = url
 
-const getValue = id => document.getElementById(id).value
+const request = async (e, url, method) => {
+  if (e?.className == "disabled") return true
 
-const request = async (url, method, msg) => {
-  msg = document.getElementById(msg)
+  const id = method.toLowerCase() + "-" + url.replaceAll(/\?.*|[^a-z]/g,"")
+  url = url.replace(":id", idValue[url.slice(0,3)])
+  const options = { method }
 
-  for (let e of document.getElementsByClassName("msg")) {
-    e.textContent = ""
-    e.classList.remove("error")
+  const submit = async () => {
+    const res = await fetch(url, options).catch(e => ({ statusText: `${e}` }))
+    if (res.ok) {
+      updateMessage(id)
+    } else {
+      var error = res.statusText
+      try { error = (await res.json()).error } catch {}
+      updateMessage(id, error)
+    }  
   }
 
-  // TODO: Support file upload
-  const options = { method }
-  /*if (method == "POST" || method == "PUT") {
-    options.headers = { 'Content-Type': 'application/json' }
-    options.body = "{}" /// TODO
-  }*/
-
-  const res = await fetch(url, options).catch(e => ({ statusText: ""+e }))
-  if (res.ok) {
-    msg.textContent = "OK"
+  const upload = document.getElementById(`${id}-file`)
+  if (upload) {
+    const file = upload.files[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onload = async e => {
+        try {
+          options.headers = { 'Content-Type': 'application/json' }
+          options.body = JSON.stringify(JSON.parse(e.target.result))
+          await submit()
+        } catch (error) {
+          updateMessage(id, `Invalid JSON ${error.message}`)
+        }
+      }
+      reader.readAsText(file)
+    } else {
+      updateMessage(id, "Please select a file!")
+      return
+    }
   } else {
-    var error = res.statusText
-    try { error = (await res.json()).error } catch {}
-    msg.classList.add("error")
-    msg.textContent = error
-  }  
+    await submit()
+  }
 }
 
-const registerTerminology  = () => request(`./terminology/${idValue.trm}`, "PUT", "registerTerminology")
-const replaceTerminologies = () => request(`./terminology/${idValue.trm}?from=${getValue('allTerminologiesFrom')}`, "PUT", "replaceTerminologies")
-const deleteTerminology    = () => request(`./terminology/${idValue.trm}`, "DELETE", "deleteTerminology")
-const receiveTerminology   = () => request(`./terminology/${idValue.trm}/receive?from=${getValue('receiveTerminology')}`, "POST", "receiveTerminology")
-const loadTerminology      = () => request(`./terminology/${idValue.trm}/load`, "POST", "loadTerminology")
+const getValue = id => document.getElementById(id).value
 
-const registerCollection   = () => request(`./collection/${idValue.col}?from=${getValue('registerCollectionFrom')}`, "POST", "registerCollection")
-const replaceCollections   = () => request(`./collection/${idValue.col}?from=${getValue('allCollectionsFrom')}`, "PUT", "replaceCollections")
-const updateCollection     = () => request(`./collection/${idValue.col}?from=${getValue('updateCollectionsFrom')}`, "PUT", "updateCollections")
-const deleteCollection     = () => request(`./terminology/${idValue.col}`, "DELETE", "deleteCollection")
-const receiveCollection    = () => request(`./collection/${idValue.col}/receive?from=${getValue('receiveCollection')}`, "POST", "receiveCollection")
-const loadCollection       = () => request(`./collection/${idValue.col}/load`, "POST", "loadCollection")
-const removeCollection     = () => request(`./collection/${idValue.col}/remove`, "POST", "removeCollection")
+const registerTerminology  = e => request(e,`terminology/:id`, "PUT")
+const replaceTerminologies = e => request(e,`terminology/`, "PUT")
+const deleteTerminology    = e => request(e,`terminology/:id`, "DELETE")
+const receiveTerminology   = e => request(e,`terminology/:id/receive?from=${getValue('receiveTerminology')}`, "POST")
+const loadTerminology      = e => request(e,`terminology/:id/load`, "POST")
+
+const registerCollection   = e => request(e,`collection/?from=${getValue('registerCollection')}`, "POST")
+const replaceCollections   = e => request(e,`collection/`, "PUT")
+const updateCollection     = e => request(e,`collection/:id`, "PUT")
+const deleteCollection     = e => request(e,`collection/:id`, "DELETE")
+const receiveCollection    = e => request(e,`collection/:id/receive?from=${getValue('receiveCollection')}`, "POST", "receiveCollection")
+const loadCollection       = e => request(e,`collection/:id/load`, "POST")
+const removeCollection     = e => request(e,`collection/:id/remove`, "POST")
 
 window.onload = () => {
-  for (let cls of ["trm","col"]) {
-    for (let elem of document.getElementsByClassName(cls)) {
-      elem.addEventListener("input", ({target}) => {
-        idValue[cls] = target.value
-        for (let e of document.getElementsByClassName(cls)) e.value = target.value 
+  for (let cls of ["ter","col"]) {
+    const nodes = document.getElementsByClassName(cls)
+    for (let elem of nodes) {
+      elem.addEventListener("input", ({target: {value}}) => {        
+        updateId(cls, value)
         return true
       })
     }
-  }
+    updateId(cls, nodes[0].value)
+  } 
 }</script>

@@ -132,7 +132,7 @@ Return the JSON Schema used to validation collection metadata. See file [collect
 
 #### PUT /collection/
 
-Replace the list of registered collections. Only allowed if the current list is empty. Collections metadata must conform to the Collection JSON Schema.
+Initially register a list of collections. Only allowed if the current list is empty. Collections metadata must conform to the Collection JSON Schema.
 
 *The metadata is not imported into the triple store!*
 

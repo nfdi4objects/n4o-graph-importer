@@ -43,6 +43,7 @@ def handle_error(e):
 def index():
     return render_template('index.html', **app.config)
 
+# TODO: PUT /terminology
 
 @app.route('/terminology', methods=['GET'])
 @app.route('/terminology/', methods=['GET'])
