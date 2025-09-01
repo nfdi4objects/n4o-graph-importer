@@ -9,6 +9,9 @@ deps:
 test:
 	@. .venv/bin/activate && ./tests/test_api.sh && coverage report -m
 
+start:
+	@.venv/bin/python3 app.py
+
 api:
 	@npm run --silent api
 

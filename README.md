@@ -268,7 +268,12 @@ Load collection data and metadata from stage directory into triple store:
 
 ## Development
 
-See `tests/test.sh` for a test script, also run via GitHub action.
+Requires basic development toolchain (`sudo apt install build-essential`) and Python 3 with module venv to be installed.
+
+- `make deps` installs Python dependencies in a virtual environment in directory `.venv`
+- `make test` runs a test instance of the service with a temporary triple store
+- `make start` runs the service without restarting
+- `make api` runs the service with automatic restarting (requires install Node module `nodemon` with `npm install`)
 
 Locally build Docker image for testing:
 
