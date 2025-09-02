@@ -2,7 +2,7 @@ from pathlib import Path
 from shutil import rmtree
 from urllib.parse import urlparse
 from jsonschema import validate
-# from SPARQLWrapper import SPARQLWrapper
+from .registry import Registry
 from .utils import read_json, write_json
 from .errors import NotFound, NotAllowed, ValidationError
 from .rdf import write_ttl, load_graph_from_file
@@ -15,7 +15,7 @@ collection_context = read_json(
     Path(__file__).parent.parent / 'collection-context.json')
 
 
-class CollectionRegistry:
+class CollectionRegistry(Registry):
 
     def __init__(self, **config):
         self.stage = stage = Path(config.get('stage', 'stage'))
