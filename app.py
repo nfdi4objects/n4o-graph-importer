@@ -124,14 +124,12 @@ def delete_collection(id):
 
 @app.route('/collection/<int:id>/receive', methods=['POST'])
 def collection_receive_id(id):
-    return jsonify(collectionRegistry.receive(id, **request.args))
+    return jsonify(collectionRegistry.receive(id, request.args.get("from",None)))
 
 
 @app.route('/collection/<int:id>/receive', methods=['GET'])
 def receive_collection_log(id):
-    file = request.args.get('from', None)
-    format = request.args.get('format', None)
-    return jsonify(collectionRegistry.receive(id, file, format))
+    return jsonify(collectionRegistry.receive_log(id))
 
 
 @app.route('/terminology/<int:id>/load', methods=['POST'])
