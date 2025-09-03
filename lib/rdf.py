@@ -39,20 +39,18 @@ def write_ttl(file, doc, context):
 
 
 def sparql_query(api, query):
+    # TODO: remove SPARQLWrapper, just use requests
     sparql = SPARQLWrapper(api, returnFormat='json')
     sparql.setQuery(query)
     return sparql.queryAndConvert()["results"]["bindings"]
 
 
 def sparql_update(api, graph, query):
-    print(f"Executing SPARQL Update at {api}")
-    sparql = SPARQLWrapper(api, returnFormat='json')
-    sparql.method = 'POST'
-    sparql.setQuery(query)
     try:
-        res = sparql.query()
-        if res.response.code != 200:
-            raise ServerError(f"HTTP Status code {res.response.code}")
+        res = requests.post(api, data=query, headers={
+                            "Content-Type": "application/sparql-update"})
+        if not res.ok:
+            raise ServerError(f"HTTP Status code {res.status_code}")
     except Exception as e:
         raise ServerError(f"SPARQL UPDATE failed: {e}")
 

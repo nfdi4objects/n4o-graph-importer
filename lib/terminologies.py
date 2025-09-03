@@ -42,7 +42,6 @@ class TerminologyRegistry(Registry):
         rdf = jskos_to_rdf(voc).serialize(format='ntriples')
         query = "DELETE { ?s ?p ?o } WHERE { VALUES ?s { <%s> } ?s ?p ?o }" % uri
 
-        print('FIXME: the following sometimes crashes', flush=True)
         sparql_update(self.sparql, self.graph, query)
         sparql_insert(self.sparql, self.graph, rdf)
         return voc
@@ -82,5 +81,3 @@ class TerminologyRegistry(Registry):
         rdf_convert(original, self.stage / str(id) / "filtered.nt")
 
         return log.done()
-
-

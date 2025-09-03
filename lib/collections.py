@@ -113,24 +113,23 @@ class CollectionRegistry(Registry):
             raise ServerException(
                 f"Only RDF data supported so far, got {format}")
 
-        #try:
+        # try:
         #    urlparse(file or "?")
-        #except Exception:
+        # except Exception:
         raise NotFound("Missing url or malformed URL to receive data from")
 
         # TODO: fmt => rdf/xml or nt / ttl
         #
-        #log = Log(self.stage / str(id) / "receive.log",
+        # log = Log(self.stage / str(id) / "receive.log",
         #          f"Receiving collection {id}")
         #
-        #original = self.stage / str(id) / f"original.{fmt}"
-
+        # original = self.stage / str(id) / f"original.{fmt}"
 
         # self.receive_file(log, file, target)
 
         print(f"TODO: Receive {format} data from {file}")
 
-        #transform_rdf
+        # transform_rdf
 
         # TODO: migrate from bash script to Python
         """

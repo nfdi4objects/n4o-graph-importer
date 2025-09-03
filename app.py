@@ -45,6 +45,7 @@ def index():
 
 # TODO: PUT /terminology
 
+
 @app.route('/terminology', methods=['GET'])
 @app.route('/terminology/', methods=['GET'])
 def terminologies():
@@ -124,7 +125,7 @@ def delete_collection(id):
 
 @app.route('/collection/<int:id>/receive', methods=['POST'])
 def collection_receive_id(id):
-    return jsonify(collectionRegistry.receive(id, request.args.get("from",None)))
+    return jsonify(collectionRegistry.receive(id, request.args.get("from", None)))
 
 
 @app.route('/collection/<int:id>/receive', methods=['GET'])
