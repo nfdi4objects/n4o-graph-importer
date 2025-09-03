@@ -275,6 +275,12 @@ Requires basic development toolchain (`sudo apt install build-essential`) and Py
 - `make start` runs the service without restarting
 - `make api` runs the service with automatic restarting (requires install Node module `nodemon` with `npm install`)
 
+Best use the Docker image [n4o-fuseki](https://github.com/nfdi4objects/n4o-fuseki#readme) to start a triple store configured to be used with the importer:
+
+~~~sh
+docker run -rm -p 3030:3030 ghcr.io/nfdi4objects/n4o-fuseki:main
+~~~
+
 Locally build Docker image for testing:
 
 ~~~sh
