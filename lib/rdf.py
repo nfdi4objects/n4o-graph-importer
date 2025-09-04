@@ -52,6 +52,7 @@ def sparql_update(api, graph, query):
         if res.response.code != 200:
             raise ServerError(f"HTTP Status code {res.response.code}")
     except Exception as e:
+        print(e)
         raise ServerError(f"SPARQL UPDATE failed: {e}")
 
 
@@ -70,25 +71,26 @@ def load_graph_from_file(api, graph, file, fmt):
     # TODO: detect error?
 
 
-def rdf_convert(source, target):
+def rdf_receive(source, path, log, namespaces):
     graph = Graph()
     graph.parse(source)
-    with open(target, "w") as f:
-        f.write(graph.serialize(format='ntriples'))
+    size = len(graph)
+    log.append(f"Parsed {size} unique triples")
 
+    filtered = open(path / "filtered.nt", "w")
+    removed = open(path / "removed.nt", "w")
 
-# TODO: cleanup and analyze RDF
+    n = 0
+    for s, p, o in graph.triples((None, None, None)):
+        # TODO: filter out namespaces
+        # if predicate.startswith(rdflib.RDFS)
+        filtered.write(f"{s.n3()} {p.n3()} {o.n3()} .\n")
+    # TODO: write filtered triples 
+
+    log.append(f"Removed {n} triples, remaining {size-n} unique triples.")
+
 
 """
-rapper -q -i "${formats[$format]}" "$original" | sort | uniq -d > "$duplicated"
-
-mv "$tmp" "$unique"
-
-echo "$original ist syntaktisch korrektes RDF. "
-echo
-echo "Anzahl mehrfacher        Tripel: **$(<$duplicated wc -l)**"
-echo "Anzahl unterschiedlicher Tripel: **$(<$unique wc -l)**"
-
 filtered=$stage/filtered.nt
 removed=$stage/removed.nt
 namespace=$(jq -r --arg uri "$uri" '.[$uri]' $STAGE/terminology/namespaces.json)

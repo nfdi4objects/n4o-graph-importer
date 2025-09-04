@@ -1,5 +1,6 @@
 from pathlib import Path
 import shutil
+from urllib.request import urlretrieve
 from .rdf import load_graph_from_file
 from .log import Log
 from .errors import NotFound

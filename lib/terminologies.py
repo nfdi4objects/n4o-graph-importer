@@ -2,10 +2,9 @@ from pathlib import Path
 import requests
 import re
 import sys
-from urllib.request import urlretrieve
 from .utils import read_json, read_ndjson, write_json
 from .errors import NotFound, ClientError
-from .rdf import jskos_to_rdf, sparql_insert, sparql_update, rdf_convert
+from .rdf import jskos_to_rdf, sparql_insert, sparql_update, rdf_receive
 from .log import Log
 from .registry import Registry
 
@@ -41,13 +40,13 @@ class TerminologyRegistry(Registry):
         (self.stage / str(id)).mkdir(exist_ok=True)
         rdf = jskos_to_rdf(voc).serialize(format='ntriples')
         query = "DELETE { ?s ?p ?o } WHERE { VALUES ?s { <%s> } ?s ?p ?o }" % uri
-
         sparql_update(self.sparql, self.graph, query)
         sparql_insert(self.sparql, self.graph, rdf)
         return voc
 
     def receive(self, id, file):
-        self.get(id)  # make sure terminology has been registered
+        uri = self.get(id)["uri"]  # make sure terminology has been registered
+
         if not file:
             raise ClientError("Missing URL or file to receive data from")
 
@@ -77,7 +76,8 @@ class TerminologyRegistry(Registry):
             with open(original, "w") as f:
                 f.write(rdf)
 
-        # TODO: also validate and filter RDF
-        rdf_convert(original, self.stage / str(id) / "filtered.nt")
+        namespaces = dict(self.namespaces())
+        namespaces.pop(uri, None)
+        rdf_receive(original, self.stage / str(id), log, namespaces)
 
         return log.done()
