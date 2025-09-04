@@ -43,6 +43,7 @@ def sparql_query(api, query):
     sparql.setQuery(query)
     return sparql.queryAndConvert()["results"]["bindings"]
 
+
 def sparql_update(api, graph, query):
     sparql = SPARQLWrapper(api, returnFormat='json')
     sparql.method = 'POST'
@@ -85,7 +86,7 @@ def rdf_receive(source, path, log, namespaces):
         # TODO: filter out namespaces
         # if predicate.startswith(rdflib.RDFS)
         filtered.write(f"{s.n3()} {p.n3()} {o.n3()} .\n")
-    # TODO: write filtered triples 
+    # TODO: write filtered triples
 
     log.append(f"Removed {n} triples, remaining {size-n} unique triples.")
 

@@ -5,9 +5,10 @@
 [![Docker image](https://github.com/nfdi4objects/n4o-graph-importer/actions/workflows/docker.yml/badge.svg)](https://github.com/orgs/nfdi4objects/packages/container/package/n4o-graph-importer)
 [![Test](https://github.com/nfdi4objects/n4o-graph-importer/actions/workflows/test.yml/badge.svg)](https://github.com/nfdi4objects/n4o-graph-importer/actions/workflows/test.yml)
 
-This component imports RDF data of a collection or a terminology into the triple store of NFDI4Objects Knowledge Graph. The import consists of two steps:
+This component imports RDF data of a collection or a terminology into the triple store of NFDI4Objects Knowledge Graph. The import consists of three steps:
 
-1. **receive**: data is copied into a **stage** directory where it is validated, filtered, and a report is generated.
+1. **register**: metadata is retrieved and written to the triple store
+2. **receive**: data is copied into a **stage** directory where it is validated, filtered, and a report log is generated
 2. **load**: on success the processed data is loaded into the triple store
 
 See [n4o-graph](https://github.com/nfdi4objects/n4o-graph) for full documentation of system architecture with all components.
@@ -26,6 +27,7 @@ See [n4o-graph](https://github.com/nfdi4objects/n4o-graph) for full documentatio
     - [GET /terminology/:id/receive](#get-terminologyidreceive)
     - [POST /terminology/:id/load](#post-terminologyidload)
     - [GET /terminology/:id/load](#get-terminologyidload)
+    - [POST /terminology/:id/remove](#post-terminologyidremove)
     - [GET /terminology/namespaces.json](#get-terminologynamespacesjson)
   - [Collections](#collections)
     - [GET /collection/](#get-collection)
@@ -55,12 +57,6 @@ Two Docker volumes (or local directories) are used to store files:
   - `./stage/terminology/$ID` for terminologies with BARTOC id `$ID`
 - `./data` a directory read RDF data from (not required if running from sources)
 
-Import is three steps:
-
-1. register
-2. receive
-3. load
-
 ## API
 
 ### Terminologies
@@ -81,7 +77,7 @@ Register a terminology or update its metadata from BARTOC. The metadata is direc
 
 #### DELETE /terminology/:id
 
-Unregister a terminology and remove it from stage area and triple store.
+Unregister a terminology and remove it from stage area and triple store. This implies [DELETE /terminology/:id/remove](#delete-terminologyidremove).
 
 #### PUT /terminology/
 
@@ -98,13 +94,11 @@ Other fields are ignored so the return value of [GET /terminology/](#get-termino
 
 #### POST /terminology/:id/receive
 
-Receive terminology data. Arguments passed as query parameters:
-
-- `from` with an URL or with the name of a file in data directory. Format must be RDF/Turtle for file extension `.ttl` or `.nt`, otherwise RDF/XML.
+Receive terminology data. The location of the data is going to be extracted from terminology metadata from BARTOC but this has not been implemented yet. For now pass query parameter `from` instead to locate an URL or the name of a file in the data directory. Format must be RDF/Turtle for file extension `.ttl` or `.nt`, otherwise RDF/XML.
 
 #### GET /terminology/:id/receive
 
-Get latest receive log of a terminology. *Not implemented yet!*
+Get latest receive log of a terminology.
 
 #### POST /terminology/:id/load
 
@@ -112,7 +106,11 @@ Load received terminology data into the triple store.
 
 #### GET /terminology/:id/load
 
-Get latest load log of a terminology. *Not implemented yet!*
+Get latest load log of a terminology. 
+
+#### POST /terminology/:id/remove
+
+Remove terminology data from the triple store and from staging area. The terminology will still be registered and its metadata is not removed from the triple store.
 
 #### GET /terminology/namespaces.json
 
@@ -120,7 +118,17 @@ Return registered URI namespaces forbidden to be used in RDF subjects. The resul
 
 ### Collections
 
-Collections are described in a custom JSON format described by JSON Schema [collection-schema.json](collection-schema.json). This JSON data is internally converted to RDF for import into the knowledge graph.
+Collections are described in a custom JSON format described by JSON Schema [collection-schema.json](collection-schema.json). This JSON data is enriched with field `id` and internally converted to RDF for import into the knowledge graph. In its simplest form, a collection should contain a name, an URL, and a license:
+
+~~~json
+{
+  "name": "test collection",
+  "url": "https://example.org/",
+  "license": "https://creativecommons.org/publicdomain/zero/1.0/"
+}
+~~~
+
+When registered, the collection is assigned an id, and a corresponding URI.
 
 #### GET /collection/
 
@@ -128,19 +136,15 @@ Return the list of registered collections (metadata only).
 
 #### GET /collection/schema.json
 
-Return the JSON Schema used to validation collection metadata. See file [collection-schema.json](collection-schema.json).
+Return the JSON Schema used to validation collection metadata. See file [collection-schema.json](collection-schema.json). Collection field `id` is required by the schema but it gets assigned automatically in most cases.
 
 #### PUT /collection/
 
-Initially register a list of collections. Only allowed if the current list is empty. Collections metadata must conform to the Collection JSON Schema.
-
-*The metadata is not imported into the triple store!*
+Register a list of collections. This is only allowed if the current list is empty.
 
 #### POST /collection/
 
-Register a new collection or update metadata of a registered collection. Collection metadata must conform to the Collection JSON Schema.
-
-*The metadata is not imported into the triple store!*
+Register a new collection or update metadata of a registered collection.
 
 #### GET /collection/:id
 
@@ -150,22 +154,17 @@ Return metadata of a specific registered collection.
 
 Update metadata of a specific registered collection or register a new collection.
 
-*The metadata is not imported into the triple store!*
-
 #### DELETE /collection/:id 
 
 Unregister a collection and remove it from the triple store and staging area. This implies [DELETE /collection/:id/remove](#delete-collectionidremove).
 
 #### POST /collection/:id/receive
 
-Receive and process collection data. Optional query parameters:
-
-- from (URL or local file in data directory)
-- format
+Receive and process collection data. The location of the data is taken from collection metadata field `access` if existing. The location can be overridden with optional query parameter `from` with an URL or a file name from local data directory.
 
 #### GET /collection/:id/receive
 
-Get latest receive log of a collection. *Not implemented yet!*
+Get latest receive log of a collection.
 
 #### POST /collection/:id/load
 
@@ -188,83 +187,6 @@ Environment variables:
 - `STAGE`: stage directory. Default `stage`
 - `BASE`: base URI of collections. Default: `https://graph.nfdi4objects.net/collection/`
 - `DATA`: local data directory for file import
-
-## Commands
-
-**This will be removed in favour or the API**
-
-Main entry script `./importer.sh` lists all available commands.
-
-### Import terminologies
-
-The list of terminologies to be loaded is managed in BARTOC. Download URLs for selected terminologies are hard-coded in file [`terminology-data.csv`](terminology-data.csv) (until a better way has been established to manage this information). The following data formats are supported:
-
-- [rdf/turtle](http://format.gbv.de/rdf/turtle) (subsumes N-Triples) (`.ttl` or `.nt`)
-- [rdf/xml](http://format.gbv.de/rdf/xml) (`.rdf`)
-- [jskos](http://format.gbv.de/jskos) (`.ndjson`)
-
-To update the list of terminologies from BARTOC run:
-
-~~~sh
-./update-terminologies
-~~~
-
-This generates files `terminologies.json`, `namespaces.json`, and `terminologies.ttl` in directory `stage/terminology/`, required for importing collections and terminologies.
-
-To receive and load individual terminology data (here exemplified with SKOS terminology, <http://bartoc.org/en/node/18274>:
-
-~~~sh
-./receive-terminology http://bartoc.org/en/node/18274
-./load-terminology http://bartoc.org/en/node/18274
-~~~
-
-Or both in one command:
-
-~~~sh
-./import-terminology http://bartoc.org/en/node/18274
-~~~
-
-Data and reports are stored in `stage/terminology/18274`.
-
-A local terminology file can be imported for testing:
-
-~~~sh
-./import-terminology http://bartoc.org/en/node/18274 skos.rdf
-~~~
-
-Terminology data is *not checked* before import except basic RDF syntax checks!
-
-### Import collections
-
-Collections are currently managed [in a CSV file](https://github.com/nfdi4objects/n4o-databases/blob/main/n4o-collections.csv) until there is a better solution. To get the current list of collections and transform it to RDF run:
-
-~~~sh
-./update-collections
-~~~
-
-Optionally pass a local `.json` file or an URL to load list of collections from (see [Collection metadata](#collections-metadata).
-
-This creates `stage/collection/collections.ttl`. To load its content into the Knowledge Graph run:
-
-~~~sh
-./load-collections-metadata
-~~~
-
-Note this overrides the `issued` date of imported collection data (this may be fixed later).
-
-To receive collection data from where it has been published, do quality analysis and convert it to RDF run:
-
-~~~sh
-./receive-collection 0
-~~~
-
-*Receiving data has not been fully implemented yet!*
-
-Load collection data and metadata from stage directory into triple store:
-
-~~~sh
-./load-collection 0     # change to another collection id except for testing
-~~~
 
 ## Development
 

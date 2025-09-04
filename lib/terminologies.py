@@ -44,6 +44,15 @@ class TerminologyRegistry(Registry):
         sparql_insert(self.sparql, self.graph, rdf)
         return voc
 
+    def registerAll(self, terms):
+        # TODO: unregister
+        ids = []
+        # TODO: validate and collect ids
+        for id in ids:
+            self.add(id)
+        # TODO
+        pass
+
     def receive(self, id, file):
         uri = self.get(id)["uri"]  # make sure terminology has been registered
 

@@ -43,13 +43,17 @@ def handle_error(e):
 def index():
     return render_template('index.html', **app.config)
 
-# TODO: PUT /terminology
-
 
 @app.route('/terminology', methods=['GET'])
 @app.route('/terminology/', methods=['GET'])
 def terminologies():
     return jsonify(terminologyRegistry.list())
+
+
+@app.route('/terminology/', methods=['PUT'])
+def register_terminologies():
+    data = request.get_json(force=True)
+    return jsonify(terminologyRegistry.registerAll(data))
 
 
 @app.route('/terminology/namespaces.json', methods=['GET'])
