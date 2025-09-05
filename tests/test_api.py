@@ -132,6 +132,12 @@ def test_terminology(client):
     assert client.post("/terminology/20533/remove").status_code == 200
     assert sparql_query(sparql, query) == graphs[:-1]
 
+    # no problem when graph has already been removed
+    assert client.post("/terminology/20533/remove").status_code == 200
+
+    # but graph must be registered
+    assert client.post("/terminology/1234/remove").status_code == 404
+
 
 def test_api(client):
 

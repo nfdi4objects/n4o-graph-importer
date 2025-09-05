@@ -1,4 +1,5 @@
 from pathlib import Path
+from shutil import rmtree
 import requests
 import re
 import sys
@@ -37,7 +38,6 @@ class TerminologyRegistry(Registry):
             raise NotFound(f"Terminology not found: {uri}")
         voc = voc[0]
         write_json(self.stage / f"{id}.json", voc)
-        (self.stage / str(id)).mkdir(exist_ok=True)
         rdf = jskos_to_rdf(voc).serialize(format='ntriples')
         query = "DELETE { ?s ?p ?o } WHERE { VALUES ?s { <%s> } ?s ?p ?o }" % uri
         sparql_update(self.sparql, self.graph, query)
@@ -68,10 +68,12 @@ class TerminologyRegistry(Registry):
         else:
             raise ClientError("Unknown file extension of file {file}")
 
-        log = Log(self.stage / str(id) / "receive.log",
+        stage = self.stage / str(id)
+        stage.mkdir(exist_ok=True)
+        log = Log(stage / "receive.log",
                   f"Receiving terminology {id}")
 
-        original = self.stage / str(id) / f"original.{fmt}"
+        original = stage / f"original.{fmt}"
 
         self.receive_file(log, file, original)
 
@@ -81,17 +83,17 @@ class TerminologyRegistry(Registry):
             jskos = read_ndjson(original)
             rdf = jskos_to_rdf(jskos).serialize(format='ntriples')
             fmt = "ttl"
-            original = self.stage / str(id) / f"original.{fmt}"
+            original = stage / f"original.{fmt}"
             with open(original, "w") as f:
                 f.write(rdf)
 
         namespaces = dict(self.namespaces())
         namespaces.pop(uri, None)
-        rdf_receive(original, self.stage / str(id), log, namespaces)
+        rdf_receive(original, stage, log, namespaces)
 
         return log.done()
 
     def remove(self, id):
-        uri = self.get(id)["uri"]
-        # TODO: also remove files from staging area
-        return sparql_update(self.sparql, uri, f"DROP GRAPH <{uri}>")
+        uri = self.get(id)["uri"]  # graph must be registered at least
+        rmtree(self.stage / str(id), ignore_errors=True)
+        sparql_update(self.sparql, uri, f"DROP GRAPH <{uri}>")

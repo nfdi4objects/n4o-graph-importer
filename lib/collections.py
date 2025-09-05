@@ -18,6 +18,11 @@ collection_context = read_json(
 class CollectionRegistry(Registry):
 
     def __init__(self, **config):
+        # TODO: super
+
+        self.base = config.get(
+            "base", "https://graph.nfdi4objects.net/collection/")
+
         self.stage = stage = Path(config.get('stage', 'stage'))
         if not stage.is_dir():
             raise NotFound(f"Missing stage directory {stage}")
@@ -27,9 +32,6 @@ class CollectionRegistry(Registry):
         self.collections_file_ttl = stage / "collection" / "collections.ttl"
         if not self.collections_file.exists():
             self.update_collections([])
-
-        self.base = config.get(
-            "base", "https://graph.nfdi4objects.net/collection/")
 
     def collections(self):
         return read_json(self.collections_file)
