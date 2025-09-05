@@ -41,7 +41,10 @@ def write_ttl(file, doc, context):
 def sparql_query(api, query):
     sparql = SPARQLWrapper(api, returnFormat='json')
     sparql.setQuery(query)
-    return sparql.queryAndConvert()["results"]["bindings"]
+    try:
+        return sparql.queryAndConvert()["results"]["bindings"]
+    except Exception as e:
+        raise ServerError(f"SPARQL Query failed: {e}")
 
 
 def sparql_update(api, graph, query):
@@ -53,7 +56,6 @@ def sparql_update(api, graph, query):
         if res.response.code != 200:
             raise ServerError(f"HTTP Status code {res.response.code}")
     except Exception as e:
-        print(e)
         raise ServerError(f"SPARQL UPDATE failed: {e}")
 
 

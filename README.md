@@ -172,11 +172,11 @@ Load received and processed collection data into the triple store.
 
 #### GET /collection/:id/load
 
-Get latest load log of a collection. *Not implemented yet!*
+Get latest load log of a collection.
 
 #### POST /collection/:id/remove
 
-Remove collection data from the triple store and from staging area. The collection will still be registered and collection metadata is not removed from the triple store.
+Remove collection data from the triple store and from staging area. The collection will still be registered and its metadata is not removed from the triple store.
 
 ## Configuration
 

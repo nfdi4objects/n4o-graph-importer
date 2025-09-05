@@ -91,6 +91,11 @@ def load_terminology_log(id):
     return jsonify(terminologyRegistry.load_log(id))
 
 
+@app.route('/terminology/<int:id>/remove', methods=['POST'])
+def remove_terminology(id):
+    return jsonify(terminologyRegistry.remove(id))
+
+
 @app.route('/collection', methods=['GET'])
 @app.route('/collection/', methods=['GET'])
 def collections():
@@ -137,9 +142,9 @@ def receive_collection_log(id):
     return jsonify(collectionRegistry.receive_log(id))
 
 
-@app.route('/terminology/<int:id>/load', methods=['POST'])
+@app.route('/collection/<int:id>/load', methods=['POST'])
 def load_collection(id):
-    return jsonify(terminologyRegistry.load(id))
+    return jsonify(collectionRegistry.load(id))
 
 
 @app.route('/collection/<int:id>/load', methods=['GET'])
@@ -149,7 +154,7 @@ def load_collection_log(id):
 
 @app.route('/terminology/<int:id>/remove', methods=['POST'])
 def remove_collection(id):
-    return jsonify(terminologyRegistry.remove(id))
+    return jsonify(collectionRegistry.remove(id))
 
 
 if __name__ == '__main__':

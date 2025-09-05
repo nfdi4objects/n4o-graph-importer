@@ -90,3 +90,8 @@ class TerminologyRegistry(Registry):
         rdf_receive(original, self.stage / str(id), log, namespaces)
 
         return log.done()
+
+    def remove(self, id):
+        uri = self.get(id)["uri"]
+        # TODO: also remove files from staging area
+        return sparql_update(self.sparql, uri, f"DROP GRAPH <{uri}>")

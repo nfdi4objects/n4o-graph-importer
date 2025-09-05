@@ -120,14 +120,17 @@ def test_terminology(client):
 
     # check size of terminology graphs
     query = "SELECT ?g (count(*) as ?t) { GRAPH ?g {?s ?p ?o} } GROUP BY ?g ORDER BY ?t"
-    resp = sparql_query(sparql, query)
-    assert resp == [
+    graphs = [
         {'g': {'type': 'uri', 'value': 'https://graph.nfdi4objects.net/terminology/'},
          't': {'type': 'literal', 'datatype': 'http://www.w3.org/2001/XMLSchema#integer', 'value': '29'}},
         {'g': {'type': 'uri', 'value': 'http://bartoc.org/en/node/18274'},
          't': {'type': 'literal', 'datatype': 'http://www.w3.org/2001/XMLSchema#integer', 'value': '377'}},
         {'g': {'type': 'uri', 'value': 'http://bartoc.org/en/node/20533'},
          't': {'type': 'literal', 'datatype': 'http://www.w3.org/2001/XMLSchema#integer', 'value': '679'}}]
+    assert sparql_query(sparql, query) == graphs
+
+    assert client.post("/terminology/20533/remove").status_code == 200
+    assert sparql_query(sparql, query) == graphs[:-1]
 
 
 def test_api(client):
