@@ -1,6 +1,6 @@
 from pathlib import Path
-import shutil
-from urllib.request import urlretrieve
+from shutil import copy, copyfileobj
+import urllib
 from .rdf import load_graph_from_file
 from .log import Log
 from .errors import NotFound
@@ -46,9 +46,10 @@ class Registry:
         if "/" not in source:
             source = self.data / source
             log.append(f"Retrieving source {source} from data directory")
-            shutil.copy(source, original)
-        else:  # TODO: test this
+            copy(source, original)
+        else:
             log.append(f"Retrieving source from {source}")
-            urlretrieve(source, original)
+            with urllib.request.urlopen(source) as fsrc, open(original, 'wb') as fdst:
+                copyfileobj(fsrc, fdst)
 
         return (original, log)

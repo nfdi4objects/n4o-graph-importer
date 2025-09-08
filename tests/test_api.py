@@ -1,5 +1,7 @@
 import unittest
+from unittest.mock import patch
 import responses
+import urllib.request
 from werkzeug.datastructures import FileStorage
 import tempfile
 import re
@@ -17,8 +19,8 @@ base = "https://graph.nfdi4objects.net/collection/"
 terminology_graph = "https://graph.nfdi4objects.net/terminology/"
 
 bartoc = {
-    "18274": [read_json("tests/18274.json")],
-    "20533": [read_json("tests/20533.json")],
+    "18274": [read_json("tests/terminology/18274.json")],
+    "20533": [read_json("tests/terminology/20533.json")],
     "0": []
 }
 
@@ -57,6 +59,7 @@ def client(stage):
         yield client
 
 
+# TODO: use mocked_urls like below
 def register_terminology(client, id):
     with responses.RequestsMock() as mock:
         mock.get(
@@ -66,6 +69,15 @@ def register_terminology(client, id):
         res = client.put(f'/terminology/{id}')
         assert type(res.get_json()) is dict
         return res
+
+
+mocked_urls = {
+    "http://example.org/20533.concepts.ndjson": "tests/20533.concepts.ndjson"
+}
+
+
+def urlopen_from_cache(url):
+    return open(mocked_urls[url], "rb")
 
 
 def test_terminology(client):
@@ -110,9 +122,14 @@ def test_terminology(client):
 
     # register, receive, and load another terminology
     assert register_terminology(client, "20533").status_code == 200
+    assert client.post('/terminology/20533/load').status_code == 404
     assert client.post(
         '/terminology/20533/receive?from=20533.concepts.ndjson').status_code == 200
     assert client.post('/terminology/20533/load').status_code == 200
+
+    with patch('urllib.request.urlopen', new=urlopen_from_cache):
+        query = '/terminology/20533/receive?from=http://example.org/20533.concepts.ndjson'
+        assert client.post(query).status_code == 200
 
     # check size of terminology graphs
     query = "SELECT ?g (count(*) as ?t) { GRAPH ?g {?s ?p ?o} } GROUP BY ?g ORDER BY ?t"
