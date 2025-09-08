@@ -11,6 +11,25 @@ This component imports RDF data of a collection or a terminology into the triple
 2. **receive**: data is copied into a **stage** directory where it is validated, filtered, and a report log is generated
 2. **load**: on success the processed data is loaded into the triple store
 
+```mermaid
+flowchart LR
+  END[ ]:::hidden
+  START[ ]:::hidden
+  L["**list**"]
+  S["**stage**"]
+  T["**triple store**"]
+
+  START -- <span style="color:#2780e3">register</span> --> L 
+  L -- <span style="color:#2780e3">receive</span> --> S
+  S -- <span style="color:#2780e3">load</span> --> T
+  T -- <span style="color:#2780e3">remove</span> --> L
+  L -- <span style="color:#2780e3">delete</span> --> END
+  END ~~~ L 
+
+classDef node  fill: #D4E6F9, color:#2780e3, stroke: black;
+classDef hidden display: none;
+```
+
 See [n4o-graph](https://github.com/nfdi4objects/n4o-graph) for full documentation of system architecture with all components.
 
 ## Table of Contents
