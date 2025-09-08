@@ -75,36 +75,42 @@ def load_graph_from_file(api, graph, file, fmt):
 
 
 def rdf_receive(source, path, log, namespaces):
+    namespaces = tuple(list(namespaces.values()))
+
     graph = Graph()
     graph.parse(source)
     size = len(graph)
     log.append(f"Parsed {size} unique triples")
 
-    filtered = open(path / "filtered.nt", "w")
+    checked = open(path / "checked.nt", "w")
     removed = open(path / "removed.nt", "w")
 
-    n = 0
+    count = 0
     for s, p, o in graph.triples((None, None, None)):
-        # TODO: filter out namespaces
-        # if predicate.startswith(rdflib.RDFS)
-        filtered.write(f"{s.n3()} {p.n3()} {o.n3()} .\n")
-    # TODO: write filtered triples
+        if str(s).startswith(namespaces):
+            removed.write(f"{s.n3()} {p.n3()} {o.n3()} .\n")
+        else:
+            count = count + 1
+            # TODO: filter out namespaces
+            # if predicate.startswith(rdflib.RDFS)
+            checked.write(f"{s.n3()} {p.n3()} {o.n3()} .\n")
 
-    log.append(f"Removed {n} triples, remaining {size-n} unique triples.")
+    log.append(
+        f"Removed {size-count} triples, remaining {count} unique triples.")
 
 
 """
-filtered=$stage/filtered.nt
+checked=$stage/checked.nt
 removed=$stage/removed.nt
 namespace=$(jq -r --arg uri "$uri" '.[$uri]' $STAGE/terminology/namespaces.json)
 
 export RDFFILTER_ALLOW_NAMESPACE=$namespace
-npm run --silent -- rdffilter $unique -o $filtered --stats -f ./js/rdffilter.js
+npm run --silent -- rdffilter $unique -o $checked --stats -f ./js/rdffilter.js
 # TODO: extend rdffilter for one-pass
 npm run --silent -- rdffilter $unique -o $removed -r -f ./js/rdffilter.js
 unset RDFFILTER_ALLOW_NAMESPACE
 
 wc -l $duplicated
 wc -l $removed
-wc -l $filtered
+wc -l $checked
 """

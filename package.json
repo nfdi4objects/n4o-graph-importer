@@ -2,11 +2,9 @@
   "name": "n4o-graph-loader",
   "type": "module",
   "scripts": {
-    "test": "./tests/test.sh",
     "rdffilter": "rdffilter",
     "ajv": "ajv --spec draft2020 -c ajv-formats",
     "jsonld2rdf": "jsonld2rdf",
-    "csv2json": "node js/csv2json.js",
     "api": "nodemon --watch app.py --watch lib --watch templates --exec .venv/bin/python app.py --debug"
   },
   "dependencies": {

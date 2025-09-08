@@ -1,5 +1,6 @@
 import unittest
 import responses
+from werkzeug.datastructures import FileStorage
 import tempfile
 import re
 import os
@@ -21,12 +22,7 @@ bartoc = {
     "0": []
 }
 
-collection_1 = {
-    "id": "1",
-    "name": "test collection",
-    "url": "https://example.org/",
-    "uri": f"{base}1"
-}
+collection_1 = read_json("tests/collection/1.json")[0]
 collection_1_full = {
     **collection_1,
     "partOf": [base]
@@ -177,7 +173,7 @@ def test_api(client):
 
     # try to receive and load non-existing collection
     assert client.post('/collection/1/receive').status_code == 404
-    # assert client.post('/collection/1/load').status_code == 404
+    assert client.post('/collection/1/load').status_code == 404
 
     # add again
     resp = client.put('/collection/1', json=collection_1)
@@ -197,6 +193,32 @@ def test_api(client):
     assert resp.status_code == 200  # TODO: should be 201 Created
     assert resp.get_json()["id"] == "4"
 
-    # try to receive and load collection
-    assert client.post('/collection/1/receive').status_code == 404
+    # receive from file
+    assert client.post(
+        '/collection/1/receive?from=data.ttl').status_code == 200
+    assert client.get('/collection/1/receive').status_code == 200
+
+    # load received RDF
+    assert client.post('/collection/1/load').status_code == 200
+    assert client.get('/collection/1/load').status_code == 200
+
+    uri = collection_1["uri"]
+    query = f"SELECT * {{ GRAPH <{uri}> {{?s ?p ?o}} }}"
+    res = sparql_query(sparql, query)
+    graph = [{'s': {'type': 'uri', 'value': 'https://example.org/x'},
+              'p': {'type': 'uri', 'value': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'},
+              'o': {'type': 'uri', 'value': 'http://www.cidoc-crm.org/cidoc-crm/E1_CRM_Entity'}}]
+    # this triple removed
+    # {'s': {'type': 'uri', 'value': 'http://www.cidoc-crm.org/cidoc-crm/E1_CRM_Entity'},
+    # 'p': {'type': 'uri', 'value': 'https://example.org/foo'},
+    # 'o': {'type': 'uri', 'value': 'https://example.org/bar'}}]
+    assert res == graph
+
+    # TODO: test file upload
+    # with open("tests/data.ttl", "rb") as f:
+    #    data = {"data.ttl":f}
+    #    res = client.post('/collection/1/receive', data=data,
+    #                  content_type='multipart/form-data')
+    #    assert res.status_code == 200
+
     # assert client.post('/collection/1/load').status_code == 404

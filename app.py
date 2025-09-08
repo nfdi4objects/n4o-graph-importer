@@ -68,7 +68,7 @@ def get_terminology(id):
 
 @app.route('/terminology/<int:id>', methods=['PUT'])
 def register_terminology(id):
-    return jsonify(terminologyRegistry.add(id))
+    return jsonify(terminologyRegistry.register(id))
 
 
 @app.route('/terminology/<int:id>/receive', methods=['POST'])
@@ -114,7 +114,7 @@ def put_post_collections():
     if request.method == "PUT":
         return jsonify(collectionRegistry.set_all(data)), 200
     else:
-        return jsonify(collectionRegistry.add(data)), 200
+        return jsonify(collectionRegistry.register(data)), 200
 
 
 @app.route('/collection/<int:id>', methods=['GET'])

@@ -13,8 +13,7 @@ from .registry import Registry
 class TerminologyRegistry(Registry):
 
     def __init__(self, **config):
-        super().__init__("terminology", **config)
-        self.graph = "https://graph.nfdi4objects.net/terminology/"
+        super().__init__("https://graph.nfdi4objects.net/", "terminology", **config)
 
     def list(self):
         files = [f for f in self.stage.iterdir() if f.suffix ==
@@ -31,7 +30,7 @@ class TerminologyRegistry(Registry):
     def get(self, id):
         return read_json(self.stage / f"{int(id)}.json")
 
-    def add(self, id):
+    def register(self, id):
         uri = f"http://bartoc.org/en/node/{int(id)}"
         voc = requests.get(f"https://bartoc.org/api/data?uri={uri}").json()
         if not len(voc):
@@ -49,7 +48,7 @@ class TerminologyRegistry(Registry):
         ids = []
         # TODO: validate and collect ids
         for id in ids:
-            self.add(id)
+            self.register(id)
         # TODO
         pass
 
@@ -68,14 +67,9 @@ class TerminologyRegistry(Registry):
         else:
             raise ClientError("Unknown file extension of file {file}")
 
+        original, log = self.receive_source(id, file, fmt)
+
         stage = self.stage / str(id)
-        stage.mkdir(exist_ok=True)
-        log = Log(stage / "receive.log",
-                  f"Receiving terminology {id}")
-
-        original = stage / f"original.{fmt}"
-
-        self.receive_file(log, file, original)
 
         # convert JSKOS to RDF
         if fmt == "ndjson":

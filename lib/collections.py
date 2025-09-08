@@ -4,32 +4,21 @@ from urllib.parse import urlparse
 from jsonschema import validate
 from .registry import Registry
 from .utils import read_json, write_json
-from .errors import NotFound, NotAllowed, ValidationError
-from .rdf import write_ttl, load_graph_from_file
+from .errors import NotFound, NotAllowed, ValidationError, ClientError
+from .rdf import write_ttl, load_graph_from_file, rdf_receive
 from .log import Log
-
-JSON_SCHEMA = read_json(Path(__file__).parent.parent /
-                        'collection-schema.json')
-
-collection_context = read_json(
-    Path(__file__).parent.parent / 'collection-context.json')
 
 
 class CollectionRegistry(Registry):
+    schema = read_json(Path(__file__).parent.parent / 'collection-schema.json')
+    context = read_json(Path(__file__).parent.parent /
+                        'collection-context.json')
 
     def __init__(self, **config):
-        # TODO: super
+        super().__init__("https://graph.nfdi4objects.net/", "collection", **config)
 
-        self.base = config.get(
-            "base", "https://graph.nfdi4objects.net/collection/")
-
-        self.stage = stage = Path(config.get('stage', 'stage'))
-        if not stage.is_dir():
-            raise NotFound(f"Missing stage directory {stage}")
-        (stage / "collection").mkdir(exist_ok=True)
-
-        self.collections_file = stage / "collection" / "collections.json"
-        self.collections_file_ttl = stage / "collection" / "collections.ttl"
+        self.collections_file = self.stage / "collections.json"
+        self.collections_file_ttl = self.stage / "collections.ttl"
         if not self.collections_file.exists():
             self.update_collections([])
 
@@ -38,13 +27,13 @@ class CollectionRegistry(Registry):
 
     def update_collections(self, cols):
         for col in cols:
-            (self.stage / 'collection' / str(id)).mkdir(exist_ok=True)
+            (self.stage / str(id)).mkdir(exist_ok=True)
         write_json(self.collections_file, cols)
-        write_ttl(self.collections_file_ttl, cols, collection_context)
+        write_ttl(self.collections_file_ttl, cols, self.context)
 
     def collection_metadata(self, col, id=None):
         if "id" in col and "uri" in col:
-            if col["uri"] != self.base + col["id"]:
+            if col["uri"] != self.graph + col["id"]:
                 raise ValidationError("uri and id do not match!")
         elif "uri" in col:
             col["id"] = col["uri"].split("/")[-1]
@@ -56,12 +45,13 @@ class CollectionRegistry(Registry):
                     cols = self.collections()
                     col["id"] = str(max(int(c["id"])
                                     for c in cols) + 1 if cols else 1)
-            col["uri"] = self.base + col["id"]
+            col["uri"] = self.graph + col["id"]
 
         if id and col["id"] != str(id):
             raise ValidationError("id does not match!")
-        col["partOf"] = [self.base]
-        validate(instance=col, schema=JSON_SCHEMA)
+        col["partOf"] = [self.graph]
+        if self.schema:
+            validate(instance=col, schema=self.schema)
         return col
 
     def get(self, id):
@@ -79,13 +69,13 @@ class CollectionRegistry(Registry):
         self.update_collections(cols)
         return col
 
-    def add(self, col):
+    def register(self, col):
         return self.set(None, col)
 
     def delete(self, id):
         col = self.get(id)
         cols = [c for c in self.collections() if c["id"] != str(id)]
-        rmtree(self.stage / 'collection' / str(id), ignore_errors=True)
+        rmtree(self.stage / str(id), ignore_errors=True)
         self.update_collections(cols)
         return col
 
@@ -98,40 +88,43 @@ class CollectionRegistry(Registry):
         self.update_collections(cols)
         return cols
 
-    def receive(self, id, file=None, format=None):
+    def receive(self, id, file=None):
         col = self.get(id)
+        fmt = None
 
         if "access" in col:
-            if not file:
-                file = col["access"].get("url")
-            if not format:
-                format = col["access"].get("format")
+            file = col["access"].get("url", file)
+            fmt = col["access"].get("format", None)
 
-        if format:
-            format = format.removeprefix('https://format.gbv.de/')
-        else:
-            format = "rdf"
-        if format != "rdf":
-            raise ServerException(
-                f"Only RDF data supported so far, got {format}")
+        if not file:
+            raise NotFound("Missing URL or file to receive data from")
 
-        # try:
-        #    urlparse(file or "?")
-        # except Exception:
-        raise NotFound("Missing url or malformed URL to receive data from")
+        if not fmt:
+            if Path(file).suffix in [".nt", ".ttl"]:
+                fmt = "rdf/turtle"
+            elif Path(file).suffix in [".rdf", ".xml"]:
+                fmt = "rdf/xml"
 
-        # TODO: fmt => rdf/xml or nt / ttl
-        #
-        # log = Log(self.stage / str(id) / "receive.log",
-        #          f"Receiving collection {id}")
-        #
-        # original = self.stage / str(id) / f"original.{fmt}"
+        if fmt:
+            fmt = fmt.removeprefix('https://format.gbv.de/')
 
-        # self.receive_file(log, file, target)
+        if fmt == "rdf/turtle":
+            fmt = "ttl"
+        elif fmt == "rdf/xml":
+            fmt = "xml"
+        else:  # TODO: support LIDO/XML
+            raise ClientError("Unknown file format")
 
-        print(f"TODO: Receive {format} data from {file}")
+        original, log = self.receive_source(id, file, fmt)
 
-        # transform_rdf
+        # TODO: take from terminologyRegistry
+        namespaces = {
+            'http://bartoc.org/en/node/1644': 'http://www.cidoc-crm.org/cidoc-crm/'
+        }
+        stage = self.stage / str(id)
+        rdf_receive(original, stage, log, namespaces)
+
+        return log.done()
 
         # TODO: migrate from bash script to Python
         """
@@ -156,6 +149,3 @@ class CollectionRegistry(Registry):
         ./extract-rdf.py $download_dir $stage/triples.nt
         ./transform-rdf $stage/triples.nt     # includes validation
         """
-
-    def load(self, id):
-        col = self.get(id)
