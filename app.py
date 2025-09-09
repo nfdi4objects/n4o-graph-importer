@@ -19,13 +19,13 @@ def init(**config):
     global collectionRegistry
     global terminologyRegistry
 
+    title = config.get('title', os.getenv('TITLE', 'N4O Graph Importer'))
+
     if config.get("debug", False):
         app.debug = True
-        for rule in app.url_map.iter_rules():
-            print(f"{rule.endpoint}: {rule}")
+        title = f"{title} (debugging enabled)"
 
-    app.config['title'] = config.get(
-        'title', os.getenv('TITLE', 'N4O Graph Importer'))
+    app.config['title'] = title
     app.config['base'] = config.get('base', os.getenv(
         'BASE', 'https://graph.nfdi4objects.net/'))
     app.config['sparql'] = config.get(
@@ -181,19 +181,20 @@ def serve_dir(dir, template, root, filename=None, id=None):
 @app.route('/terminology/<int:id>/stage/<filename>')
 def terminology_stage(id, filename=None):
     dir = Path(app.config["stage"]) / "terminology" / str(id)
-    return serve_dir(dir, "terminology-stage.html", "../../", filename, id)
+    return serve_dir(dir, "terminology-stage.html", "../../../", filename, id)
 
 
 @app.route('/collection/<int:id>/stage/')
 @app.route('/collection/<int:id>/stage/<filename>')
 def collection_stage(id, filename=None):
     dir = Path(app.config["stage"]) / "collection" / str(id)
-    return serve_dir(dir, "collection-stage.html", "../../", filename, id)
+    return serve_dir(dir, "collection-stage.html", "../../../", filename, id)
 
 
-@app.route('/data/<filename>', defaults={'filename': None})
-def data_directory(filename):
-    return serve_dir(app.config["data"], "data.html", "../", filename)
+@app.route('/data/')
+@app.route('/data/<filename>')
+def data_directory(filename=None):
+    return serve_dir(Path(app.config["data"]), "data.html", "../", filename)
 
 
 @app.route('/status.json')
