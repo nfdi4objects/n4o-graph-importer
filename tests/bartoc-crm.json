@@ -1,0 +1,22 @@
+[
+  {
+    "identifier": [
+      "http://www.wikidata.org/entity/Q624005",
+      "http://www.cidoc-crm.org/cidoc-crm/"
+    ],
+    "namespace": "http://www.cidoc-crm.org/cidoc-crm/",
+    "notation": [
+      "CRM"
+    ],
+    "notationPattern": "[A-Z]{1,2}[0-9]+i?(_[A-Za-z_]+)?",
+    "prefLabel": {
+      "en": "CIDOC Conceptual Reference Model"
+    },
+    "type": [
+      "http://www.w3.org/2004/02/skos/core#ConceptScheme",
+      "http://w3id.org/nkos/nkostype#ontology"
+    ],
+    "uri": "http://bartoc.org/en/node/1644",
+    "url": "http://www.cidoc-crm.org/cidoc-crm/"
+  }
+]

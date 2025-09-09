@@ -1,11 +1,10 @@
 from unittest.mock import patch
 import responses
 import tempfile
-import re
 import os
+from shutil import copy
 from pathlib import Path
 import pytest
-import json
 
 from lib import sparql_query, read_json
 from app import app, init
@@ -15,7 +14,7 @@ sparql = os.getenv('SPARQL', 'http://localhost:3033/n4o')
 base = "https://graph.nfdi4objects.net/collection/"
 terminology_graph = "https://graph.nfdi4objects.net/terminology/"
 
-bartoc = read_json("tests/bartoc.json")
+bartoc = read_json("tests/bartoc-subset.json")
 
 collection_1 = read_json("tests/collection/1.json")[0]
 collection_1_full = {
@@ -98,6 +97,9 @@ def test_terminology(client):
         "http://bartoc.org/en/node/18274": "http://www.w3.org/2004/02/skos/core#"}
 
     # replace list of terminologies
+    assert client.put("/terminology/", json={}).status_code == 400
+    assert client.put("/terminology/", json=[{"uri": "x"}]).status_code == 400
+    assert len(client.get('/terminology/').get_json()) == 1
     assert client.put("/terminology/", json=[]).status_code == 200
     assert client.get('/terminology/').get_json() == []
     assert client.get("/terminology/namespaces.json").get_json() == {}
@@ -172,6 +174,8 @@ def test_api(client):
 
     assert client.get('/collection/1').status_code == 404
 
+    assert client.get('/collection/schema.json').status_code == 200
+
     # add collection
     resp = client.put('/collection/', json={})
     assert resp.status_code == 400
@@ -238,10 +242,18 @@ def test_api(client):
     assert res == graph
 
     # register terminology and receive + load again
-    register_terminology(client, "1644")  # CIDOC-CRM
+    # test local BARTOC cache
+    copy("tests/bartoc-crm.json", "tests/bartoc.json")
+    assert client.put('/terminology/18274').status_code == 404
+    assert client.put('/terminology/1644').status_code == 200  # CIDOC-CRM
+    os.remove("tests/bartoc.json")
+
     client.post('/collection/1/receive?from=data.ttl')
     client.post('/collection/1/load')
     assert sparql_query(sparql, query) == graph[:1]
+
+    assert client.post(
+        '/terminology/1644/receive?from=crm.ttl').status_code == 200
 
     # TODO: test file upload
     # with open("tests/data.ttl", "rb") as f:

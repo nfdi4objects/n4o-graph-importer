@@ -2,12 +2,17 @@ from pathlib import Path
 from shutil import rmtree
 import requests
 import re
-import sys
 from .utils import read_json, read_ndjson, write_json
 from .errors import NotFound, ClientError, ValidationError
 from .rdf import jskos_to_rdf, sparql_insert, sparql_update, rdf_receive
-from .log import Log
 from .registry import Registry
+
+
+def bartoc_ids(lst):
+    r = re.compile("^http://bartoc\\.org/en/node/[1-9][0-9]*$")
+    if type(lst) is not list or not all((r.match(item["uri"]) for item in lst)):
+        raise Exception()
+    return [item["uri"].split("/")[-1] for item in lst]
 
 
 class TerminologyRegistry(Registry):
@@ -30,11 +35,11 @@ class TerminologyRegistry(Registry):
     def get(self, id):
         return read_json(self.stage / f"{int(id)}.json")
 
-    def register(self, id, cache=False):
+    def register(self, id, cache=None):
         uri = f"http://bartoc.org/en/node/{int(id)}"
 
         if cache:
-            voc = cache.get(uri)
+            voc = [v for v in cache if v["uri"] == uri]
         else:
             voc = requests.get(f"https://bartoc.org/api/data?uri={uri}").json()
 
@@ -48,19 +53,18 @@ class TerminologyRegistry(Registry):
         sparql_insert(self.sparql, self.graph, rdf)
         return voc
 
-    def registerAll(self, terms, cached=False):
+    def registerAll(self, terms, cache=None):
         add, remove = [], []
         try:
-            # TODO: check if uri starts with "http://bartoc.org/en/node/"
+            add = bartoc_ids(terms)
             remove = [t["uri"].split("/")[-1] for t in self.list()]
-            add = [t["uri"].split("/")[-1] for t in terms]
         except Exception:
             raise ValidationError("Malformed array of terminologies")
 
         for id in remove:
             self.delete(id)
         for id in add:
-            self.register(id, cached)
+            self.register(id, cache)
 
         return self.list()
 

@@ -58,7 +58,7 @@ class CollectionRegistry(Registry):
         except StopIteration:
             raise NotFound(f"Collection {id} not found")
 
-    def set(self, id, col):
+    def register(self, col, id=None):
         if type(col) is not dict:
             raise ValidationError("Expected JSON object")
         col = self.collection_metadata(col, id)
@@ -66,9 +66,6 @@ class CollectionRegistry(Registry):
         cols.append(col)
         self.update_collections(cols)
         return col
-
-    def register(self, col):
-        return self.set(None, col)
 
     def delete(self, id):
         col = self.get(id)

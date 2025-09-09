@@ -87,6 +87,8 @@ The web service and its Docker image can be configured via environment variables
 - `STAGE`: writeable stage directory. Default `stage`
 - `DATA`: local data directory for file import
 
+If the data directory contains a file `bartoc.json` with an array of JSKOS records from BARTOC, this file is used as source of terminology metadata instead of BARTOC API. Script `update-terminologies` in this repository can be used to get a subset from BARTOC, including all [terminologies listed in NFDI4Objects](https://bartoc.org/vocabularies?partOf=http://bartoc.org/en/node/18961).
+
 ## API
 
 ### Terminologies

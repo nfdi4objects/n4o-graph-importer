@@ -74,12 +74,15 @@ def get_terminology(id):
 
 @app.route('/terminology/<int:id>', methods=['PUT'])
 def register_terminology(id):
-    return jsonify(terminologyRegistry.register(id))
+    bartoc = Path(app.config["data"]) / 'bartoc.json'
+    cache = read_json(bartoc) if bartoc.is_file() else None
+    return jsonify(terminologyRegistry.register(id, cache))
 
 
 @app.route('/terminology/<int:id>/receive', methods=['POST'])
 def receive_terminology(id):
-    return jsonify(terminologyRegistry.receive(id, request.args.get('from', None)))
+    source = request.args.get('from', None)
+    return jsonify(terminologyRegistry.receive(id, source))
 
 
 @app.route('/terminology/<int:id>/receive', methods=['GET'])
@@ -130,7 +133,8 @@ def get_collection(id):
 
 @app.route('/collection/<int:id>', methods=['PUT'])
 def put_collection(id):
-    return jsonify(collectionRegistry.set(id, request.get_json(force=True)))
+    data = request.get_json(force=True)
+    return jsonify(collectionRegistry.register(data, id))
 
 
 @app.route('/collection/<int:id>', methods=['DELETE'])
