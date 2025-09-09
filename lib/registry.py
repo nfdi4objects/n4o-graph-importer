@@ -15,9 +15,9 @@ class Registry:
         self.kind = kind
         self.graph = f"{self.base}{kind}/"
         self.stage = Path(config.get("stage", "stage")) / kind
-        self.stage.mkdir(exist_ok=True)
+        self.stage.mkdir(exist_ok=True, parents=True)
         self.data = Path(config.get("data", "data"))
-        self.data.mkdir(exist_ok=True)
+        self.data.mkdir(exist_ok=True, parents=True)
         self.sparql = config["sparql"]
 
     def load(self, id):

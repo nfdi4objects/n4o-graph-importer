@@ -18,11 +18,7 @@ sparql = os.getenv('SPARQL', 'http://localhost:3033/n4o')
 base = "https://graph.nfdi4objects.net/collection/"
 terminology_graph = "https://graph.nfdi4objects.net/terminology/"
 
-bartoc = {
-    "18274": [read_json("tests/terminology/18274.json")],
-    "20533": [read_json("tests/terminology/20533.json")],
-    "0": []
-}
+bartoc = read_json("tests/bartoc.json")
 
 collection_1 = read_json("tests/collection/1.json")[0]
 collection_1_full = {
@@ -62,10 +58,9 @@ def client(stage):
 # TODO: use mocked_urls like below
 def register_terminology(client, id):
     with responses.RequestsMock() as mock:
-        mock.get(
-            f"https://bartoc.org/api/data?uri=http://bartoc.org/en/node/{id}",
-            json=bartoc[id]
-        )
+        uri = f"http://bartoc.org/en/node/{id}"
+        json = next(([item] for item in bartoc if item["uri"] == uri), [])
+        mock.get(f"https://bartoc.org/api/data?uri={uri}", json=json)
         res = client.put(f'/terminology/{id}')
         assert type(res.get_json()) is dict
         return res
@@ -139,11 +134,12 @@ def test_terminology(client):
     query = "SELECT ?g (count(*) as ?t) { GRAPH ?g {?s ?p ?o} } GROUP BY ?g ORDER BY ?t"
     graphs = [
         {'g': {'type': 'uri', 'value': 'https://graph.nfdi4objects.net/terminology/'},
-         't': {'type': 'literal', 'datatype': 'http://www.w3.org/2001/XMLSchema#integer', 'value': '29'}},
+         't': {'type': 'literal', 'datatype': 'http://www.w3.org/2001/XMLSchema#integer', 'value': '25'}},
         {'g': {'type': 'uri', 'value': 'http://bartoc.org/en/node/18274'},
          't': {'type': 'literal', 'datatype': 'http://www.w3.org/2001/XMLSchema#integer', 'value': '377'}},
         {'g': {'type': 'uri', 'value': 'http://bartoc.org/en/node/20533'},
          't': {'type': 'literal', 'datatype': 'http://www.w3.org/2001/XMLSchema#integer', 'value': '679'}}]
+
     assert sparql_query(sparql, query) == graphs
 
     assert client.post("/terminology/20533/remove").status_code == 200
@@ -224,16 +220,21 @@ def test_api(client):
     assert client.get('/collection/1/load').status_code == 200
 
     uri = collection_1["uri"]
-    query = f"SELECT * {{ GRAPH <{uri}> {{?s ?p ?o}} }}"
+    query = f"SELECT * {{ GRAPH <{uri}> {{?s ?p ?o}} }} ORDER BY DESC(?s)"
     res = sparql_query(sparql, query)
     graph = [{'s': {'type': 'uri', 'value': 'https://example.org/x'},
               'p': {'type': 'uri', 'value': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'},
-              'o': {'type': 'uri', 'value': 'http://www.cidoc-crm.org/cidoc-crm/E1_CRM_Entity'}}]
-    # this triple removed
-    # {'s': {'type': 'uri', 'value': 'http://www.cidoc-crm.org/cidoc-crm/E1_CRM_Entity'},
-    # 'p': {'type': 'uri', 'value': 'https://example.org/foo'},
-    # 'o': {'type': 'uri', 'value': 'https://example.org/bar'}}]
+              'o': {'type': 'uri', 'value': 'http://www.cidoc-crm.org/cidoc-crm/E1_CRM_Entity'}},
+             {'s': {'type': 'uri', 'value': 'http://www.cidoc-crm.org/cidoc-crm/E1_CRM_Entity'},
+             'p': {'type': 'uri', 'value': 'https://example.org/foo'},
+              'o': {'type': 'uri', 'value': 'https://example.org/bar'}}]
     assert res == graph
+
+    # register terminology and receive + load again
+    register_terminology(client, "1644")  # CIDOC-CRM
+    client.post('/collection/1/receive?from=data.ttl')
+    client.post('/collection/1/load')
+    assert sparql_query(sparql, query) == graph[:1]
 
     # TODO: test file upload
     # with open("tests/data.ttl", "rb") as f:

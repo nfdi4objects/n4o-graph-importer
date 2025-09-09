@@ -88,7 +88,7 @@ class CollectionRegistry(Registry):
         self.update_collections(cols)
         return cols
 
-    def receive(self, id, file=None):
+    def receive(self, id, file=None, namespaces={}):
         col = self.get(id)
         fmt = None
 
@@ -117,10 +117,6 @@ class CollectionRegistry(Registry):
 
         original, log = self.receive_source(id, file, fmt)
 
-        # TODO: take from terminologyRegistry
-        namespaces = {
-            'http://bartoc.org/en/node/1644': 'http://www.cidoc-crm.org/cidoc-crm/'
-        }
         stage = self.stage / str(id)
         rdf_receive(original, stage, log, namespaces)
 
