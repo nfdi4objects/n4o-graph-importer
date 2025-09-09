@@ -13,7 +13,7 @@ from .registry import Registry
 class TerminologyRegistry(Registry):
 
     def __init__(self, **config):
-        super().__init__("https://graph.nfdi4objects.net/", "terminology", **config)
+        super().__init__("terminology", **config)
 
     def list(self):
         files = [f for f in self.stage.iterdir() if f.suffix ==

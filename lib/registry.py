@@ -10,10 +10,10 @@ class Registry:
     context = None
     schema = None
 
-    def __init__(self, base, kind, **config):
-        self.base = config.get("base", base)  # must be URL ending with /
+    def __init__(self, kind, **config):
+        self.base = config["base"] # required
         self.kind = kind
-        self.graph = f"{base}{kind}/"
+        self.graph = f"{self.base}{kind}/"
         self.stage = Path(config.get("stage", "stage")) / kind
         self.stage.mkdir(exist_ok=True)
         self.data = Path(config.get("data", "data"))

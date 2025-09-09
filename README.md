@@ -5,17 +5,26 @@
 [![Docker image](https://github.com/nfdi4objects/n4o-graph-importer/actions/workflows/docker.yml/badge.svg)](https://github.com/orgs/nfdi4objects/packages/container/package/n4o-graph-importer)
 [![Test](https://github.com/nfdi4objects/n4o-graph-importer/actions/workflows/test.yml/badge.svg)](https://github.com/nfdi4objects/n4o-graph-importer/actions/workflows/test.yml)
 
-This component imports RDF data of a collection or a terminology into the triple store of NFDI4Objects Knowledge Graph. The import consists of three steps:
+This [web service](#api) implements a controlled workflow to import RDF data into the triple store of NFDI4Objects Knowledge Graph. The service is provided [as Docker image](https://github.com/nfdi4objects/n4o-graph-importer) but it can also be run from sources for [development and testing](#development). Two kinds of data can be imported seperately:
 
-1. **register**: metadata is retrieved and written to the triple store
-2. **receive**: data is copied into a **stage** directory where it is validated, filtered, and a report log is generated
-2. **load**: on success the processed data is loaded into the triple store
+- **terminologies** such as ontologies and controlled vocabularies as listed in [BARTOC]
+- **collections** of arbitrary RDF data
+
+Each terminology, and each collection is imported into an individual named graph. Metadata of terminologies and collections is merged into two additional graphs. See [n4o-graph](https://github.com/nfdi4objects/n4o-graph) for more documentation and system architecture.
+
+Importing is controlled via [an HTTP API](#api) in three steps:
+
+1. **register**: metadata is retrieved, collected in a **registry** and written to the triple store
+2. **receive**: data is retrieved into a **stage** directory where it is validated, filtered, and a report log is generated
+2. **load**: processed data is loaded into the triple store
+
+Register can be undone by additional step **delete**. Load and receive can be undone by step **remove**.
 
 ```mermaid
 flowchart LR
   END[ ]:::hidden
   START[ ]:::hidden
-  L["**list**"]
+  L["**register**"]
   S["**stage**"]
   T["**triple store**"]
 
@@ -30,11 +39,10 @@ classDef node  fill: #D4E6F9, color:#2780e3, stroke: black;
 classDef hidden display: none;
 ```
 
-See [n4o-graph](https://github.com/nfdi4objects/n4o-graph) for full documentation of system architecture with all components.
-
 ## Table of Contents
 
 - [Usage](#usage)
+- [Configuration](#configuration)
 - [API](#api)
   - [Terminologies](#terminologies)
     - [GET /terminology](#get-terminology)
@@ -61,13 +69,10 @@ See [n4o-graph](https://github.com/nfdi4objects/n4o-graph) for full documentatio
     - [POST /collection/:id/load](#post-collectionidload)
     - [GET /collection/:id/load](#get-collectionidload)
     - [POST /collection/:id/remove](#post-collectionidremove)
-- [Configuration](#configuration)
 - [Development](#development)
 - [License](#license)
 
 ## Usage
-
-This component can be used both [as Docker image](https://github.com/nfdi4objects/n4o-graph-importer) (recommended) and from sources (for development and testing). In both cases the importer is executed via individual command line scripts. A REST API is being implemented.
 
 Two Docker volumes (or local directories) are used to store files:
 
@@ -76,11 +81,21 @@ Two Docker volumes (or local directories) are used to store files:
   - `./stage/terminology/$ID` for terminologies with BARTOC id `$ID`
 - `./data` a directory read RDF data from (not required if running from sources)
 
+## Configuration
+
+The web service and its Docker image can be configured via environment variables:
+
+- `TITLE`: title of the application. Default `N4O Graph Importer`
+- `BASE`: base URI of named graphs. Default: `https://graph.nfdi4objects.net/`
+- `SPARQL`: API endpoint of SPARQL Query protocol, SPARQL Update protocol and SPARQL Graph store protocol. Default: <http://localhost:3030/n4o>.
+- `STAGE`: writeable stage directory. Default `stage`
+- `DATA`: local data directory for file import
+
 ## API
 
 ### Terminologies
 
-Terminologies are identified by their BARTOC identifier. Terminology data should be imported before collection data, to detect use of terminologies in collections. 
+Terminologies are identified by their [BARTOC] identifier. Terminology data should be registered before receiving collection data to detect use of terminologies in collections. 
 
 #### GET /terminology
 
@@ -197,16 +212,6 @@ Get latest load log of a collection.
 
 Remove collection data from the triple store and from staging area. The collection will still be registered and its metadata is not removed from the triple store.
 
-## Configuration
-
-Environment variables:
-
-- `TITLE`: title of the application. Default `N4O Graph Importer`
-- `SPARQL`: API endpoint of SPARQL Query protocol, SPARQL Update protocol and SPARQL Graph store protocol. Default: <http://localhost:3030/n4o>.
-- `STAGE`: stage directory. Default `stage`
-- `BASE`: base URI of collections. Default: `https://graph.nfdi4objects.net/collection/`
-- `DATA`: local data directory for file import
-
 ## Development
 
 Requires basic development toolchain (`sudo apt install build-essential`) and Python 3 with module venv to be installed.
@@ -231,3 +236,5 @@ docker compose create
 ## License
 
 Licensed under [Apache License](http://www.apache.org/licenses/) 2.0.
+
+[BARTOC]: https://bartoc.org/

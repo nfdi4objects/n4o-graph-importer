@@ -15,7 +15,7 @@ class CollectionRegistry(Registry):
                         'collection-context.json')
 
     def __init__(self, **config):
-        super().__init__("https://graph.nfdi4objects.net/", "collection", **config)
+        super().__init__("collection", **config)
 
         self.collections_file = self.stage / "collections.json"
         self.collections_file_ttl = self.stage / "collections.ttl"

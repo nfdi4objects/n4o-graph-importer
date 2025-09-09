@@ -17,12 +17,13 @@ def init(**config):
     global collectionRegistry
     global terminologyRegistry
 
-    # TODO: move to __main__?
     app.config['title'] = config.get(
         'title', os.getenv('TITLE', 'N4O Graph Importer'))
-    app.config['stage'] = config.get('stage', os.getenv('STAGE', 'stage'))
+    app.config['base'] = config.get('base', os.getenv(
+        'BASE', 'https://graph.nfdi4objects.net/'))
     app.config['sparql'] = config.get(
         'sparql', os.getenv('SPARQL', 'http://localhost:3030/n4o'))
+    app.config['stage'] = config.get('stage', os.getenv('STAGE', 'stage'))
     app.config['data'] = config.get('data', os.getenv('DATA', 'data'))
 
     collectionRegistry = CollectionRegistry(**app.config)
