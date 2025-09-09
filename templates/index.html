@@ -38,6 +38,10 @@
     {{ help("Initially register a list of terminologies","put-terminology") }}
   </li>
   <li>
+    <b>GET <a onclick="visit(this,'/terminology/'+idValue.ter+'/stage/')">/terminology/</a>{{ input_id("ter") }}/stage/</b>
+    {{ help("List and get files of the stage directory of a terminology","get-terminologyidstage") }}
+  </li>
+  <li>
     <b>POST <a onclick="receiveTerminology(this)">/terminology/</a>{{ input_id("ter") }}/receive</b>
     ? from=<input type="text" placeholder="URL or file" id="receiveTerminology" />
     {{ help("Receive terminology data","post-terminologyidreceive") }}
@@ -95,6 +99,10 @@
   <li>
     <b>DELETE <a onclick="deleteCollection(this)">/collection/</a>{{ input_id("col") }}</b>
     {{ help("Unregister a collection and remove it from the triple store and staging area","delete-collectionid") }}
+  </li>
+  <li>
+    <b>GET <a onclick="visit(this,'/collection/'+idValue.col+'/stage/')">/collection/</a>{{ input_id("col") }}/stage/</b>
+    {{ help("List and get files of the stage directory of a collection","get-collectionidstage") }}
   </li>
   <li>
     <b>POST <a onclick="receiveCollection(this)">/collection/</a>{{ input_id("col") }}/receive</b>

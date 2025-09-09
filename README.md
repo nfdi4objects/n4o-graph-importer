@@ -50,6 +50,7 @@ classDef hidden display: none;
     - [PUT /terminology/:id](#put-terminologyid)
     - [DELETE /terminology/:id](#delete-terminologyid)
     - [PUT /terminology/](#put-terminology)
+    - [GET /terminology/:id/stage/](#get-terminologyidstage)
     - [POST /terminology/:id/receive](#post-terminologyidreceive)
     - [GET /terminology/:id/receive](#get-terminologyidreceive)
     - [POST /terminology/:id/load](#post-terminologyidload)
@@ -64,6 +65,7 @@ classDef hidden display: none;
     - [GET /collection/:id](#get-collectionid)
     - [PUT /collection/:id](#put-collectionid)
     - [DELETE /collection/:id](#delete-collectionid)
+    - [GET /collection/:id/stage/](#get-collectionidstage)
     - [POST /collection/:id/receive](#post-collectionidreceive)
     - [GET /collection/:id/receive](#get-collectionidreceive)
     - [POST /collection/:id/load](#post-collectionidload)
@@ -74,15 +76,6 @@ classDef hidden display: none;
     - [GET /status.json](#get-statusjson)
 - [Development](#development)
 - [License](#license)
-
-## Usage
-
-Two Docker volumes (or local directories) are used to store files:
-
-- `./stage` the stage directory with subdirectories
-  - `./stage/collection/$ID` for collections with collection id `$ID`
-  - `./stage/terminology/$ID` for terminologies with BARTOC id `$ID`
-- `./data` a directory read RDF data from (not required if running from sources)
 
 ## Configuration
 
@@ -114,7 +107,7 @@ Register a terminology or update its metadata from BARTOC. The metadata is direc
 
 #### DELETE /terminology/:id
 
-Unregister a terminology and remove it from stage area and triple store. This implies [DELETE /terminology/:id/remove](#delete-terminologyidremove).
+Unregister a terminology and remove it from stage directory and triple store. This implies [DELETE /terminology/:id/remove](#delete-terminologyidremove).
 
 #### PUT /terminology/
 
@@ -128,6 +121,10 @@ Register a list of terminologies. This is only allowed as long as the current li
 ~~~
 
 Other fields are ignored so the return value of [GET /terminology/](#get-terminology) can be used as payload.
+
+#### GET /terminology/:id/stage/
+
+List and get files of the stage directory of a terminology.
 
 #### POST /terminology/:id/receive
 
@@ -194,6 +191,10 @@ Update metadata of a specific registered collection or register a new collection
 #### DELETE /collection/:id 
 
 Unregister a collection and remove it from the triple store and staging area. This implies [DELETE /collection/:id/remove](#delete-collectionidremove).
+
+#### GET /collection/:id/stage/
+
+List and get files of the stage directory of a collection.
 
 #### POST /collection/:id/receive
 
