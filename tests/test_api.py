@@ -82,6 +82,10 @@ def urlopen_from_cache(url):
 
 def test_terminology(client):
 
+    # Additional endpoints
+    client.get('/data/').status_code == 200
+    client.get('/status.json').status_code == 200
+
     # get unregisterd terminology
     assert client.get("/terminology/18274").status_code == 404
 

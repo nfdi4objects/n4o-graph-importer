@@ -69,6 +69,9 @@ classDef hidden display: none;
     - [POST /collection/:id/load](#post-collectionidload)
     - [GET /collection/:id/load](#get-collectionidload)
     - [POST /collection/:id/remove](#post-collectionidremove)
+  - [Additional endpoints]
+    - [GET /data/](#get-data)
+    - [GET /status.json](#get-statusjson)
 - [Development](#development)
 - [License](#license)
 
@@ -211,6 +214,16 @@ Get latest load log of a collection.
 #### POST /collection/:id/remove
 
 Remove collection data from the triple store and from staging area. The collection will still be registered and its metadata is not removed from the triple store.
+
+### Additional endpoints
+
+#### GET /data/
+
+List and get files from local data directory.
+
+#### GET /status.json
+
+Get curent information about the application.
 
 ## Development
 

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>{{ title }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style type="text/css">
+    body {
+      margin: 20px;
+      font-family: sans-serif;
+    }
+    ul {
+      list-style-type: none;
+      padding: 0 1em;
+    }
+    li {
+      text-indent: -2.5em;
+      padding-left: 2.5em;
+      margin-bottom: 0.2em;
+    }
+    a {
+      text-decoration: none;
+      color: rgb(96, 143, 219);
+    }
+    a:hover, a:active {
+      text-decoration: underline;
+    }
+    a.disabled {
+      color: currentColor;
+      cursor: not-allowed;
+      opacity: 0.5;
+      text-decoration: none;
+    }
+    .ws-endpoint {
+      display: inline-block;
+      background-color:#29517C ;
+      color: white;
+      font-size: 0.75em;
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+    .msg { color: green; }
+    .msg.error { color: red; }
+    </style>
+  </head>
+  <body>
+    {% if root %}
+    <h1><a href="{{ root }}">{{ title }}</a></h1>
+    {% else %}
+    <h1>{{ title }}</h1>  
+    {% endif %}

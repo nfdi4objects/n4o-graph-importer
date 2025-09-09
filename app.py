@@ -1,9 +1,11 @@
-from flask import Flask, jsonify, request, render_template
+from flask import Flask, jsonify, request, render_template, send_from_directory
 from waitress import serve
-from lib import CollectionRegistry, TerminologyRegistry, ApiError, ValidationError, read_json
+from lib import CollectionRegistry, TerminologyRegistry, ApiError, NotFound, ValidationError, read_json
 import argparse
 import subprocess
 import os
+from pathlib import Path
+from flask_autoindex import AutoIndex
 
 
 app = Flask(__name__)
@@ -16,6 +18,11 @@ terminologyRegistry = None
 def init(**config):
     global collectionRegistry
     global terminologyRegistry
+
+    if config.get("debug", False):
+        app.debug = True
+        for rule in app.url_map.iter_rules():
+            print(f"{rule.endpoint}: {rule}")
 
     app.config['title'] = config.get(
         'title', os.getenv('TITLE', 'N4O Graph Importer'))
@@ -158,6 +165,44 @@ def remove_collection(id):
     return jsonify(collectionRegistry.remove(id))
 
 
+def serve_dir(dir, template, root, filename=None, id=None):
+    if filename:
+        file = dir / filename
+        if "/" in filename or not file.is_file():
+            raise NotFound("File not found!")
+        return send_from_directory(dir, filename)
+    else:
+        files = [f.name for f in dir.iterdir() if f.is_file()
+                 ] if dir.is_dir() else []
+        return render_template(template, root=root, files=files, **app.config, id=id)
+
+
+@app.route('/terminology/<int:id>/stage/')
+@app.route('/terminology/<int:id>/stage/<filename>')
+def terminology_stage(id, filename=None):
+    dir = Path(app.config["stage"]) / "terminology" / str(id)
+    return serve_dir(dir, "terminology-stage.html", "../../", filename, id)
+
+
+@app.route('/collection/<int:id>/stage/')
+@app.route('/collection/<int:id>/stage/<filename>')
+def collection_stage(id, filename=None):
+    dir = Path(app.config["stage"]) / "collection" / str(id)
+    return serve_dir(dir, "collection-stage.html", "../../", filename, id)
+
+
+@app.route('/data/<filename>', defaults={'filename': None})
+def data_directory(filename):
+    return serve_dir(app.config["data"], "data.html", "../", filename)
+
+
+@app.route('/status.json')
+def get_status():
+    status = {key: str(val) for key, val in app.config.items()}
+    # TODO: add status of triple store (try to connect)
+    return jsonify(status)
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -165,7 +210,7 @@ if __name__ == '__main__':
     parser.add_argument('-p', '--port', type=int, default=5020)
     parser.add_argument('-d', '--debug', action=argparse.BooleanOptionalAction)
     args = parser.parse_args()
-    init()
+    init(debug=args.debug)
     if args.wsgi:
         print(f"Starting WSGI server at http://localhost:{args.port}/")
         serve(app, host="0.0.0.0", port=args.port, threads=8)

@@ -11,7 +11,7 @@ class Registry:
     schema = None
 
     def __init__(self, kind, **config):
-        self.base = config["base"] # required
+        self.base = config["base"]  # required
         self.kind = kind
         self.graph = f"{self.base}{kind}/"
         self.stage = Path(config.get("stage", "stage")) / kind
