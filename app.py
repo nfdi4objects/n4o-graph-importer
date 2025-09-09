@@ -2,10 +2,8 @@ from flask import Flask, jsonify, request, render_template, send_from_directory
 from waitress import serve
 from lib import CollectionRegistry, TerminologyRegistry, ApiError, NotFound, ValidationError, read_json
 import argparse
-import subprocess
 import os
 from pathlib import Path
-from flask_autoindex import AutoIndex
 
 
 app = Flask(__name__)

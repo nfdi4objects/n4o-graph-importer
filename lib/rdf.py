@@ -96,7 +96,7 @@ def rdf_receive(source, path, log, namespaces):
             checked.write(f"{s.n3()} {p.n3()} {o.n3()} .\n")
 
     log.append(
-        f"Removed {size-count} triples, remaining {count} unique triples.")
+        f"Removed {size - count} triples, remaining {count} unique triples.")
 
 
 """

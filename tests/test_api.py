@@ -1,8 +1,5 @@
-import unittest
 from unittest.mock import patch
 import responses
-import urllib.request
-from werkzeug.datastructures import FileStorage
 import tempfile
 import re
 import os

@@ -1,12 +1,10 @@
 from pathlib import Path
 from shutil import rmtree
-from urllib.parse import urlparse
 from jsonschema import validate
 from .registry import Registry
 from .utils import read_json, write_json
 from .errors import NotFound, NotAllowed, ValidationError, ClientError
-from .rdf import write_ttl, load_graph_from_file, rdf_receive
-from .log import Log
+from .rdf import write_ttl, rdf_receive
 
 
 class CollectionRegistry(Registry):
