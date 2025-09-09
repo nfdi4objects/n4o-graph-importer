@@ -4,7 +4,7 @@ import requests
 import re
 import sys
 from .utils import read_json, read_ndjson, write_json
-from .errors import NotFound, ClientError
+from .errors import NotFound, ClientError, ValidationError
 from .rdf import jskos_to_rdf, sparql_insert, sparql_update, rdf_receive
 from .log import Log
 from .registry import Registry
@@ -30,9 +30,14 @@ class TerminologyRegistry(Registry):
     def get(self, id):
         return read_json(self.stage / f"{int(id)}.json")
 
-    def register(self, id):
+    def register(self, id, cache=False):
         uri = f"http://bartoc.org/en/node/{int(id)}"
-        voc = requests.get(f"https://bartoc.org/api/data?uri={uri}").json()
+
+        if cache:
+            voc = cache.get(uri)
+        else:
+            voc = requests.get(f"https://bartoc.org/api/data?uri={uri}").json()
+
         if not len(voc):
             raise NotFound(f"Terminology not found: {uri}")
         voc = voc[0]
@@ -43,14 +48,32 @@ class TerminologyRegistry(Registry):
         sparql_insert(self.sparql, self.graph, rdf)
         return voc
 
-    def registerAll(self, terms):
-        # TODO: unregister
-        ids = []
-        # TODO: validate and collect ids
-        for id in ids:
-            self.register(id)
-        # TODO
-        pass
+    def registerAll(self, terms, cached=False):
+        add, remove = [], []
+        try:
+            # TODO: check if uri starts with "http://bartoc.org/en/node/"
+            remove = [t["uri"].split("/")[-1] for t in self.list()]
+            add = [t["uri"].split("/")[-1] for t in terms]
+        except Exception:
+            raise ValidationError("Malformed array of terminologies")
+
+        for id in remove:
+            self.delete(id)
+        for id in add:
+            self.register(id, cached)
+
+        return self.list()
+
+    def delete(self, id):
+        self.remove(id)
+        uri = self.get(id)["uri"]
+        # TODO: duplicated code above
+        (self.stage / f"{id}.json").unlink(missing_ok=False)
+        rmtree(self.stage / str(id), ignore_errors=True)
+        query = "DELETE { ?s ?p ?o } WHERE { VALUES ?s { <%s> } ?s ?p ?o }" % uri
+        sparql_update(self.sparql, self.graph, query)
+
+        return {"uri": uri}
 
     def receive(self, id, file):
         uri = self.get(id)["uri"]  # make sure terminology has been registered
@@ -86,8 +109,3 @@ class TerminologyRegistry(Registry):
         rdf_receive(original, stage, log, namespaces)
 
         return log.done()
-
-    def remove(self, id):
-        uri = self.get(id)["uri"]  # graph must be registered at least
-        rmtree(self.stage / str(id), ignore_errors=True)
-        sparql_update(self.sparql, uri, f"DROP GRAPH <{uri}>")

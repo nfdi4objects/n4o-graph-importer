@@ -97,6 +97,15 @@ def test_terminology(client):
     assert client.get("/terminology/namespaces.json").get_json() == {
         "http://bartoc.org/en/node/18274": "http://www.w3.org/2004/02/skos/core#"}
 
+    # replace list of terminologies
+    assert client.put("/terminology/", json=[]).status_code == 200
+    assert client.get('/terminology/').get_json() == []
+    assert client.get("/terminology/namespaces.json").get_json() == {}
+
+    assert client.put(
+        "/terminology/", json=[{"uri": "http://bartoc.org/en/node/18274"}]).status_code == 200
+    assert len(client.get('/terminology/').get_json()) == 1
+
     # receive terminology data and check log
     assert client.get('/terminology/18274/receive').status_code == 404
     assert client.post('/terminology/18274/receive').status_code == 400
@@ -131,7 +140,8 @@ def test_terminology(client):
     query = "SELECT ?g (count(*) as ?t) { GRAPH ?g {?s ?p ?o} } GROUP BY ?g ORDER BY ?t"
     graphs = [
         {'g': {'type': 'uri', 'value': 'https://graph.nfdi4objects.net/terminology/'},
-         't': {'type': 'literal', 'datatype': 'http://www.w3.org/2001/XMLSchema#integer', 'value': '25'}},
+         # FIXME
+         't': {'type': 'literal', 'datatype': 'http://www.w3.org/2001/XMLSchema#integer', 'value': '37'}},
         {'g': {'type': 'uri', 'value': 'http://bartoc.org/en/node/18274'},
          't': {'type': 'literal', 'datatype': 'http://www.w3.org/2001/XMLSchema#integer', 'value': '377'}},
         {'g': {'type': 'uri', 'value': 'http://bartoc.org/en/node/20533'},

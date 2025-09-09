@@ -1,7 +1,7 @@
 from pathlib import Path
-from shutil import copy, copyfileobj
+from shutil import copy, copyfileobj, rmtree
 import urllib
-from .rdf import load_graph_from_file
+from .rdf import load_graph_from_file, sparql_update
 from .log import Log
 from .errors import NotFound
 
@@ -29,6 +29,11 @@ class Registry:
         log = Log(stage / "load.log", f"Loading {self.kind} {uri} from {file}")
         load_graph_from_file(self.sparql, uri, file, "ttl")
         return log.done()
+
+    def remove(self, id):
+        uri = self.get(id)["uri"]  # graph must be registered at least
+        rmtree(self.stage / str(id), ignore_errors=True)
+        sparql_update(self.sparql, uri, f"DROP GRAPH <{uri}>")
 
     def receive_log(self, id):
         return Log(self.stage / str(id) / "receive.log").load()
