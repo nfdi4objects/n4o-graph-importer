@@ -155,6 +155,10 @@ def test_terminology(client):
     # but graph must be registered
     assert client.post("/terminology/1234/remove").status_code == 404
 
+    # delete terminology
+    assert client.delete('/terminology/18274').status_code == 200
+    # TODO: check result
+
 
 def test_api(client):
 

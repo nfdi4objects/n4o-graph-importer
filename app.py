@@ -79,6 +79,11 @@ def register_terminology(id):
     return jsonify(terminologyRegistry.register(id, cache))
 
 
+@app.route('/terminology/<int:id>', methods=['DELETE'])
+def delete_terminology(id):
+    return jsonify(terminologyRegistry.delete(id))
+
+
 @app.route('/terminology/<int:id>/receive', methods=['POST'])
 def receive_terminology(id):
     source = request.args.get('from', None)
@@ -116,7 +121,6 @@ def collection_schema():
     return jsonify(read_json("collection-schema.json"))
 
 
-@app.route('/collection', methods=['PUT', 'POST'])
 @app.route('/collection/', methods=['PUT', 'POST'])
 def put_post_collections():
     data = request.get_json(force=True)
