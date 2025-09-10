@@ -151,15 +151,17 @@ const updateId = (cls, value) => {
   }
 }
 
-const updateMessage = (id, error) => {
+const clearMessages = () => {
   for (let e of document.getElementsByClassName("msg")) {
-    if (error && e.id == id) {
-      e.classList.add("error")
-    } else {
-      e.classList.remove("error")
-    }
-    e.textContent = e.id == id ? error || "OK" : ""
+    e.classList.remove("error")
+    e.textContent = ""
   }
+}
+
+const errorMessage = (id, error) => {
+  const elem = document.getElementById(id)
+  elem.classList.add("error")
+  elem.textContent = error
 }
 
 const visit = (e, url) => {
@@ -176,17 +178,19 @@ const request = async (e, url, method) => {
   const options = { method }
 
   const submit = async () => {
-    console.log({ url, options })
+    document.getElementById(id).textContent = "..."
     const res = await fetch(url, options).catch(e => ({ statusText: `${e}` }))
     if (res.ok) {
-      updateMessage(id)
+      document.getElementById(id).textContent = res.statusText
     } else {      
       var error = res.statusText || "ERROR"
       try { error = (await res.json()).error } catch {}
-      updateMessage(id, error)
+      errorMessage(id, error)
     }  
   }
 
+  clearMessages()
+  
   const upload = document.getElementById(`${id}-file`)
   if (upload) {
     const file = upload.files[0]
@@ -198,12 +202,12 @@ const request = async (e, url, method) => {
           options.body = JSON.stringify(JSON.parse(e.target.result))
           await submit()
         } catch (error) {
-          updateMessage(id, `Invalid JSON ${error.message}`)
+          errorMessage(id, `Invalid JSON ${error.message}`)
         }
       }
       reader.readAsText(file)
     } else {
-      updateMessage(id, "Please select a file!")
+      errorMessage(id, "Please select a file!")
       return
     }
   } else {
