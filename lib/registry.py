@@ -4,6 +4,8 @@ import urllib
 from .rdf import load_graph_from_file, sparql_update
 from .log import Log
 from .errors import NotFound
+from .utils import read_json
+import re
 
 
 class Registry:
@@ -11,14 +13,32 @@ class Registry:
     schema = None
 
     def __init__(self, kind, **config):
-        self.base = config["base"]  # required
+        self.base = config["base"]
+        self.sparql = config["sparql"]
         self.kind = kind
+        # named graphs
         self.graph = f"{self.base}{kind}/"
+        self.prefix = config.get("prefix", self.graph)
+        # directories
         self.stage = Path(config.get("stage", "stage")) / kind
         self.stage.mkdir(exist_ok=True, parents=True)
         self.data = Path(config.get("data", "data"))
         self.data.mkdir(exist_ok=True, parents=True)
-        self.sparql = config["sparql"]
+
+    def list(self):
+        return [read_json(f) for f in self.stage.iterdir() if f.suffix == ".json" and re.match('^[0-9]+$', f.stem)]
+
+    def get(self, id):
+        return read_json(self.stage / f"{int(id)}.json")
+
+    def remove_metadata(self, id):
+        pass
+
+    def delete(self, id):
+        self.remove(id)
+        (self.stage / f"{id}.json").unlink(missing_ok=False)
+        rmtree(self.stage / str(id), ignore_errors=True)
+        self.remove_metadata(id)
 
     def load(self, id):
         stage = self.stage / str(id)
@@ -31,7 +51,7 @@ class Registry:
         return log.done()
 
     def remove(self, id):
-        uri = self.get(id)["uri"]  # graph must be registered at least
+        uri = self.get(id)["uri"]
         rmtree(self.stage / str(id), ignore_errors=True)
         sparql_update(self.sparql, uri, f"DROP GRAPH <{uri}>")
 

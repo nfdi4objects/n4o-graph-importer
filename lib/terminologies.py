@@ -1,8 +1,7 @@
 from pathlib import Path
-from shutil import rmtree
 import requests
 import re
-from .utils import read_json, read_ndjson, write_json
+from .utils import read_ndjson, write_json
 from .errors import NotFound, ClientError, ValidationError
 from .rdf import jskos_to_rdf, sparql_insert, sparql_update, rdf_receive
 from .registry import Registry
@@ -18,12 +17,7 @@ def bartoc_ids(lst):
 class TerminologyRegistry(Registry):
 
     def __init__(self, **config):
-        super().__init__("terminology", **config)
-
-    def list(self):
-        files = [f for f in self.stage.iterdir() if f.suffix ==
-                 ".json" and re.match('^[0-9]+$', f.stem)]
-        return [read_json(f) for f in files]
+        super().__init__("terminology", prefix="http://bartoc.org/en/node/", **config)
 
     def namespaces(self):
         namespaces = {}
@@ -32,11 +26,8 @@ class TerminologyRegistry(Registry):
                 namespaces[voc["uri"]] = voc["namespace"]
         return namespaces
 
-    def get(self, id):
-        return read_json(self.stage / f"{int(id)}.json")
-
     def register(self, id, cache=None):
-        uri = f"http://bartoc.org/en/node/{int(id)}"
+        uri = f"{self.prefix}{int(id)}"
 
         if cache:
             voc = [v for v in cache if v["uri"] == uri]
@@ -46,6 +37,8 @@ class TerminologyRegistry(Registry):
         if not len(voc):
             raise NotFound(f"Terminology not found: {uri}")
         voc = voc[0]
+
+        # TODO: move to super class
         write_json(self.stage / f"{id}.json", voc)
         rdf = jskos_to_rdf(voc).serialize(format='ntriples')
         query = "DELETE { ?s ?p ?o } WHERE { VALUES ?s { <%s> } ?s ?p ?o }" % uri
@@ -53,9 +46,11 @@ class TerminologyRegistry(Registry):
         sparql_insert(self.sparql, self.graph, rdf)
         return voc
 
-    def registerAll(self, terms, cache=None):
+    # TODO: make this generic
+    def register_all(self, terms, cache=None):
         add, remove = [], []
         try:
+            # better check before removing
             add = bartoc_ids(terms)
             remove = [t["uri"].split("/")[-1] for t in self.list()]
         except Exception:
@@ -68,16 +63,11 @@ class TerminologyRegistry(Registry):
 
         return self.list()
 
-    def delete(self, id):
-        self.remove(id)
-        uri = self.get(id)["uri"]
-        # TODO: duplicated code above
-        (self.stage / f"{id}.json").unlink(missing_ok=False)
-        rmtree(self.stage / str(id), ignore_errors=True)
+    def remove_metadata(self, id):
+        # TODO: replace full graph instead
+        uri = f"{self.prefix}{id}"
         query = "DELETE { ?s ?p ?o } WHERE { VALUES ?s { <%s> } ?s ?p ?o }" % uri
         sparql_update(self.sparql, self.graph, query)
-
-        return {"uri": uri}
 
     def receive(self, id, file):
         uri = self.get(id)["uri"]  # make sure terminology has been registered

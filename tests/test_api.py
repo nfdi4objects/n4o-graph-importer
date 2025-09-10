@@ -1,8 +1,6 @@
 from unittest.mock import patch
-import responses
 import tempfile
 import os
-import json
 from urllib.parse import urlparse, parse_qs
 from shutil import copy
 from pathlib import Path

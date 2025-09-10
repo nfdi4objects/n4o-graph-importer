@@ -59,7 +59,7 @@ def terminologies():
 @app.route('/terminology/', methods=['PUT'])
 def register_terminologies():
     data = request.get_json(force=True)
-    return jsonify(terminologyRegistry.registerAll(data))
+    return jsonify(terminologyRegistry.register_all(data))
 
 
 @app.route('/terminology/namespaces.json', methods=['GET'])
@@ -108,7 +108,7 @@ def remove_terminology(id):
 @app.route('/collection', methods=['GET'])
 @app.route('/collection/', methods=['GET'])
 def collections():
-    return jsonify(collectionRegistry.collections())
+    return jsonify(collectionRegistry.list())
 
 
 @app.route('/collection/schema.json', methods=['GET'])
@@ -121,7 +121,7 @@ def collection_schema():
 def put_post_collections():
     data = request.get_json(force=True)
     if request.method == "PUT":
-        return jsonify(collectionRegistry.set_all(data)), 200
+        return jsonify(collectionRegistry.register_all(data)), 200
     else:
         return jsonify(collectionRegistry.register(data)), 200
 
