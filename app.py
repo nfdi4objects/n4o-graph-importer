@@ -184,18 +184,25 @@ def serve_dir(dir, template, root, filename=None, id=None):
         return render_template(template, root=root, files=files, **app.config, id=id)
 
 
+def stage(kind, id, filename):
+    dir = Path(app.config["stage"]) / kind / str(id)
+    print(dir)
+    if dir.is_dir():
+        return serve_dir(dir, f"{kind}-stage.html", "../../../", filename, id)
+    else:
+        raise NotFound(f"{kind} {id} not found!")
+
+
 @app.route('/terminology/<int:id>/stage/')
 @app.route('/terminology/<int:id>/stage/<filename>')
 def terminology_stage(id, filename=None):
-    dir = Path(app.config["stage"]) / "terminology" / str(id)
-    return serve_dir(dir, "terminology-stage.html", "../../../", filename, id)
+    return stage("terminology", id, filename)
 
 
 @app.route('/collection/<int:id>/stage/')
 @app.route('/collection/<int:id>/stage/<filename>')
 def collection_stage(id, filename=None):
-    dir = Path(app.config["stage"]) / "collection" / str(id)
-    return serve_dir(dir, "collection-stage.html", "../../../", filename, id)
+    return stage("collection", id, filename)
 
 
 @app.route('/data/')

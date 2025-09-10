@@ -1,7 +1,8 @@
 from pathlib import Path
 import requests
 import re
-from .utils import read_ndjson, write_json
+import json
+from .utils import write_json
 from .errors import NotFound, ClientError, ValidationError
 from .rdf import jskos_to_rdf, sparql_insert, sparql_update, rdf_receive
 from .registry import Registry
@@ -40,6 +41,7 @@ class TerminologyRegistry(Registry):
 
         # TODO: move to super class
         write_json(self.stage / f"{id}.json", voc)
+        (self.stage / str(id)).mkdir(exist_ok=True)
         rdf = jskos_to_rdf(voc).serialize(format='ntriples')
         query = "DELETE { ?s ?p ?o } WHERE { VALUES ?s { <%s> } ?s ?p ?o }" % uri
         sparql_update(self.sparql, self.graph, query)
@@ -91,7 +93,8 @@ class TerminologyRegistry(Registry):
         # convert JSKOS to RDF
         if fmt == "ndjson":
             log.append("Converting JSKOS to RDF")
-            jskos = read_ndjson(original)
+            with open(original) as file:
+                jskos = [json.loads(line) for line in file]
             rdf = jskos_to_rdf(jskos).serialize(format='ntriples')
             fmt = "ttl"
             original = stage / f"original.{fmt}"

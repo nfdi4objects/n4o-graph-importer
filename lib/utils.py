@@ -10,17 +10,6 @@ def read_json(file):
         raise NotFound(e)
 
 
-def read_ndjson(file):
-    try:
-        with open(file) as file:
-            return [json.loads(line) for line in file]
-    except FileNotFoundError as e:
-        raise NotFound(e)
-
-
 def write_json(file, data):
-    try:
-        with open(file, "w") as f:
-            f.write(json.dumps(data, indent=4))
-    except Exception as e:
-        raise ServerError(str(e))
+    with open(file, "w") as f:
+        f.write(json.dumps(data, indent=4))

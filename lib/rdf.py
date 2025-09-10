@@ -33,11 +33,6 @@ def jskos_to_rdf(doc):
     return to_rdf(doc, jskos_context)
 
 
-def write_ttl(file, doc, context):
-    with open(file, "w") as f:
-        f.write(to_rdf(doc, context).serialize(format='turtle'))
-
-
 def sparql_query(api, query):
     sparql = SPARQLWrapper(api, returnFormat='json')
     sparql.setQuery(query)

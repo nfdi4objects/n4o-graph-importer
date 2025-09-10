@@ -28,7 +28,7 @@ def extractRDF(source):
             base = f"file://{file}"
 
         # base = None # TODO
-        print(file, base)
+        # print(file, base)
 
         try:
             for triple in rdfparser.parse(file, format=format):

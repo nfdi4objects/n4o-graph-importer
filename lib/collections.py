@@ -43,6 +43,7 @@ class CollectionRegistry(Registry):
         col = self.collection_metadata(col, id)
         id = col["uri"].split("/")[-1]
         write_json(self.stage / f"{id}.json", col)
+        (self.stage / id).mkdir(exist_ok=True)
         # TODO: update metadata in triple store
         return col
 

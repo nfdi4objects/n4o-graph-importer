@@ -66,10 +66,14 @@ def test_terminology(client):
 
     # Additional endpoints
     client.get('/data/').status_code == 200
+    client.get('/data/skos.rdf').status_code == 200
     client.get('/status.json').status_code == 200
+    client.get(
+        '/status.json').get_json()["title"] == "N4O Graph Import API TEST"
 
     # get unregisterd terminology
     assert client.get("/terminology/18274").status_code == 404
+    assert client.get("/terminology/18274/stage/").status_code == 404
 
     with patch('requests.get', new=mock_requests_get):
 
@@ -79,6 +83,8 @@ def test_terminology(client):
 
         # try to register non-existing terminology
         assert client.put("/terminology/0").status_code == 404
+
+    assert client.get("/terminology/18274/stage/").status_code == 200
 
     # get list of terminologies
     resp = client.get('/terminology/')
@@ -107,6 +113,8 @@ def test_terminology(client):
     assert client.post('/terminology/18274/receive').status_code == 400
     assert client.post(
         '/terminology/18274/receive?from=abc').status_code == 400
+    assert client.post(
+        '/terminology/18274/receive?from=abc.rdf').status_code == 404
     assert client.post(
         '/terminology/18274/receive?from=skos.rdf').status_code == 200
     assert client.get('/terminology/18274/receive').status_code == 200
@@ -190,6 +198,13 @@ def test_api(client):
     assert resp.status_code == 200
     assert resp.get_json() == collection_1_full
 
+    assert client.get("/collection/1/stage/").status_code == 200
+
+    # malformed payload
+    assert client.put('/collection/1', json=[]).status_code == 400
+    assert client.put('/collection/1',
+                      json={"uri": "https://graph.nfdi4objects.net/collection/2"}).status_code == 400
+
     # only allowed when empty
     resp = client.put('/collection/', json=[])
     assert resp.status_code == 403
@@ -221,6 +236,7 @@ def test_api(client):
     assert resp.get_json()["id"] == "4"
 
     # receive from file
+    assert client.post('/collection/1/receive').status_code == 404
     assert client.post(
         '/collection/1/receive?from=data.ttl').status_code == 200
     assert client.get('/collection/1/receive').status_code == 200
@@ -262,3 +278,9 @@ def test_api(client):
     #    assert res.status_code == 200
 
     # assert client.post('/collection/1/load').status_code == 404
+
+    # remove graph
+    assert client.post('/collection/1/remove').status_code == 200
+    assert client.get('/collection/1').status_code == 200
+    assert sparql_query(sparql, query) == []
+    # TODO: check no issued date in metadata
