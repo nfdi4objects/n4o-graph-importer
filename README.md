@@ -28,11 +28,11 @@ flowchart LR
   S["**stage**"]
   T["**triple store**"]
 
-  START -- <span style="color:#2780e3">register</span> --> L 
-  L -- <span style="color:#2780e3">receive</span> --> S
-  S -- <span style="color:#2780e3">load</span> --> T
-  T -- <span style="color:#2780e3">remove</span> --> L
-  L -- <span style="color:#2780e3">delete</span> --> END
+  START -- register --> L 
+  L -- receive --> S
+  S -- load --> T
+  T -- remove --> L
+  L -- delete --> END
   END ~~~ L 
 
 classDef node  fill: #D4E6F9, color:#2780e3, stroke: black;
