@@ -26,7 +26,9 @@ class Registry:
         self.data.mkdir(exist_ok=True, parents=True)
 
     def list(self):
-        return [read_json(f) for f in self.stage.iterdir() if f.suffix == ".json" and re.match('^[0-9]+$', f.stem)]
+        return [
+            read_json(f) for f in self.stage.iterdir() if f.suffix == ".json" and re.match('^[0-9]+$', f.stem)
+        ] if self.stage.is_dir() else []
 
     def get(self, id):
         return read_json(self.stage / f"{int(id)}.json")
@@ -68,13 +70,17 @@ class Registry:
         original = stage / f"original.{fmt}"
         log = Log(stage / "receive.log", f"Receiving {id} from {source}")
 
-        if "/" not in source:
-            source = self.data / source
-            log.append(f"Retrieving source {source} from data directory")
-            copy(source, original)
-        else:
-            log.append(f"Retrieving source from {source}")
-            with urllib.request.urlopen(source) as fsrc, open(original, 'wb') as fdst:
-                copyfileobj(fsrc, fdst)
+        try:
+            if "/" not in source:
+                source = self.data / source
+                log.append(f"Retrieving source {source} from data directory")
+                copy(source, original)
+            else:
+                log.append(f"Retrieving source from {source}")
+                with urllib.request.urlopen(source) as fsrc, open(original, 'wb') as fdst:
+                    copyfileobj(fsrc, fdst)
+        except Exception as e:
+            log.done(f"Retrieving failed: {e}")
+            raise NotFound(f"{source} not found")
 
         return (original, log)

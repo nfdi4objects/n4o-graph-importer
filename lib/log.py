@@ -12,8 +12,8 @@ class Log:
     def append(self, entry):
         self.items.append(f"{datetime.datetime.now()}: {entry}")
 
-    def done(self):
-        self.append("done")
+    def done(self, message="done"):
+        self.append(message)
         write_json(self.file, self.items)
         return self.items
 
