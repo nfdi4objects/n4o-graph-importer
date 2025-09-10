@@ -167,7 +167,7 @@ def load_collection_log(id):
     return jsonify(collectionRegistry.load_log(id))
 
 
-@app.route('/terminology/<int:id>/remove', methods=['POST'])
+@app.route('/collection/<int:id>/remove', methods=['POST'])
 def remove_collection(id):
     return jsonify(collectionRegistry.remove(id))
 

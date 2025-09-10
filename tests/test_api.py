@@ -16,7 +16,7 @@ terminology_graph = "https://graph.nfdi4objects.net/terminology/"
 
 bartoc = read_json("tests/bartoc-subset.json")
 
-collection_1 = read_json("tests/collection/1.json")[0]
+collection_1 = read_json("tests/collection/1.json")
 collection_1_full = {
     **collection_1,
     "partOf": [base]
