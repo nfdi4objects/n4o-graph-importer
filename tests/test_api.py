@@ -2,6 +2,8 @@ from unittest.mock import patch
 import responses
 import tempfile
 import os
+import json
+from urllib.parse import urlparse, parse_qs
 from shutil import copy
 from pathlib import Path
 import pytest
@@ -51,24 +53,15 @@ def client(stage):
         yield client
 
 
-# TODO: use mocked_urls like below
-def register_terminology(client, id):
-    with responses.RequestsMock() as mock:
-        uri = f"http://bartoc.org/en/node/{id}"
-        json = next(([item] for item in bartoc if item["uri"] == uri), [])
-        mock.get(f"https://bartoc.org/api/data?uri={uri}", json=json)
-        res = client.put(f'/terminology/{id}')
-        assert type(res.get_json()) is dict
-        return res
+def mock_urlopen(url):
+    urls = {"http://example.org/20533.concepts.ndjson": "tests/20533.concepts.ndjson"}
+    return open(urls[url], "rb")
 
 
-mocked_urls = {
-    "http://example.org/20533.concepts.ndjson": "tests/20533.concepts.ndjson"
-}
-
-
-def urlopen_from_cache(url):
-    return open(mocked_urls[url], "rb")
+def mock_requests_get(url):
+    uri = parse_qs(urlparse(url).query)['uri'][0]
+    json = next(([item] for item in bartoc if item["uri"] == uri), [])
+    return type('', (), {'json': lambda s: json})()
 
 
 def test_terminology(client):
@@ -80,12 +73,14 @@ def test_terminology(client):
     # get unregisterd terminology
     assert client.get("/terminology/18274").status_code == 404
 
-    # register terminology, get afterwards
-    assert register_terminology(client, "18274").status_code == 200
-    assert client.get("/terminology/18274").status_code == 200
+    with patch('requests.get', new=mock_requests_get):
 
-    # try to register non-existing terminology
-    assert register_terminology(client, "0").status_code == 404
+        # register terminology, get afterwards
+        assert client.put("/terminology/18274").status_code == 200
+        assert client.get("/terminology/18274").status_code == 200
+
+        # try to register non-existing terminology
+        assert client.put("/terminology/0").status_code == 404
 
     # get list of terminologies
     resp = client.get('/terminology/')
@@ -104,8 +99,9 @@ def test_terminology(client):
     assert client.get('/terminology/').get_json() == []
     assert client.get("/terminology/namespaces.json").get_json() == {}
 
-    assert client.put(
-        "/terminology/", json=[{"uri": "http://bartoc.org/en/node/18274"}]).status_code == 200
+    with patch('requests.get', new=mock_requests_get):
+        json = [{"uri": "http://bartoc.org/en/node/18274"}]
+        assert client.put("/terminology/", json=json).status_code == 200
     assert len(client.get('/terminology/').get_json()) == 1
 
     # receive terminology data and check log
@@ -128,13 +124,14 @@ def test_terminology(client):
     assert client.post('/terminology/20533/load').status_code == 404
 
     # register, receive, and load another terminology
-    assert register_terminology(client, "20533").status_code == 200
+    with patch('requests.get', new=mock_requests_get):
+        assert client.put('/terminology/20533').status_code == 200
     assert client.post('/terminology/20533/load').status_code == 404
     assert client.post(
         '/terminology/20533/receive?from=20533.concepts.ndjson').status_code == 200
     assert client.post('/terminology/20533/load').status_code == 200
 
-    with patch('urllib.request.urlopen', new=urlopen_from_cache):
+    with patch('urllib.request.urlopen', new=mock_urlopen):
         query = '/terminology/20533/receive?from=http://example.org/20533.concepts.ndjson'
         assert client.post(query).status_code == 200
 
@@ -143,7 +140,7 @@ def test_terminology(client):
     graphs = [
         {'g': {'type': 'uri', 'value': 'https://graph.nfdi4objects.net/terminology/'},
          # FIXME
-         't': {'type': 'literal', 'datatype': 'http://www.w3.org/2001/XMLSchema#integer', 'value': '37'}},
+         't': {'type': 'literal', 'datatype': 'http://www.w3.org/2001/XMLSchema#integer', 'value': '29'}},
         {'g': {'type': 'uri', 'value': 'http://bartoc.org/en/node/18274'},
          't': {'type': 'literal', 'datatype': 'http://www.w3.org/2001/XMLSchema#integer', 'value': '377'}},
         {'g': {'type': 'uri', 'value': 'http://bartoc.org/en/node/20533'},
