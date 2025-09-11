@@ -6,10 +6,12 @@ from shutil import copy
 from pathlib import Path
 import pytest
 
-from lib import sparql_query, read_json
+from lib import TripleStore, read_json
 from app import app, init
 
-sparql = os.getenv('SPARQL', 'http://localhost:3033/n4o')
+
+sparqlApi = os.getenv('SPARQL', 'http://localhost:3033/n4o')
+sparql = TripleStore(sparqlApi)
 
 base = "https://graph.nfdi4objects.net/collection/"
 terminology_graph = "https://graph.nfdi4objects.net/terminology/"
@@ -33,6 +35,14 @@ collection_3_full = {
 }
 
 
+def count_graphs():
+    query = "SELECT ?g (count(*) as ?t) { GRAPH ?g {?s ?p ?o} } GROUP BY ?g"
+    graphs = {}
+    for row in sparql.query(query):
+        graphs[row['g']['value']] = int(row['t']['value'])
+    return graphs
+
+
 @pytest.fixture
 def stage():
     with tempfile.TemporaryDirectory() as tempdir:
@@ -45,7 +55,7 @@ def client(stage):
 
     data = Path(__file__).parent
     init(title="N4O Graph Import API TEST",
-         stage=stage, sparql=sparql, data=data)
+         stage=stage, sparql=sparqlApi, data=data)
 
     with app.test_client() as client:
         yield client
@@ -142,20 +152,16 @@ def test_terminology(client):
         assert client.post(query).status_code == 200
 
     # check size of terminology graphs
-    query = "SELECT ?g (count(*) as ?t) { GRAPH ?g {?s ?p ?o} } GROUP BY ?g ORDER BY ?t"
-    graphs = [
-        {'g': {'type': 'uri', 'value': 'https://graph.nfdi4objects.net/terminology/'},
-         # FIXME
-         't': {'type': 'literal', 'datatype': 'http://www.w3.org/2001/XMLSchema#integer', 'value': '29'}},
-        {'g': {'type': 'uri', 'value': 'http://bartoc.org/en/node/18274'},
-         't': {'type': 'literal', 'datatype': 'http://www.w3.org/2001/XMLSchema#integer', 'value': '377'}},
-        {'g': {'type': 'uri', 'value': 'http://bartoc.org/en/node/20533'},
-         't': {'type': 'literal', 'datatype': 'http://www.w3.org/2001/XMLSchema#integer', 'value': '679'}}]
-
-    assert sparql_query(sparql, query) == graphs
-
+    assert count_graphs() == {
+        'https://graph.nfdi4objects.net/terminology/': 29,
+        'http://bartoc.org/en/node/18274': 377,
+        'http://bartoc.org/en/node/20533': 679
+    }
     assert client.post("/terminology/20533/remove").status_code == 200
-    assert sparql_query(sparql, query) == graphs[:-1]
+    assert count_graphs() == {
+        'https://graph.nfdi4objects.net/terminology/': 29,
+        'http://bartoc.org/en/node/18274': 377,
+    }
 
     # no problem when graph has already been removed
     assert client.post("/terminology/20533/remove").status_code == 200
@@ -166,6 +172,10 @@ def test_terminology(client):
     # delete terminology
     assert client.delete('/terminology/18274').status_code == 200
     # TODO: check result
+
+    # TODO: this cleanup should not be required!
+    graph = "https://graph.nfdi4objects.net/terminology/"
+    sparql.update(f"DROP GRAPH <{graph}>")
 
 
 def test_api(client):
@@ -183,7 +193,7 @@ def test_api(client):
 
     assert client.get('/collection/schema.json').status_code == 200
 
-    # add collection
+    # register collection
     resp = client.put('/collection/', json={})
     assert resp.status_code == 400
     assert b"Expected list of collections" in resp.data
@@ -199,6 +209,8 @@ def test_api(client):
     assert resp.get_json() == collection_1_full
 
     assert client.get("/collection/1/stage/").status_code == 200
+
+    assert count_graphs() == {'https://graph.nfdi4objects.net/collection/': 4}
 
     # malformed payload
     assert client.put('/collection/1', json=[]).status_code == 400
@@ -247,10 +259,10 @@ def test_api(client):
 
     uri = collection_1["uri"]
     query = f"SELECT * {{ GRAPH <{uri}> {{?s ?p ?o}} }} ORDER BY DESC(?s)"
-    res = sparql_query(sparql, query)
+    res = sparql.query(query)
     graph = [{'s': {'type': 'uri', 'value': 'https://example.org/x'},
               'p': {'type': 'uri', 'value': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'},
-              'o': {'type': 'uri', 'value': 'http://www.cidoc-crm.org/cidoc-crm/E1_CRM_Entity'}},
+             'o': {'type': 'uri', 'value': 'http://www.cidoc-crm.org/cidoc-crm/E1_CRM_Entity'}},
              {'s': {'type': 'uri', 'value': 'http://www.cidoc-crm.org/cidoc-crm/E1_CRM_Entity'},
              'p': {'type': 'uri', 'value': 'https://example.org/foo'},
               'o': {'type': 'uri', 'value': 'https://example.org/bar'}}]
@@ -265,7 +277,7 @@ def test_api(client):
 
     client.post('/collection/1/receive?from=data.ttl')
     client.post('/collection/1/load')
-    assert sparql_query(sparql, query) == graph[:1]
+    assert sparql.query(query) == graph[:1]
 
     assert client.post(
         '/terminology/1644/receive?from=crm.ttl').status_code == 200
@@ -282,5 +294,5 @@ def test_api(client):
     # remove graph
     assert client.post('/collection/1/remove').status_code == 200
     assert client.get('/collection/1').status_code == 200
-    assert sparql_query(sparql, query) == []
+    assert sparql.query(query) == []
     # TODO: check no issued date in metadata

@@ -2,9 +2,9 @@ from pathlib import Path
 import requests
 import re
 import json
-from .utils import write_json
+from .utils import read_json, write_json
 from .errors import NotFound, ClientError, ValidationError
-from .rdf import jskos_to_rdf, sparql_insert, sparql_update, rdf_receive
+from .rdf import jsonld2nt, rdf_receive
 from .registry import Registry
 
 
@@ -16,6 +16,7 @@ def bartoc_ids(lst):
 
 
 class TerminologyRegistry(Registry):
+    context = read_json(Path(__file__).parent.parent / 'jskos-context.json')
 
     def __init__(self, **config):
         super().__init__("terminology", prefix="http://bartoc.org/en/node/", **config)
@@ -42,10 +43,11 @@ class TerminologyRegistry(Registry):
         # TODO: move to super class
         write_json(self.stage / f"{id}.json", voc)
         (self.stage / str(id)).mkdir(exist_ok=True)
-        rdf = jskos_to_rdf(voc).serialize(format='ntriples')
+        rdf = jsonld2nt(voc, self.context)
         query = "DELETE { ?s ?p ?o } WHERE { VALUES ?s { <%s> } ?s ?p ?o }" % uri
-        sparql_update(self.sparql, self.graph, query)
-        sparql_insert(self.sparql, self.graph, rdf)
+        self.sparql.update(query)
+        self.sparql.insert(self.graph, rdf)
+        # self.update_metadata()
         return voc
 
     # TODO: make this generic
@@ -69,7 +71,7 @@ class TerminologyRegistry(Registry):
         # TODO: replace full graph instead
         uri = f"{self.prefix}{id}"
         query = "DELETE { ?s ?p ?o } WHERE { VALUES ?s { <%s> } ?s ?p ?o }" % uri
-        sparql_update(self.sparql, self.graph, query)
+        self.sparql.update(query)
 
     def receive(self, id, file):
         uri = self.get(id)["uri"]  # make sure terminology has been registered
@@ -95,7 +97,7 @@ class TerminologyRegistry(Registry):
             log.append("Converting JSKOS to RDF")
             with open(original) as file:
                 jskos = [json.loads(line) for line in file]
-            rdf = jskos_to_rdf(jskos).serialize(format='ntriples')
+            rdf = jsonld2nt(jskos, self.context)
             fmt = "ttl"
             original = stage / f"original.{fmt}"
             with open(original, "w") as f:

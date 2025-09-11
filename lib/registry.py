@@ -1,7 +1,7 @@
 from pathlib import Path
 from shutil import copy, copyfileobj, rmtree
 import urllib
-from .rdf import load_graph_from_file, sparql_update
+from .rdf import jsonld2nt, TripleStore
 from .log import Log
 from .errors import NotFound
 from .utils import read_json
@@ -14,7 +14,7 @@ class Registry:
 
     def __init__(self, kind, **config):
         self.base = config["base"]
-        self.sparql = config["sparql"]
+        self.sparql = TripleStore(config["sparql"])
         self.kind = kind
         # named graphs
         self.graph = f"{self.base}{kind}/"
@@ -36,11 +36,22 @@ class Registry:
     def remove_metadata(self, id):
         pass
 
+    def update_metadata(self):
+        query = "SELECT * WHERE { GRAPH <" + self.graph + \
+            "> { ?graph <http://purl.org/dc/terms/issued> ?issued } }"
+        issued = self.sparql.query_ttl(query)
+        metadata = jsonld2nt(self.list(), self.context)
+        file = self.stage / f"{self.kind}.ttl"
+        with open(file, "w") as f:
+            f.write(metadata)
+            f.write(issued)
+        self.sparql.store_file(self.graph, file)
+
     def delete(self, id):
         self.remove(id)
         (self.stage / f"{id}.json").unlink(missing_ok=False)
         rmtree(self.stage / str(id), ignore_errors=True)
-        self.remove_metadata(id)
+        self.remove_metadata(id)  # FIXME
 
     def load(self, id):
         stage = self.stage / str(id)
@@ -49,13 +60,13 @@ class Registry:
         if not file.is_file():
             raise NotFound(f"{self.kind} data has not been received!")
         log = Log(stage / "load.log", f"Loading {self.kind} {uri} from {file}")
-        load_graph_from_file(self.sparql, uri, file, "ttl")
+        self.sparql.store_file(uri, file)
         return log.done()
 
     def remove(self, id):
         uri = self.get(id)["uri"]
         rmtree(self.stage / str(id), ignore_errors=True)
-        sparql_update(self.sparql, uri, f"DROP GRAPH <{uri}>")
+        self.sparql.update(f"DROP GRAPH <{uri}>")
 
     def receive_log(self, id):
         return Log(self.stage / str(id) / "receive.log").load()

@@ -1,5 +1,5 @@
 import json
-from .errors import NotFound, ServerError
+from .errors import NotFound
 
 
 def read_json(file):
