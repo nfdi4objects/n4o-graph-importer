@@ -9,12 +9,15 @@
       "type": "object",
       "properties": {
         "access": {
-          "type": "object",
-          "properties": {
-            "url": { "$ref": "#/$defs/url" },
-            "format": { "$ref": "#/$defs/url" }
-          },
-          "required": ["url"]
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "url": { "$ref": "#/$defs/url" },
+              "download": { "$ref": "#/$defs/url" },
+              "format": { "$ref": "#/$defs/url" }
+            }
+          }
         },
         "db": {
           "type": "string",

@@ -3,6 +3,7 @@
   "dcterms": "http://purl.org/dc/terms/",
   "fabio": "http://purl.org/spar/fabio/",
   "foaf": "http://xmlns.com/foaf/0.1/",
+  "nfdicore": "https://nfdi.fiz-karlsruhe.de/ontology/",
   "owl": "http://www.w3.org/2002/07/owl#",
   "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
   "schema": "http://schema.org/",
@@ -39,12 +40,14 @@
     "@context": {
       "url": {
         "@id": "dcat:accessURL",
-        "@type": "@id"
+        "@type": "dcat:anyURI"
       },
-      "format": {
-        "@id": "dcterms:conformsTo",
-        "@type": "@id"
-      }
+      "download": {
+        "@id": "dcat:downloadURL",
+        "@type": "dcat:anyURI"
+      },
+      "protocol": "dcterms:conformsTo",
+      "format": "nfdicore:exportFormat"
     }
   },
   "partOf": {

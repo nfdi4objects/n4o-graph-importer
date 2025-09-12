@@ -40,10 +40,12 @@ class CollectionRegistry(Registry):
     def register(self, col, id=None):
         if type(col) is not dict:
             raise ValidationError("Expected JSON object")
+
         col = self.collection_metadata(col, id)
+
         return self._register(col)
 
-    def register_all(self, cols):
+    def replace(self, cols):
         if type(cols) is not list:
             raise ValidationError("Expected list of collections")
         if len(self.list()):
@@ -53,59 +55,11 @@ class CollectionRegistry(Registry):
         return self.list()
 
     def receive(self, id, file=None, namespaces={}):
-        col = self.get(id)
-        fmt = None
+        source, fmt = self.access_location(id, file)
 
-        if "access" in col:
-            file = col["access"].get("url", file)
-            fmt = col["access"].get("format", None)
-
-        if not file:
-            raise NotFound("Missing URL or file to receive data from")
-
-        if not fmt:
-            if Path(file).suffix in [".nt", ".ttl"]:
-                fmt = "rdf/turtle"
-            elif Path(file).suffix in [".rdf", ".xml"]:
-                fmt = "rdf/xml"
-
-        if fmt:
-            fmt = fmt.removeprefix('https://format.gbv.de/')
-
-        if fmt == "rdf/turtle":
-            fmt = "ttl"
-        elif fmt == "rdf/xml":
-            fmt = "xml"
-        else:  # TODO: support LIDO/XML
-            raise ClientError("Unknown file format")
-
-        original, log = self.receive_source(id, file, fmt)
+        original, log = self.receive_source(id, source, fmt)
 
         stage = self.stage / str(id)
         rdf_receive(original, stage, log, namespaces)
 
         return log.done()
-
-        # TODO: migrate from bash script to Python
-        """
-        # TODO: support OAI-PMH for LIDO/XML
-        inbox=$STAGE/inbox/$id
-        download_dir=$stage/download
-
-        rm -rf $download_dir
-        mkdir -p $download_dir
-
-        if [[ $url == *doi.org* ]]; then
-          ./download-from-repository.py $url $download_dir
-        elif [[ $url == http* ]]; then
-          wget -q $url --directory-prefix $download_dir
-        elif [[ -d $inbox ]]; then
-          cp $inbox/* $download_dir
-        else
-          error "No valid source $url"
-        fi
-
-        # TODO: support LIDO/XML via repository
-        ./extract-rdf.py $download_dir $stage/triples.nt
-        ./transform-rdf $stage/triples.nt     # includes validation
-        """

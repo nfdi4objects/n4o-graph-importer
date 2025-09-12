@@ -4,8 +4,8 @@ from shutil import copy, copyfileobj, rmtree
 import urllib
 from .rdf import jsonld2nt, TripleStore
 from .log import Log
-from .errors import NotFound
-from .utils import read_json, write_json
+from .errors import NotFound, ClientError
+from .utils import read_json, write_json, access_location
 import re
 
 
@@ -57,6 +57,10 @@ class Registry:
         (self.stage / f"{id}.json").unlink(missing_ok=False)
         rmtree(self.stage / str(id), ignore_errors=True)
 
+    def purge(self):
+        for id in [t["uri"].split("/")[-1] for t in self.list()]:
+            self.delete(id)
+
     def load(self, id):
         stage = self.stage / str(id)
         file = stage / "checked.nt"
@@ -95,6 +99,8 @@ class Registry:
                 log.append(f"Retrieving source {source} from data directory")
                 copy(source, original)
             else:
+                # TODO: source may be a DOI or similar identifier
+                # ./extract-rdf.py $download_dir $stage/triples.nt
                 log.append(f"Retrieving source from {source}")
                 with urllib.request.urlopen(source) as fsrc, open(original, 'wb') as fdst:
                     copyfileobj(fsrc, fdst)
@@ -103,3 +109,33 @@ class Registry:
             raise NotFound(f"{source} not found")
 
         return (original, log)
+
+    def access_location(self, id, source=None):
+        item = self.get(id)
+        fmt = None
+
+        if not source:
+            source, fmt = access_location(item)
+        if not source:
+            raise NotFound("Missing source to receive data from")
+
+        if fmt:
+            fmt = fmt.removeprefix("https://format.gbv.de/")
+            if fmt == "rdf/turtle":
+                fmt = "ttl"
+            elif fmt == "rdf/xml":
+                fmt = "xml"
+
+        # TODO: configure and extend this
+        if not fmt:
+            if Path(source).suffix in [".nt", ".ttl"]:
+                fmt = "ttl"
+            elif Path(source).suffix in [".rdf", ".xml"]:
+                fmt = "xml"
+            elif Path(source).suffix in [".ndjson"]:
+                fmt = "ndjson"
+
+        if not fmt:
+            raise ClientError("Unknown data format")
+
+        return source, fmt

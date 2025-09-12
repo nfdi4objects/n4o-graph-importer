@@ -120,7 +120,7 @@ def test_terminology(client):
 
     # receive terminology data and check log
     assert client.get('/terminology/18274/receive').status_code == 404
-    assert client.post('/terminology/18274/receive').status_code == 400
+    assert client.post('/terminology/18274/receive').status_code == 404
     assert client.post(
         '/terminology/18274/receive?from=abc').status_code == 400
     assert client.post(
