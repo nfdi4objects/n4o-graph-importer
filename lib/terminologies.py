@@ -2,7 +2,7 @@ from pathlib import Path
 import requests
 import re
 import json
-from .utils import read_json, write_json
+from .utils import read_json
 from .errors import NotFound, ClientError, ValidationError
 from .rdf import jsonld2nt, rdf_receive
 from .registry import Registry
@@ -38,17 +38,8 @@ class TerminologyRegistry(Registry):
 
         if not len(voc):
             raise NotFound(f"Terminology not found: {uri}")
-        voc = voc[0]
 
-        # TODO: move to super class
-        write_json(self.stage / f"{id}.json", voc)
-        (self.stage / str(id)).mkdir(exist_ok=True)
-        rdf = jsonld2nt(voc, self.context)
-        query = "DELETE { ?s ?p ?o } WHERE { VALUES ?s { <%s> } ?s ?p ?o }" % uri
-        self.sparql.update(query)
-        self.sparql.insert(self.graph, rdf)
-        # self.update_metadata()
-        return voc
+        return self._register(voc[0])
 
     # TODO: make this generic
     def register_all(self, terms, cache=None):
@@ -66,12 +57,6 @@ class TerminologyRegistry(Registry):
             self.register(id, cache)
 
         return self.list()
-
-    def remove_metadata(self, id):
-        # TODO: replace full graph instead
-        uri = f"{self.prefix}{id}"
-        query = "DELETE { ?s ?p ?o } WHERE { VALUES ?s { <%s> } ?s ?p ?o }" % uri
-        self.sparql.update(query)
 
     def receive(self, id, file):
         uri = self.get(id)["uri"]  # make sure terminology has been registered

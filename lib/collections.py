@@ -1,7 +1,7 @@
 from pathlib import Path
 from jsonschema import validate
 from .registry import Registry
-from .utils import read_json, write_json
+from .utils import read_json
 from .errors import NotFound, NotAllowed, ValidationError, ClientError
 from .rdf import rdf_receive
 
@@ -41,12 +41,7 @@ class CollectionRegistry(Registry):
         if type(col) is not dict:
             raise ValidationError("Expected JSON object")
         col = self.collection_metadata(col, id)
-        id = col["uri"].split("/")[-1]
-        write_json(self.stage / f"{id}.json", col)
-        (self.stage / id).mkdir(exist_ok=True)
-        self.update_metadata()
-        # TODO: update metadata in triple store
-        return col
+        return self._register(col)
 
     def register_all(self, cols):
         if type(cols) is not list:

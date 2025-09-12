@@ -1,10 +1,11 @@
 from pathlib import Path
+from datetime import datetime
 from shutil import copy, copyfileobj, rmtree
 import urllib
 from .rdf import jsonld2nt, TripleStore
 from .log import Log
 from .errors import NotFound
-from .utils import read_json
+from .utils import read_json, write_json
 import re
 
 
@@ -33,12 +34,16 @@ class Registry:
     def get(self, id):
         return read_json(self.stage / f"{int(id)}.json")
 
-    def remove_metadata(self, id):
-        pass
+    def _register(self, data):
+        id = data["uri"].split("/")[-1]
+        write_json(self.stage / f"{id}.json", data)
+        (self.stage / str(id)).mkdir(exist_ok=True)
+        self.update_metadata()
+        return data
 
     def update_metadata(self):
         query = "SELECT * WHERE { GRAPH <" + self.graph + \
-            "> { ?graph <http://purl.org/dc/terms/issued> ?issued } }"
+            "> { VALUES (?p) {(<http://purl.org/dc/terms/issued>)} ?s ?p ?o } }"
         issued = self.sparql.query_ttl(query)
         metadata = jsonld2nt(self.list(), self.context)
         file = self.stage / f"{self.kind}.ttl"
@@ -51,7 +56,6 @@ class Registry:
         self.remove(id)
         (self.stage / f"{id}.json").unlink(missing_ok=False)
         rmtree(self.stage / str(id), ignore_errors=True)
-        self.remove_metadata(id)  # FIXME
 
     def load(self, id):
         stage = self.stage / str(id)
@@ -61,6 +65,10 @@ class Registry:
             raise NotFound(f"{self.kind} data has not been received!")
         log = Log(stage / "load.log", f"Loading {self.kind} {uri} from {file}")
         self.sparql.store_file(uri, file)
+        issued = datetime.now().replace(microsecond=0).isoformat()
+        log.append(f"Update timestamp to {issued}")
+        triples = f'<{uri}> <http://purl.org/dc/terms/issued> "{issued}"^^<http://www.w3.org/2001/XMLSchema#dateTime>'
+        self.sparql.insert(self.graph, triples)
         return log.done()
 
     def remove(self, id):

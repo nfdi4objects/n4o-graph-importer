@@ -153,13 +153,13 @@ def test_terminology(client):
 
     # check size of terminology graphs
     assert count_graphs() == {
-        'https://graph.nfdi4objects.net/terminology/': 29,
+        'https://graph.nfdi4objects.net/terminology/': 27,
         'http://bartoc.org/en/node/18274': 377,
         'http://bartoc.org/en/node/20533': 679
     }
     assert client.post("/terminology/20533/remove").status_code == 200
     assert count_graphs() == {
-        'https://graph.nfdi4objects.net/terminology/': 29,
+        'https://graph.nfdi4objects.net/terminology/': 27,
         'http://bartoc.org/en/node/18274': 377,
     }
 
