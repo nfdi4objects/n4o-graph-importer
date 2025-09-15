@@ -1,9 +1,9 @@
 # n4o-graph-importer
 
-> Import RDF data into the NFDI4Objects Knowledge Graph
-
 [![Docker image](https://github.com/nfdi4objects/n4o-graph-importer/actions/workflows/docker.yml/badge.svg)](https://github.com/orgs/nfdi4objects/packages/container/package/n4o-graph-importer)
 [![Test](https://github.com/nfdi4objects/n4o-graph-importer/actions/workflows/test.yml/badge.svg)](https://github.com/nfdi4objects/n4o-graph-importer/actions/workflows/test.yml)
+
+> Import RDF data into the NFDI4Objects Knowledge Graph
 
 This [web service](#api) implements a controlled workflow to import RDF data into the triple store of [NFDI4Objects Knowledge Graph](https://graph.nfdi4objects.net/). The service is provided [as Docker image](https://github.com/nfdi4objects/n4o-graph-importer) but it can also be run from sources for [development and testing](#development). 
 

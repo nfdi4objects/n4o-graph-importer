@@ -67,7 +67,7 @@ class Registry:
         uri = self.get(id)["uri"]
         if not file.is_file():
             raise NotFound(f"{self.kind} data has not been received!")
-        log = Log(stage / "load.log", f"Loading {self.kind} {uri} from {file}")
+        log = Log(stage / "load.json", f"Loading {self.kind} {uri} from {file}")
         self.sparql.store_file(uri, file)
         issued = datetime.now().replace(microsecond=0).isoformat()
         log.append(f"Update timestamp to {issued}")
@@ -81,17 +81,17 @@ class Registry:
         self.sparql.update(f"DROP GRAPH <{uri}>")
 
     def receive_log(self, id):
-        return Log(self.stage / str(id) / "receive.log").load()
+        return Log(self.stage / str(id) / "receive.json").load()
 
     def load_log(self, id):
-        return Log(self.stage / str(id) / "load.log").load()
+        return Log(self.stage / str(id) / "load.json").load()
 
     def receive_source(self, id, source, fmt):
         stage = self.stage / str(id)
         stage.mkdir(exist_ok=True)
 
         original = stage / f"original.{fmt}"
-        log = Log(stage / "receive.log", f"Receiving {id} from {source}")
+        log = Log(stage / "receive.json", f"Receiving {id} from {source}")
 
         try:
             if "/" not in source:
