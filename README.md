@@ -47,10 +47,11 @@ This [web service](#api) implements a controlled workflow to import RDF data int
 
 ## Usage
 
-Two kinds of data can be imported seperately:
+Three kinds of data can be imported seperately:
 
-- **terminologies** such as ontologies and controlled vocabularies, listed in [BARTOC]
 - **collections** of arbitrary RDF data from open research data repositories
+- **terminologies** such as ontologies and controlled vocabularies, listed in [BARTOC]
+- **mappings** between terminologies (*not implemented yet*)
 
 Each terminology, and each collection is imported into an individual named graph. Terminology graph URIs equal to BARTOC URIs and collection graph URIs consist of URI namespace <https://graph.nfdi4objects.net/collection/> followed by the numeric collection identifier. Metadata of terminologies and collections is merged into two additional graphs, <https://graph.nfdi4objects.net/terminology/> and <https://graph.nfdi4objects.net/collection/>, respectively. 
 
