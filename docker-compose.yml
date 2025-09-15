@@ -8,6 +8,6 @@ services:
 
     # Everything below is only for local development and testing of the image.
     # Please don't copy to your local docker-compose.yml!
-    build: # only required to build locally
+    build:
       context: .
       dockerfile: Dockerfile

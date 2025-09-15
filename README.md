@@ -90,10 +90,10 @@ The application does not include any methods of authentification. It is meant to
 
 The web service and its Docker image can be configured via environment variables:
 
-- `TITLE`: title of the application. Default `N4O Graph Importer`
+- `TITLE`: title of the application. Default: `N4O Graph Importer`
 - `BASE`: base URI of named graphs. Default: `https://graph.nfdi4objects.net/`
 - `SPARQL`: API endpoint of SPARQL Query protocol, SPARQL Update protocol and SPARQL Graph store protocol. Default: <http://localhost:3030/n4o>.
-- `STAGE`: writeable stage directory. Default `stage`
+- `STAGE`: writeable stage directory. Default: `stage`
 - `DATA`: local data directory for file import
 
 If the data directory contains a file `bartoc.json` with an array of JSKOS records from BARTOC, this file is used as source of terminology metadata instead of BARTOC API. Script `update-terminologies` in this repository can be used to get a subset from BARTOC, including all [terminologies listed in NFDI4Objects](https://bartoc.org/vocabularies?partOf=http://bartoc.org/en/node/18961).
@@ -245,14 +245,20 @@ Requires basic development toolchain (`sudo apt install build-essential`) and Py
 - `make test` runs a test instance of the service with a temporary triple store
 - `make start` runs the service without restarting
 - `make api` runs the service with automatic restarting (requires install Node module `nodemon` with `npm install`)
+- `make lint` checks coding style
+- `make fix` cleans up some coding style violations
 
-Best use the Docker image [n4o-fuseki](https://github.com/nfdi4objects/n4o-fuseki#readme) to start a triple store configured to be used with the importer:
+Best use the Docker image [n4o-fuseki] to start a triple store configured to be used with the importer:
 
 ~~~sh
 docker run --rm -p 3030:3030 ghcr.io/nfdi4objects/n4o-fuseki:main
 ~~~
 
-Locally build Docker image for testing:
+To also inspect the content of the triple store, use [n4o-graph-apis].
+
+**...TODO: this requires some configuration...**
+
+The Docker image of n4o-graph-importer is automatically build on GitHub. To locally build the image for testing:
 
 ~~~sh
 docker compose create
@@ -263,3 +269,5 @@ docker compose create
 Licensed under [Apache License](http://www.apache.org/licenses/) 2.0.
 
 [BARTOC]: https://bartoc.org/
+[n4o-fuseki]: https://github.com/nfdi4objects/n4o-fuseki#readme 
+[n4o-graph-apis]: https://github.com/nfdi4objects/n4o-graph-apis#readme 

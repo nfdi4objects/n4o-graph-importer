@@ -3,7 +3,7 @@ import requests
 import re
 import json
 from .utils import read_json
-from .errors import NotFound, ClientError, ValidationError
+from .errors import NotFound, ValidationError
 from .rdf import jsonld2nt, rdf_receive
 from .registry import Registry
 
@@ -41,7 +41,7 @@ class TerminologyRegistry(Registry):
             assert type(terms) is list and all(
                 (r.match(item["uri"]) for item in terms))
             add = [item["uri"].split("/")[-1] for item in terms]
-        except Exception as e:
+        except Exception:
             raise ValidationError("Malformed array of terminologies")
 
         self.purge()

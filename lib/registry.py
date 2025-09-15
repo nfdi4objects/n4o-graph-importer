@@ -67,7 +67,8 @@ class Registry:
         uri = self.get(id)["uri"]
         if not file.is_file():
             raise NotFound(f"{self.kind} data has not been received!")
-        log = Log(stage / "load.json", f"Loading {self.kind} {uri} from {file}")
+        log = Log(stage / "load.json",
+                  f"Loading {self.kind} {uri} from {file}")
         self.sparql.store_file(uri, file)
         issued = datetime.now().replace(microsecond=0).isoformat()
         log.append(f"Update timestamp to {issued}")

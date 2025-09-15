@@ -2,7 +2,7 @@ from pathlib import Path
 from jsonschema import validate
 from .registry import Registry
 from .utils import read_json
-from .errors import NotFound, NotAllowed, ValidationError, ClientError
+from .errors import NotAllowed, ValidationError
 from .rdf import rdf_receive
 
 
