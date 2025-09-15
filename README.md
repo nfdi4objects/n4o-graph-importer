@@ -5,39 +5,7 @@
 [![Docker image](https://github.com/nfdi4objects/n4o-graph-importer/actions/workflows/docker.yml/badge.svg)](https://github.com/orgs/nfdi4objects/packages/container/package/n4o-graph-importer)
 [![Test](https://github.com/nfdi4objects/n4o-graph-importer/actions/workflows/test.yml/badge.svg)](https://github.com/nfdi4objects/n4o-graph-importer/actions/workflows/test.yml)
 
-This [web service](#api) implements a controlled workflow to import RDF data into the triple store of NFDI4Objects Knowledge Graph. The service is provided [as Docker image](https://github.com/nfdi4objects/n4o-graph-importer) but it can also be run from sources for [development and testing](#development). Two kinds of data can be imported seperately:
-
-- **terminologies** such as ontologies and controlled vocabularies as listed in [BARTOC]
-- **collections** of arbitrary RDF data
-
-Each terminology, and each collection is imported into an individual named graph. Metadata of terminologies and collections is merged into two additional graphs. See [n4o-graph](https://github.com/nfdi4objects/n4o-graph) for more documentation and system architecture.
-
-Importing is controlled via [an HTTP API](#api) in three steps:
-
-1. **register**: metadata is retrieved, collected in a **registry** and written to the triple store
-2. **receive**: data is retrieved into a **stage** directory where it is validated, filtered, and a report log is generated
-2. **load**: processed data is loaded into the triple store
-
-Register can be undone by additional step **delete**. Load and receive can be undone by step **remove**.
-
-```mermaid
-flowchart LR
-  END[ ]:::hidden
-  START[ ]:::hidden
-  L["**register**"]
-  S["**stage**"]
-  T["**triple store**"]
-
-  START -- register --> L 
-  L -- receive --> S
-  S -- load --> T
-  T -- remove --> L
-  L -- delete --> END
-  END ~~~ L 
-
-classDef node  fill: #D4E6F9, color:#2780e3, stroke: black;
-classDef hidden display: none;
-```
+This [web service](#api) implements a controlled workflow to import RDF data into the triple store of [NFDI4Objects Knowledge Graph](https://graph.nfdi4objects.net/). The service is provided [as Docker image](https://github.com/nfdi4objects/n4o-graph-importer) but it can also be run from sources for [development and testing](#development). 
 
 ## Table of Contents
 
@@ -71,11 +39,52 @@ classDef hidden display: none;
     - [POST /collection/:id/load](#post-collectionidload)
     - [GET /collection/:id/load](#get-collectionidload)
     - [POST /collection/:id/remove](#post-collectionidremove)
-  - [Additional endpoints]
+  - [Additional endpoints](#additional-endpoints)
     - [GET /data/](#get-data)
     - [GET /status.json](#get-statusjson)
 - [Development](#development)
 - [License](#license)
+
+## Usage
+
+Two kinds of data can be imported seperately:
+
+- **terminologies** such as ontologies and controlled vocabularies, listed in [BARTOC]
+- **collections** of arbitrary RDF data from open research data repositories
+
+Each terminology, and each collection is imported into an individual named graph. Terminology graph URIs equal to BARTOC URIs and collection graph URIs consist of URI namespace <https://graph.nfdi4objects.net/collection/> followed by the numeric collection identifier. Metadata of terminologies and collections is merged into two additional graphs, <https://graph.nfdi4objects.net/terminology/> and <https://graph.nfdi4objects.net/collection/>, respectively. 
+
+Importing is controlled via [an HTTP API](#api) in three steps:
+
+1. **register**: metadata is retrieved, collected in a **registry** and written to the triple store
+2. **receive**: data is retrieved into a **stage** directory where it is validated, filtered, and a report log is generated
+2. **load**: processed data is loaded into the triple store
+
+Register can be undone by additional step **delete**. Load and receive can be undone by step **remove**.
+
+```mermaid
+flowchart LR
+  END[ ]:::hidden
+  START[ ]:::hidden
+  L["**register**"]
+  S["**stage**"]
+  T["**triple store**"]
+
+  START -- register --> L 
+  L -- receive --> S
+  S -- load --> T
+  T -- remove --> L
+  L -- delete --> END
+  END ~~~ L 
+
+classDef node  fill: #D4E6F9, color:#2780e3, stroke: black;
+classDef hidden display: none;
+```
+
+The application does not include any methods of authentification. It is meant to be deployed together with components described in [n4o-graph](https://github.com/nfdi4objects/n4o-graph) repository. In particular:
+
+- [n4o-fuseki](https://github.com/nfdi4objects/n4o-fuseki): RDF triple store
+- [n4o-graph-apis](https://github.com/nfdi4objects/n4o-graph-apis): web interface and public SPARQL endpoint
 
 ## Configuration
 
