@@ -45,6 +45,7 @@ This [web service](#api) implements a controlled workflow to import RDF data int
   - [Mappings](#mappings)
     - [GET /mappings/](#get-mappings)
     - [GET /mappings/schema.json](#get-mappingsschemajson)
+    - [GET /mappings/properties.json](#get-mappingspropertiesjson)
     - [PUT /mappings/](#put-mappings)
     - [POST /mappings/](#post-mappings)
     - [GET /mappings/:id](#get-mappingsid)
@@ -97,7 +98,8 @@ flowchart LR
   C  ~~~ R
   C <-. append/detach .-> T
 
-classDef data  fill:#D4E6F9;
+classDef hidden display: none;
+classDef data stroke:#4d8dd1, fill:#D4E6F9;
 ```
 
 The application does not include any methods of authentification. It is meant to be deployed together with components described in [n4o-graph](https://github.com/nfdi4objects/n4o-graph) repository. In particular:
@@ -264,13 +266,13 @@ Mappings are grouped in mapping sources, which correspond to concordances or lis
 
 Return the list of registered mappings sources.
 
-#### GET /mappings/properties.json
-
-Get a list of supported mapping properties. By default this is the list of [SKOS Mapping properties](https://www.w3.org/TR/skos-reference/#mapping) plus `owl:sameAs`, `owl:equivalentClass`, `owl:equivalentProperty`, `rdfs:subClassOf`, and `rdfs:subPropertyOf`.
-
 #### GET /mappings/schema.json
 
 Return the JSON Schema used to validation mapping sources (see file [mappings-schema.json](mappings-schema.json)).
+
+#### GET /mappings/properties.json
+
+Get a list of supported mapping properties. By default this is the list of [SKOS Mapping properties](https://www.w3.org/TR/skos-reference/#mapping) plus `owl:sameAs`, `owl:equivalentClass`, `owl:equivalentProperty`, `rdfs:subClassOf`, and `rdfs:subPropertyOf`.
 
 #### PUT /mappings/
 

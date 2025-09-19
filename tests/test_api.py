@@ -128,6 +128,7 @@ def test_terminology(client):
     assert client.post(
         '/terminology/18274/receive?from=skos.rdf').status_code == 200
     assert client.get('/terminology/18274/receive').status_code == 200
+    assert client.get("/terminology/18274/stage/checked.nt").status_code == 200
 
     # load terminology data and check log
     assert client.get('/terminology/18274/load').status_code == 404

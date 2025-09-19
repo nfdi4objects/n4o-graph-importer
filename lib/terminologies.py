@@ -21,11 +21,12 @@ class TerminologyRegistry(Registry):
                 namespaces[voc["uri"]] = voc["namespace"]
         return namespaces
 
-    def register(self, id, cache=None):
+    def register(self, id):
         uri = f"{self.prefix}{int(id)}"
 
-        if cache:
-            voc = [v for v in cache if v["uri"] == uri]
+        bartoc = Path(self.data) / 'bartoc.json'
+        if bartoc.is_file():
+            voc = [v for v in read_json(bartoc) if v["uri"] == uri]
         else:
             voc = requests.get(f"https://bartoc.org/api/data?uri={uri}").json()
 
@@ -34,7 +35,7 @@ class TerminologyRegistry(Registry):
 
         return self._register(voc[0])
 
-    def replace(self, terms, cache=None):
+    def replace(self, terms):
         add = []
         try:
             r = re.compile("^http://bartoc\\.org/en/node/[1-9][0-9]*$")
@@ -46,7 +47,7 @@ class TerminologyRegistry(Registry):
 
         self.purge()
         for id in add:
-            self.register(id, cache)
+            self.register(id)
 
         return self.list()
 

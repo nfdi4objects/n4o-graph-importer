@@ -23,7 +23,7 @@ def init(**config):
 
     if config.get("debug", False):
         app.debug = True
-        title = f"{title} (debugging enabled)"
+        title = f"{title} (debugging mode)"
 
     app.config['title'] = title
     app.config['base'] = config.get('base', os.getenv(
@@ -48,80 +48,89 @@ def handle_error(e):
     return jsonify(error=str(e)), type(e).code
 
 
-@app.route('/', methods=['GET'])
-def index():
-    return render_template('index.html', **app.config)
-
-
 def route(method, path, fn):
-    f = lambda *args, **kwargs: jsonify(fn(*args, **kwargs))
-    f.__name__ = f'{method}-{path}'
-    app.add_url_rule(path, methods=[method], view_func=f)
+    fn.__name__ = f'{method}-{path}'
+    app.add_url_rule(path, methods=[method], view_func=fn)
 
 
-route('GET', '/terminology/', lambda: terminologies.list())
-route('GET', '/terminology/namespaces.json', lambda: terminologies.namespaces())
-route('PUT', '/terminology/', lambda: terminologies.replace(request.get_json(force=True)))
-route('GET', '/terminology/<int:id>', lambda id: terminologies.get(id))
-route('DELETE', '/terminology/<int:id>', lambda id: terminologies.delete(id))
-route('GET', '/terminology/<int:id>/receive', lambda id: terminologies.receive_log(id))
-route('GET', '/terminology/<int:id>/load', lambda id: terminologies.load_log(id))
-route('POST', '/terminology/<int:id>/load', lambda id: terminologies.load(id))
-route('POST', '/terminology/<int:id>/remove', lambda id: terminologies.remove(id))
-
-route('GET', '/collection/', lambda: collections.list())
-route('GET', '/collection/schema.json', lambda: collections.schema)
-route('PUT', '/collection/', lambda: collections.replace(request.get_json(force=True)))
-route('POST', '/collection/', lambda: collections.register(request.get_json(force=True)))
-route('GET', '/collection/<int:id>', lambda id: collections.get(id))
-route('PUT', '/collection/<int:id>', lambda id: collections.register(request.get_json(force=True), id))
-route('DELETE', '/collection/<int:id>', lambda id: collections.delete(id))
-route('GET', '/collection/<int:id>/receive', lambda id: collections.receive_log(id))
-route('POST', '/collection/<int:id>/load', lambda id: collections.load(id))
-route('GET', '/collection/<int:id>/load', lambda id: collections.load_log(id))
-route('POST', '/collection/<int:id>/remove', lambda id: collections.remove(id))
-
-# TODO: mapping registry
-route('GET', '/mappings/', lambda: mappings.list())
-route('GET', '/mappings/schema.json', lambda: mappingss.schema)
-route('PUT', '/mappings/', lambda: mappings.replace(request.get_json(force=True)))
-route('GET', '/mappings/<int:id>', lambda id: mappings.get(id))
-route('POST', '/mappings/', lambda: mappings.register(request.get_json(force=True)))
-route('DELETE', '/mappings/<int:id>', lambda id: mappings.delete(id))
-route('GET', '/mappings/<int:id>/receive', lambda id: mappings.receive_log(id))
-# TODO: load and remove
-# TODO: add individual mappings
+def api(method, path, fn):
+    route(method, path, lambda *args, **kws: jsonify(fn(*args, **kws)))
 
 
-@app.route('/status.json')
-def get_status():
-    status = {key: str(val) for key, val in app.config.items()}
+route('GET', '/', lambda: render_template('index.html', **app.config))
+
+
+def status():
+    values = {key: str(val) for key, val in app.config.items()}
     # TODO: add status of triple store (try to connect)
-    return jsonify(status)
+    return values
 
 
-@app.route('/terminology/<int:id>', methods=['PUT'])
-def register_terminology(id):
-    bartoc = Path(app.config["data"]) / 'bartoc.json'
-    cache = read_json(bartoc) if bartoc.is_file() else None
-    return jsonify(terminologies.register(id, cache))
+api('GET', '/status.json', status)
 
+api('GET', '/terminology/', lambda: terminologies.list())
+api('GET', '/terminology/namespaces.json', lambda: terminologies.namespaces())
+api('PUT', '/terminology/', lambda: terminologies.replace(request.get_json(force=True)))
+api('GET', '/terminology/<int:id>', lambda id: terminologies.get(id))
+api('PUT', '/terminology/<int:id>', lambda id: terminologies.register(id))
+api('DELETE', '/terminology/<int:id>', lambda id: terminologies.delete(id))
+api('POST', '/terminology/<int:id>/receive',
+    lambda id: terminologies.receive(id, request.args.get('from', None)))
+api('GET', '/terminology/<int:id>/receive', lambda id: terminologies.receive_log(id))
+api('GET', '/terminology/<int:id>/load', lambda id: terminologies.load_log(id))
+api('POST', '/terminology/<int:id>/load', lambda id: terminologies.load(id))
+api('POST', '/terminology/<int:id>/remove', lambda id: terminologies.remove(id))
 
-@app.route('/terminology/<int:id>/receive', methods=['POST'])
-def receive_terminology(id):
-    source = request.args.get('from', None)
-    return jsonify(terminologies.receive(id, source))
+api('GET', '/collection/', lambda: collections.list())
+api('GET', '/collection/schema.json', lambda: collections.schema)
+api('PUT', '/collection/', lambda: collections.replace(request.get_json(force=True)))
+api('POST', '/collection/', lambda: collections.register(request.get_json(force=True)))
+api('GET', '/collection/<int:id>', lambda id: collections.get(id))
+api('PUT', '/collection/<int:id>', lambda id: collections.register(request.get_json(force=True), id))
+api('DELETE', '/collection/<int:id>', lambda id: collections.delete(id))
+api('GET', '/collection/<int:id>/receive', lambda id: collections.receive_log(id))
+api('POST', '/collection/<int:id>/load', lambda id: collections.load(id))
+api('GET', '/collection/<int:id>/load', lambda id: collections.load_log(id))
+api('POST', '/collection/<int:id>/remove', lambda id: collections.remove(id))
+
+api('GET', '/mappings/', lambda: mappings.list())
+api('GET', '/mappings/schema.json', lambda: mappingss.schema)
+api('GET', '/mappings/properties.json', lambda: mappingss.properties)
+api('PUT', '/mappings/', lambda: mappings.replace(request.get_json(force=True)))
+api('POST', '/mappings/', lambda: mappings.register(request.get_json(force=True)))
+api('GET', '/mappings/<int:id>', lambda id: mappings.get(id))
+api('PUT', '/mappings/<int:id>', lambda id: mappings.register(request.get_json(force=True), id))
+api('DELETE', '/mappings/<int:id>', lambda id: mappings.delete(id))
+api('POST', '/mappings/<int:id>/append', lambda: mappings.append(id, request.get_json(force=True)))
+api('POST', '/mappings/<int:id>/detach', lambda: mappings.detach(id, request.get_json(force=True)))
+api('POST', '/mappings/<int:id>/receive', lambda id: mappings.receive(id))
+api('GET', '/mappings/<int:id>/receive', lambda id: mappings.receive_log(id))
+api('POST', '/mappings/<int:id>/load', lambda id: mappings.load(id))
+api('GET', '/mappings/<int:id>/load', lambda id: mappings.load_log(id))
+api('POST', '/mappings/<int:id>/remove', lambda id: mappings.remove(id))
 
 
 @app.route('/collection/<int:id>/receive', methods=['POST'])
 def collection_receive_id(id):
+    # TODO: move into CollectionRegistry
     namespaces = terminologies.namespaces()
     return jsonify(collections.receive(id, request.args.get("from", None), namespaces))
 
 
-def stage(kind, id, filename):
+def serve_dir(dir, template, root, filename=None, id=None):
+    if filename:
+        file = dir / filename
+        if "/" in filename or not file.is_file():
+            raise NotFound("File not found!")
+        return send_from_directory(dir, filename)
+    else:
+        files = [f.name for f in dir.iterdir() if f.is_file()
+                 ] if dir.is_dir() else []
+        return render_template(template, root=root, files=files, **app.config, id=id)
+
+
+def stage(kind, id, filename=None):
     dir = Path(app.config["stage"]) / kind / str(id)
-    print(dir)
     if dir.is_dir():
         return serve_dir(dir, f"{kind}-stage.html", "../../../", filename, id)
     else:
@@ -140,16 +149,10 @@ def collection_stage(id, filename=None):
     return stage("collection", id, filename)
 
 
-def serve_dir(dir, template, root, filename=None, id=None):
-    if filename:
-        file = dir / filename
-        if "/" in filename or not file.is_file():
-            raise NotFound("File not found!")
-        return send_from_directory(dir, filename)
-    else:
-        files = [f.name for f in dir.iterdir() if f.is_file()
-                 ] if dir.is_dir() else []
-        return render_template(template, root=root, files=files, **app.config, id=id)
+@app.route('/mappings/<int:id>/stage/')
+@app.route('/mappings/<int:id>/stage/<filename>')
+def mappings_stage(id, filename=None):
+    return stage("mappings", id, filename)
 
 
 @app.route('/data/')
