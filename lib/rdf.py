@@ -84,7 +84,7 @@ def sparql_to_rdf(binding):
             return Literal(binding['value'])
 
 
-def rdf_receive(source, path, log, namespaces):
+def rdf_receive(source, path, log, namespaces={}, properties=[]):
     namespaces = tuple(list(namespaces.values()))
 
     graph = Graph()

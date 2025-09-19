@@ -12,6 +12,9 @@ This [web service](#api) implements a controlled workflow to import RDF data int
 - [Usage](#usage)
 - [Configuration](#configuration)
 - [API](#api)
+  - [General endpoints](#general-endpoints)
+    - [GET /data/](#get-data)
+    - [GET /status.json](#get-statusjson)
   - [Terminologies](#terminologies)
     - [GET /terminology](#get-terminology)
     - [GET /terminology/:id](#get-terminologyid)
@@ -39,9 +42,22 @@ This [web service](#api) implements a controlled workflow to import RDF data int
     - [POST /collection/:id/load](#post-collectionidload)
     - [GET /collection/:id/load](#get-collectionidload)
     - [POST /collection/:id/remove](#post-collectionidremove)
-  - [Additional endpoints](#additional-endpoints)
-    - [GET /data/](#get-data)
-    - [GET /status.json](#get-statusjson)
+  - [Mappings](#mappings)
+    - [GET /mappings/](#get-mappings)
+    - [GET /mappings/schema.json](#get-mappingsschemajson)
+    - [PUT /mappings/](#put-mappings)
+    - [POST /mappings/](#post-mappings)
+    - [GET /mappings/:id](#get-mappingsid)
+    - [PUT /mappings/:id](#put-mappingsid)
+    - [DELETE /mappings/:id](#delete-mappingsid)
+    - [POST /mappings/:id/append](#post-mappingsidappend)
+    - [POST /mappings/:id/detach](#post-mappingsiddetach)
+    - [GET /mappings/:id/stage/](#get-mappingsidstage)
+    - [POST /mappings/:id/receive](#post-mappingsidreceive)
+    - [GET /mappings/:id/receive](#get-mappingsidreceive)
+    - [POST /mappings/:id/load](#post-mappingsidload)
+    - [GET /mappings/:id/load](#get-mappingsidload)
+    - [POST /mappings/:id/remove](#post-mappingsidremove)
 - [Development](#development)
 - [License](#license)
 
@@ -49,11 +65,11 @@ This [web service](#api) implements a controlled workflow to import RDF data int
 
 Three kinds of data can be imported seperately:
 
+- **terminologies** such as ontologies and controlled vocabularies (as listed in [BARTOC])
 - **collections** of arbitrary RDF data from open research data repositories
-- **terminologies** such as ontologies and controlled vocabularies, listed in [BARTOC]
-- **mappings** between terminologies (*not implemented yet*)
+- **mappings** between resources from terminologies
 
-Each terminology, and each collection is imported into an individual named graph. Terminology graph URIs equal to BARTOC URIs and collection graph URIs consist of URI namespace <https://graph.nfdi4objects.net/collection/> followed by the numeric collection identifier. Metadata of terminologies and collections is merged into two additional graphs, <https://graph.nfdi4objects.net/terminology/> and <https://graph.nfdi4objects.net/collection/>, respectively. 
+Each terminology, and each collection is imported into an individual named graph. Mappings are also grouped in named graph for individual mapping sources. Terminology graph URIs equal to BARTOC URIs. Collection graph URIs and mapping source graphs consist of URI namespace <https://graph.nfdi4objects.net/collection/> and <https://graph.nfdi4objects.net/mappings/>, respectively, followed by a numeric identifier. Metadata of terminologies, collections, and mappings sources is merged into two additional graphs, <https://graph.nfdi4objects.net/terminology/>, <https://graph.nfdi4objects.net/collection/>, and <https://graph.nfdi4objects.net/mappings/> respectively.
 
 Importing is controlled via [an HTTP API](#api) in three steps:
 
@@ -61,25 +77,27 @@ Importing is controlled via [an HTTP API](#api) in three steps:
 2. **receive**: data is retrieved into a **stage** directory where it is validated, filtered, and a report log is generated
 2. **load**: processed data is loaded into the triple store
 
-Register can be undone by additional step **delete**. Load and receive can be undone by step **remove**.
+Register can be undone by additional step **delete**. Load and receive can be undone by step **remove**. Mappings can also be injested and withdraw directly into/from the triple store via **append/detach** to support non-durable live-updates.
 
 ```mermaid
 flowchart LR
   END[ ]:::hidden
   START[ ]:::hidden
-  L["**register**"]
-  S["**stage**"]
-  T["**triple store**"]
+  C[ ]:::hidden
+  R["**register**"]
+  S("**stage**"):::data
+  T("**triple store**"):::data
 
-  START -- register --> L 
-  L -- receive --> S
+  START -- register --> R 
+  R -- receive --> S
   S -- load --> T
-  T -- remove --> L
-  L -- delete --> END
-  END ~~~ L 
+  T -- remove --> R
+  R -- delete --> END
+  END ~~~ R
+  C  ~~~ R
+  C <-. append/detach .-> T
 
-classDef node  fill: #D4E6F9, color:#2780e3, stroke: black;
-classDef hidden display: none;
+classDef data  fill:#D4E6F9;
 ```
 
 The application does not include any methods of authentification. It is meant to be deployed together with components described in [n4o-graph](https://github.com/nfdi4objects/n4o-graph) repository. In particular:
@@ -100,6 +118,16 @@ The web service and its Docker image can be configured via environment variables
 If the data directory contains a file `bartoc.json` with an array of JSKOS records from BARTOC, this file is used as source of terminology metadata instead of BARTOC API. Script `update-terminologies` in this repository can be used to get a subset from BARTOC, including all [terminologies listed in NFDI4Objects](https://bartoc.org/vocabularies?partOf=http://bartoc.org/en/node/18961).
 
 ## API
+
+### General endpoints
+
+#### GET /data/
+
+List and get files from local data directory.
+
+#### GET /status.json
+
+Get curent information about the application.
 
 ### Terminologies
 
@@ -228,15 +256,75 @@ Get latest load log of a collection.
 
 Remove collection data from the triple store and from staging area. The collection will still be registered and its metadata is not removed from the triple store.
 
-### Additional endpoints
+### Mappings
 
-#### GET /data/
+Mappings are grouped in mapping sources, which correspond to concordances or lists of mappings.
 
-List and get files from local data directory.
+#### GET /mappings/
 
-#### GET /status.json
+Return the list of registered mappings sources.
 
-Get curent information about the application.
+#### GET /mappings/properties.json
+
+Get a list of supported mapping properties. By default this is the list of [SKOS Mapping properties](https://www.w3.org/TR/skos-reference/#mapping) plus `owl:sameAs`, `owl:equivalentClass`, `owl:equivalentProperty`, `rdfs:subClassOf`, and `rdfs:subPropertyOf`.
+
+#### GET /mappings/schema.json
+
+Return the JSON Schema used to validation mapping sources (see file [mappings-schema.json](mappings-schema.json)).
+
+#### PUT /mappings/
+
+Register a list of mappings sources.
+
+#### POST /mappings/
+
+Register a new mapping source or update metadata of a mapping source.
+
+#### GET /mappings/:id
+
+Return a specific mapping source.
+
+#### PUT /mappings/:id
+
+Update metadata of a specific mapping source.
+
+#### DELETE /mappings/:id 
+
+Unregister a mapping source and remove it from the triple store and staging area. This implies [DELETE /mappings/:id/remove](#delete-mappingsidremove).
+
+#### POST /mappings/:id/append
+
+Directly add mappings to the triple store, bypassing the receive/load workflow. Directly added triples are not stored in the staging area so they will not persist a load operation of the selected mapping source.
+
+#### POST /mappings/:id/detach
+
+Directly remove mappings from the triple store. This operation is not reflected in the staging area so it will not persist a load operation of the seleceted mapping source.
+
+#### GET /mappings/:id/stage/
+
+List and get files of the stage directory of a mapping source.
+
+#### POST /mappings/:id/receive
+
+Receive and process mappings from a mapping source. The location of the data is taken from mapping source field `access` if existing. The location can be overridden with optional query parameter `from` with an URL or a file name from local data directory. The file format is derived from file name extension, unless explicitly specified in metadata field `access.format`.
+
+TODO: document supported formats.
+
+#### GET /mappings/:id/receive
+
+Get latest receive log of mapping from a specific mapping source.
+
+#### POST /mappings/:id/load
+
+Load received and processed mapping into the triple store.
+
+#### GET /mappings/:id/load
+
+Get latest load log of a mappings.
+
+#### POST /mappings/:id/remove
+
+Remove mappings of a specific mapping source from the triple store and from staging area. The mapping source will still be registered and its metadata is not removed from the triple store.
 
 ## Development
 
@@ -257,7 +345,13 @@ docker run --rm -p 3030:3030 ghcr.io/nfdi4objects/n4o-fuseki:main
 
 To also inspect the content of the triple store, use [n4o-graph-apis].
 
-**...TODO: this requires some configuration...**
+*TODO: add description how to run this container*
+
+<!--
+~~~sh
+docker run --rm --net=host -p 8000:8000 -v ./config-apis.yaml:/app/config.yaml:ro -v ./stage:/app/stage:ro ghcr.io/nfdi4objects/n4o-graph-apis:main
+~~~
+-->
 
 The Docker image of n4o-graph-importer is automatically build on GitHub. To locally build the image for testing:
 
