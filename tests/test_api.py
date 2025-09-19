@@ -72,6 +72,28 @@ def mock_requests_get(url):
     return type('', (), {'json': lambda s: json})()
 
 
+def test_errors(client):
+    def fail(method, path, payload, msg=None):
+        res = client.open(path, method=method, json=payload)
+        assert res.status_code == 400
+        if msg:
+            assert res.get_json()["error"] == msg
+
+    # malformed payload
+    fail("PUT", "/collection/1", [], "expected JSON object")
+    fail("PUT", "/collection/1", {"uri": "https://graph.nfdi4objects.net/collection/2"},
+         "URI https://graph.nfdi4objects.net/collection/2 and id 1 don't match")
+    fail("PUT", "/collection/1", {"id": "2"}, "ids 1 and 2 don't match")
+
+    fail("PUT", "/collection/", {}, "expected list of collection")
+    fail("PUT", "/collection/", [{"id": "1", "uri": "https://graph.nfdi4objects.net/collection/2"}],
+         "URI https://graph.nfdi4objects.net/collection/2 and id 1 don't match")
+    fail("POST", "/collection/",
+         {"id": "1", "uri": "https://graph.nfdi4objects.net/collection/2", "name": "x"},
+         "URI https://graph.nfdi4objects.net/collection/2 and id 1 don't match")
+    fail("POST", "/collection/", {})
+
+
 def test_terminology(client):
 
     # Additional endpoints
@@ -107,6 +129,7 @@ def test_terminology(client):
 
     # replace list of terminologies
     assert client.put("/terminology/", json={}).status_code == 400
+    assert client.put("/terminology/", json=[{}]).status_code == 400
     assert client.put("/terminology/", json=[{"uri": "x"}]).status_code == 400
     assert len(client.get('/terminology/').get_json()) == 1
     assert client.put("/terminology/", json=[]).status_code == 200
@@ -154,13 +177,13 @@ def test_terminology(client):
 
     # check size of terminology graphs
     assert count_graphs() == {
-        'https://graph.nfdi4objects.net/terminology/': 27,
+        'https://graph.nfdi4objects.net/terminology/': 29,
         'http://bartoc.org/en/node/18274': 377,
         'http://bartoc.org/en/node/20533': 679
     }
     assert client.post("/terminology/20533/remove").status_code == 200
     assert count_graphs() == {
-        'https://graph.nfdi4objects.net/terminology/': 27,
+        'https://graph.nfdi4objects.net/terminology/': 29,
         'http://bartoc.org/en/node/18274': 377,
     }
 
@@ -186,6 +209,9 @@ def test_api(client):
     assert resp.status_code == 200
     assert b"N4O Graph Import API TEST" in resp.data
 
+    assert client.get('/data/').status_code == 200
+    assert client.get('/data/data.ttl').status_code == 200
+
     resp = client.get('/collection/')
     assert resp.status_code == 200
     assert resp.get_json() == []
@@ -195,10 +221,6 @@ def test_api(client):
     assert client.get('/collection/schema.json').status_code == 200
 
     # register collection
-    resp = client.put('/collection/', json={})
-    assert resp.status_code == 400
-    assert b"Expected list of collections" in resp.data
-
     assert client.put('/collection/', json=[collection_1]).status_code == 200
 
     resp = client.get('/collection/')
@@ -212,15 +234,6 @@ def test_api(client):
     assert client.get("/collection/1/stage/").status_code == 200
 
     assert count_graphs() == {'https://graph.nfdi4objects.net/collection/': 4}
-
-    # malformed payload
-    assert client.put('/collection/1', json=[]).status_code == 400
-    assert client.put('/collection/1',
-                      json={"uri": "https://graph.nfdi4objects.net/collection/2"}).status_code == 400
-
-    # only allowed when empty
-    resp = client.put('/collection/', json=[])
-    assert resp.status_code == 403
 
     # delete collection
     assert client.delete('/collection/1').status_code == 200
@@ -238,6 +251,9 @@ def test_api(client):
     assert resp.status_code == 200
     assert resp.get_json() == collection_1_full
 
+    # purge collections
+    assert client.put('/collection/', json=[]).status_code == 200
+
     # add without id in record
     resp = client.put('/collection/3', json=collection_0)
     assert resp.status_code == 200  # TODO: should be 201 Created
@@ -249,16 +265,16 @@ def test_api(client):
     assert resp.get_json()["id"] == "4"
 
     # receive from file
-    assert client.post('/collection/1/receive').status_code == 404
+    assert client.post('/collection/3/receive').status_code == 404
     assert client.post(
-        '/collection/1/receive?from=data.ttl').status_code == 200
-    assert client.get('/collection/1/receive').status_code == 200
+        '/collection/3/receive?from=data.ttl').status_code == 200
+    assert client.get('/collection/3/receive').status_code == 200
 
     # load received RDF
-    assert client.post('/collection/1/load').status_code == 200
-    assert client.get('/collection/1/load').status_code == 200
+    assert client.post('/collection/3/load').status_code == 200
+    assert client.get('/collection/3/load').status_code == 200
 
-    uri = collection_1["uri"]
+    uri = f"{base}3"
     query = f"SELECT * {{ GRAPH <{uri}> {{?s ?p ?o}} }} ORDER BY DESC(?s)"
     res = sparql.query(query)
     graph = [{'s': {'type': 'uri', 'value': 'https://example.org/x'},
@@ -276,8 +292,8 @@ def test_api(client):
     assert client.put('/terminology/1644').status_code == 200  # CIDOC-CRM
     os.remove("tests/bartoc.json")
 
-    client.post('/collection/1/receive?from=data.ttl')
-    client.post('/collection/1/load')
+    client.post('/collection/3/receive?from=data.ttl')
+    client.post('/collection/3/load')
     assert sparql.query(query) == graph[:1]
 
     assert client.post(
@@ -292,8 +308,15 @@ def test_api(client):
 
     # assert client.post('/collection/1/load').status_code == 404
 
-    # remove graph
-    assert client.post('/collection/1/remove').status_code == 200
-    assert client.get('/collection/1').status_code == 200
+    # remove graph, keep registered
+    assert client.post('/collection/3/remove').status_code == 200
+    assert client.get('/collection/3').status_code == 200
     assert sparql.query(query) == []
     # TODO: check no issued date in metadata
+
+
+def test_mappings(client):
+    assert client.post('/mappings/', json={}).status_code == 200
+    assert client.get('/mappings/1').status_code == 200
+
+    # TODO: receive JSKOS and load

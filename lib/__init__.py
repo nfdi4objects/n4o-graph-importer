@@ -8,5 +8,6 @@ from .utils import read_json, write_json
 from .rdf import TripleStore
 
 
-__all__ = [walk, zipwalk, extractRDF, CollectionRegistry, TerminologyRegistry, MappingRegistry, ApiError, NotFound, NotAllowed,
-           read_json, write_json, ValidationError, ServerError, ClientError, TripleStore]
+__all__ = [walk, zipwalk, extractRDF, CollectionRegistry, TerminologyRegistry,
+           MappingRegistry, ApiError, NotFound, NotAllowed, read_json,
+           write_json, ValidationError, ServerError, ClientError, TripleStore]

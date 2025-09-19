@@ -1,6 +1,6 @@
 from flask import Flask, jsonify, request, render_template, send_from_directory
 from waitress import serve
-from lib import CollectionRegistry, TerminologyRegistry, MappingRegistry, ApiError, NotFound, ValidationError, read_json
+from lib import CollectionRegistry, TerminologyRegistry, MappingRegistry, ApiError, NotFound, ValidationError
 import argparse
 import os
 from pathlib import Path
@@ -33,14 +33,15 @@ def init(**config):
     app.config['stage'] = config.get('stage', os.getenv('STAGE', 'stage'))
     app.config['data'] = config.get('data', os.getenv('DATA', 'data'))
 
-    collections = CollectionRegistry(**app.config)
     terminologies = TerminologyRegistry(**app.config)
+    app.config["terminologies"] = terminologies
+    collections = CollectionRegistry(**app.config)
     mappings = MappingRegistry(**app.config)
 
 
 @app.errorhandler(ValidationError)
 def handle_validation_error(e):
-    return jsonify(error=f"Invalid data: {e}"), 400
+    return jsonify(error=str(e)), 400
 
 
 @app.errorhandler(ApiError)
@@ -72,7 +73,7 @@ api('GET', '/terminology/', lambda: terminologies.list())
 api('GET', '/terminology/namespaces.json', lambda: terminologies.namespaces())
 api('PUT', '/terminology/', lambda: terminologies.replace(request.get_json(force=True)))
 api('GET', '/terminology/<int:id>', lambda id: terminologies.get(id))
-api('PUT', '/terminology/<int:id>', lambda id: terminologies.register(id))
+api('PUT', '/terminology/<int:id>', lambda id: terminologies.register({"id": str(id)}))
 api('DELETE', '/terminology/<int:id>', lambda id: terminologies.delete(id))
 api('POST', '/terminology/<int:id>/receive',
     lambda id: terminologies.receive(id, request.args.get('from', None)))
@@ -86,16 +87,19 @@ api('GET', '/collection/schema.json', lambda: collections.schema)
 api('PUT', '/collection/', lambda: collections.replace(request.get_json(force=True)))
 api('POST', '/collection/', lambda: collections.register(request.get_json(force=True)))
 api('GET', '/collection/<int:id>', lambda id: collections.get(id))
-api('PUT', '/collection/<int:id>', lambda id: collections.register(request.get_json(force=True), id))
+api('PUT', '/collection/<int:id>',
+    lambda id: collections.register(request.get_json(force=True), id))
 api('DELETE', '/collection/<int:id>', lambda id: collections.delete(id))
+api('POST', '/collection/<int:id>/receive',
+    lambda id: collections.receive(id, request.args.get("from", None)))
 api('GET', '/collection/<int:id>/receive', lambda id: collections.receive_log(id))
 api('POST', '/collection/<int:id>/load', lambda id: collections.load(id))
 api('GET', '/collection/<int:id>/load', lambda id: collections.load_log(id))
 api('POST', '/collection/<int:id>/remove', lambda id: collections.remove(id))
 
 api('GET', '/mappings/', lambda: mappings.list())
-api('GET', '/mappings/schema.json', lambda: mappingss.schema)
-api('GET', '/mappings/properties.json', lambda: mappingss.properties)
+api('GET', '/mappings/schema.json', lambda: mappings.schema)
+api('GET', '/mappings/properties.json', lambda: mappings.properties)
 api('PUT', '/mappings/', lambda: mappings.replace(request.get_json(force=True)))
 api('POST', '/mappings/', lambda: mappings.register(request.get_json(force=True)))
 api('GET', '/mappings/<int:id>', lambda id: mappings.get(id))
@@ -108,13 +112,6 @@ api('GET', '/mappings/<int:id>/receive', lambda id: mappings.receive_log(id))
 api('POST', '/mappings/<int:id>/load', lambda id: mappings.load(id))
 api('GET', '/mappings/<int:id>/load', lambda id: mappings.load_log(id))
 api('POST', '/mappings/<int:id>/remove', lambda id: mappings.remove(id))
-
-
-@app.route('/collection/<int:id>/receive', methods=['POST'])
-def collection_receive_id(id):
-    # TODO: move into CollectionRegistry
-    namespaces = terminologies.namespaces()
-    return jsonify(collections.receive(id, request.args.get("from", None), namespaces))
 
 
 def serve_dir(dir, template, root, filename=None, id=None):

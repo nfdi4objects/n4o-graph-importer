@@ -1,15 +1,15 @@
 from pathlib import Path
 import requests
-import re
 import json
 from .utils import read_json
 from .errors import NotFound, ValidationError
-from .rdf import jsonld2nt, rdf_receive
+from .rdf import jsonld2nt
 from .registry import Registry
 
 
 class TerminologyRegistry(Registry):
     context = read_json(Path(__file__).parent.parent / 'jskos-context.json')
+    increment = False
 
     def __init__(self, **config):
         super().__init__("terminology", prefix="http://bartoc.org/en/node/", **config)
@@ -21,8 +21,13 @@ class TerminologyRegistry(Registry):
                 namespaces[voc["uri"]] = voc["namespace"]
         return namespaces
 
-    def register(self, id):
-        uri = f"{self.prefix}{int(id)}"
+    def register(self, item):
+        try:
+            id = str(int(item.get("id")))
+        except Exception:
+            raise ValidationError("Missing or malformed BARTOC id")
+
+        uri = f"{self.prefix}{id}"
 
         bartoc = Path(self.data) / 'bartoc.json'
         if bartoc.is_file():
@@ -33,46 +38,21 @@ class TerminologyRegistry(Registry):
         if not len(voc):
             raise NotFound(f"Terminology not found: {uri}")
 
-        return self._register(voc[0])
+        return super().register(voc[0], id)
 
-    def replace(self, terms):
-        add = []
-        try:
-            r = re.compile("^http://bartoc\\.org/en/node/[1-9][0-9]*$")
-            assert type(terms) is list and all(
-                (r.match(item["uri"]) for item in terms))
-            add = [item["uri"].split("/")[-1] for item in terms]
-        except Exception:
-            raise ValidationError("Malformed array of terminologies")
-
-        self.purge()
-        for id in add:
-            self.register(id)
-
-        return self.list()
-
-    def receive(self, id, file=None):
-        uri = self.get(id)["uri"]
-
-        file, fmt = self.access_location(id, file)
-
-        original, log = self.receive_source(id, file, fmt)
-
-        stage = self.stage / str(id)
-
-        # convert JSKOS to RDF
+    def process_received(self, id, original, fmt, log):
         if fmt == "ndjson":
             log.append("Converting JSKOS to RDF")
             with open(original) as file:
                 jskos = [json.loads(line) for line in file]
             rdf = jsonld2nt(jskos, self.context)
-            fmt = "ttl"
-            original = stage / f"original.{fmt}"
+            original = self.stage / str(id) / "original.ttl"
             with open(original, "w") as f:
                 f.write(rdf)
 
-        namespaces = dict(self.namespaces())
-        namespaces.pop(uri, None)
-        rdf_receive(original, stage, log, namespaces)
+        return original
 
-        return log.done()
+    def forbidden_namespaces(self, id):
+        namespaces = dict(self.namespaces())
+        namespaces.pop(f"{self.prefix}{id}", None)
+        return namespaces

@@ -19,6 +19,12 @@
             }
           }
         },
+        "partOf": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/url" },
+          "minItems": 1,
+          "maxItems": 1
+        },
         "name": { "type": "string", "minLength": 1 },
         "url": { "$ref": "#/$defs/url" },
         "uri": { "$ref": "#/$defs/url" },
