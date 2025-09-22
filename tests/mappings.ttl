@@ -1,0 +1,5 @@
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix crm: <http://www.cidoc-crm.org/cidoc-crm/> .
+
+<http://d-nb.info/gnd/4193078-2> skos:exactMatch crm:E98_Currency ;
+    skos:prefLabel "Währung"@de .

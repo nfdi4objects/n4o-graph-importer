@@ -1,6 +1,8 @@
 from pathlib import Path
+import json
 from .utils import read_json
 from .registry import Registry
+from .errors import ValidationError
 
 
 class MappingRegistry(Registry):
@@ -23,5 +25,26 @@ class MappingRegistry(Registry):
     def __init__(self, **config):
         super().__init__("mapping", **config)
 
-    # TODO
-    # register, replace, receive
+    def process_received(self, id, original, fmt, log):
+        if fmt == "ndjson":
+            log.append("Converting JSKOS mappings to RDF mapping triples")
+            source = open(original)
+            original = self.stage / str(id) / "original.ttl"
+            target = open(original, "w")
+            try:
+                for m in [json.loads(line) for line in source]:
+                    prop = next((p for p in m["type"] if p in self.properties), None)
+                    if not prop:
+                        continue
+                    f = m["from"].get("memberSet", [])
+                    t = m["to"].get("memberSet", [])
+                    if type(f) is not list or type(t) is not list or len(f) != 1 or len(t) != 1:
+                        continue
+                    target.write(f"<{f[0]['uri']}> <{prop}> <{t[0]['uri']}> .\n")
+            except Exception as e:
+                raise ValidationError("Failed to convert JSKOS mappings!")
+            # TODO: log number of triples
+
+        return original
+
+    # TODO: def process_received_rdf to further filter triples from graph

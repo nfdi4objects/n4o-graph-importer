@@ -142,6 +142,7 @@ class Registry:
         original, log = self.receive_source(id, file, fmt)
         stage = self.stage / str(id)
 
+        print(f"process_received {id} {original} {fmt}")
         file = self.process_received(id, original, fmt, log)
         namespaces = self.forbidden_namespaces(id)
         rdf_receive(file, stage, log, namespaces)
