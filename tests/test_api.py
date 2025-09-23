@@ -319,7 +319,9 @@ def test_mappings(client):
     assert client.post('/mappings/', json={}).status_code == 200
     assert client.get('/mappings/1').status_code == 200
 
-    assert client.post('/mappings/', json={}).status_code == 200
+    assert client.put('/mappings/', json=[{"name": "A"}, {"name": "B"}]).status_code == 200
+    assert client.get('/mappings/1').status_code == 200
+    assert client.get('/mappings/2').status_code == 200
 
     # receive and load JSKOS mappings
     assert client.post('/mappings/1/receive?from=mappings.ndjson').status_code == 200

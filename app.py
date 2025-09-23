@@ -67,7 +67,8 @@ def status():
     values = {key: str(val) for key, val in app.config.items() if key.islower()}
     try:
         sparql = TripleStore(app.config['sparql'])
-        values['connected'] = sparql.insert(app.config['base']+'collection/', '')
+        sparql.insert(app.config['base']+'collection/', '')
+        values['connected'] = True
     except Exception as e:
         values['connected'] = False
     return values

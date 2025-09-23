@@ -261,7 +261,7 @@ Remove collection data from the triple store and from staging area. The collecti
 
 ### Mappings
 
-Mappings are grouped in mapping sources, which correspond to concordances or lists of mappings.
+Mappings are grouped in **mapping sources**, which correspond to concordances or lists of mappings.
 
 #### GET /mappings/
 
@@ -269,7 +269,7 @@ Return the list of registered mappings sources.
 
 #### GET /mappings/schema.json
 
-Return the JSON Schema used to validation mapping sources (see file [mappings-schema.json](mappings-schema.json)).
+Return the [mapping sources schema](mappings-schema.json)) used to validate mapping sources.
 
 #### GET /mappings/properties.json
 
@@ -277,7 +277,7 @@ Get a list of supported mapping properties. By default this is the list of [SKOS
 
 #### PUT /mappings/
 
-Register a list of mappings sources.
+Register a list of mappings sources. All existing mapping sources and mappings will be deleted.
 
 #### POST /mappings/
 

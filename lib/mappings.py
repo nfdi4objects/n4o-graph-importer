@@ -23,7 +23,7 @@ class MappingRegistry(Registry):
     ]
 
     def __init__(self, **config):
-        super().__init__("mapping", **config)
+        super().__init__("mappings", **config)
 
     def process_received(self, id, original, fmt, log):
         if fmt == "ndjson":

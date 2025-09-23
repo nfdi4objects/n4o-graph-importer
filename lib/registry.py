@@ -31,6 +31,7 @@ class Registry:
     def validate(self, item, id=None):
         if type(item) is not dict:
             raise ValidationError("expected JSON object")
+        item = item.copy()
 
         if id:
             id = str(id)
@@ -81,10 +82,10 @@ class Registry:
     def replace(self, items):
         if type(items) is not list:
             raise ValidationError(f"expected list of {self.kind}")
-        items = [self.validate(x) for x in items]
+        [self.validate(x) for x in items]  # first check
         self.purge()
         for item in items:
-            self.register(item)
+            self.register(self.validate(item))  # then add
         return self.list()
 
     def update_metadata(self):
