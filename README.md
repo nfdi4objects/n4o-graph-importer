@@ -309,13 +309,17 @@ List and get files of the stage directory of a mapping source.
 
 #### POST /mappings/:id/receive
 
-Receive and process mappings from a mapping source. The location of the data is taken from mapping source field `access` if existing. The location can be overridden with optional query parameter `from` with an URL or a file name from local data directory. The file format is derived from file name extension, unless explicitly specified in metadata field `access.format`.
+Receive and process mappings from a mapping source. The location of the data is taken from mapping source field `access` if existing. The location can be overridden with optional query parameter `from` with an URL or a file name from local data directory. The file format is derived from file name extension, unless explicitly specified in metadata field `access.format`. Mappings can be given as:
 
-TODO: document supported formats.
+- plain RDF triples in Turtle syntax (extension `.nt` or `.ttl`)
+- plain RDF triples in RDF/XML syntax (extension `.rdf` or `.xml`)
+- newline delimited JSON with [JSKOS Concept Mappings](https://gbv.github.io/jskos/#concept-mappings) (extension `.ndjson`), only 1-to-1 mappings are included
+
+Mapping metadata such as date of creation and annotations is ignored.
 
 #### GET /mappings/:id/receive
 
-Get latest receive log of mapping from a specific mapping source.
+Get latest receive log of a mapping source.
 
 #### POST /mappings/:id/load
 
@@ -323,7 +327,7 @@ Load received and processed mapping into the triple store.
 
 #### GET /mappings/:id/load
 
-Get latest load log of a mappings.
+Get latest load log of a mapping source.
 
 #### POST /mappings/:id/remove
 

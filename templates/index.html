@@ -143,6 +143,68 @@
     <b>GET <a href="/mappings/">/mappings/</a></b>
     {{ help("Return the list of registered mapping sources","get-mappings") }}
   </li>
+  <li>
+    <b>GET <a href="/mappings/schema.json">/mappings/schema.json</a></b>
+    {{ help("Return the JSON Schema used to validation mapping sources","get-mappingsschemajson") }}
+  </li>
+  <li>
+    <b>PUT <a onclick="replaceMappings(this)">/mappings/</a></b>
+    <input type="file" name="file" id="put-mappings-file">
+    {{ help("Register a list of mappings sources","put-mappings") }}
+  </li>
+  <li>
+    <b>POST <a onclick="registerMappings(this)">/mappings/</a></b>
+    <input type="file" name="file" id="post-mappings-file">
+    {{ help("Register a new mapping source or update metadata of a mapping source","post-mappings") }}
+  </li>
+  <li>
+    <b>GET <a onclick="visit(this,'/mappings/'+idValue.col)">/mappings/</a>{{ input_id("col") }}</b>
+    {{ help("Return a specific mapping source","get-mappingsid") }}
+  </li>  
+  <li>
+    <b>PUT <a onclick="updateMappings(this)">/mappings/</a>{{ input_id("col") }}</b>
+    <input type="file" name="file" id="put-mappingsid-file">
+    {{ help("Update a specific mapping source", "put-mappingsid") }}
+  </li>
+  <li>
+    <b>DELETE <a onclick="deleteMappings(this)">/mappings/</a>{{ input_id("col") }}</b>
+    {{ help("Unregister a mappings source and remove it from the triple store and staging area","delete-mappingsid") }}
+  </li>  
+  <li>
+    <b>POST <a onclick="appendMappings(this)">/mappings/</a>{{ input_id("col") }}/append</b>
+    <input type="file" name="file" id="post-mappingsidappend-file">
+    {{ help("Directly add mappings to the triple store","post-mappingsidappend") }}
+  </li>
+  <li>
+    <b>POST <a onclick="detachMappings(this)">/mappings/</a>{{ input_id("col") }}/detach</b>
+    <input type="file" name="file" id="post-mappingsiddetach-file">
+    {{ help("Directly remove mappings from the triple store","post-mappingsiddetach") }}
+  </li>
+  <li>
+    <b>GET <a onclick="visit(this,'/mappings/'+idValue.col+'/stage/')">/mappings/</a>{{ input_id("col") }}/stage/</b>
+    {{ help("List and get files of the stage directory of a mapping source","get-mappingsidstage") }}
+  </li>
+  <li>
+    <b>POST <a onclick="receiveMappings(this)">/mappings/</a>{{ input_id("col") }}/receive</b>
+    ? from=<input type="text" placeholder="URL or file" id="receiveMappings" />
+    {{ help("Receive and process mappings from a mapping source","post-mappingsidreceive") }}
+  </li>
+  <li>
+    <b>GET <a onclick="visit(this,'/mappings/'+idValue.col+'/receive')">/mappings/</a>{{ input_id("col") }}/receive</b>
+    {{ help("Get latest receive log of a mapping source","get-mappingsidreceive") }}
+  </li>
+  <li>
+    <b>POST <a onclick="loadMappings(this)">/mappings/</a>{{ input_id("col") }}/load</b>
+    {{ help("Load received and processed mappings into the triple store","post-mappingsidload") }}
+  </li>
+  <li>
+    <b>GET <a onclick="visit(this,'/mappings/'+idValue.col+'/load')">/mappings/</a>{{ input_id("col") }}/load</b>
+    {{ help("Get latest load log of a mapping source","get-mappingsidload") }}
+  </li>
+  <li>
+    <b>POST <a onclick="removeMappings(this)">/mappings/</a>{{ input_id("col") }}/remove</b>
+    {{ help("Remove mappings of a specific mapping source from the triple store and from staging area","post-mappingsidremove") }}
+  </li>
 </ul>
 
 {% include 'foot.html' %}
@@ -173,7 +235,6 @@ const errorMessage = (id, error) => {
 
 const visit = (e, url) => {
   if (e?.className == "disabled") return true
-  // TODO: prefetch URL and shown error on failure
   window.location.href = url 
 }
 
@@ -204,13 +265,9 @@ const request = async (e, url, method) => {
     if (file) {
       const reader = new FileReader()
       reader.onload = async e => {
-        try {
-          options.headers = { 'Content-Type': 'application/json' }
-          options.body = JSON.stringify(JSON.parse(e.target.result))
-          await submit()
-        } catch (error) {
-          errorMessage(id, `Invalid JSON ${error.message}`)
-        }
+        options.headers = { 'Content-Type': 'application/json' }
+        options.body = e.target.result
+        await submit()
       }
       reader.readAsText(file)
     } else {
@@ -238,6 +295,16 @@ const deleteCollection     = e => request(e,`collection/:id`, "DELETE")
 const receiveCollection    = e => request(e,`collection/:id/receive?from=${getValue('receiveCollection')}`, "POST", "receiveCollection")
 const loadCollection       = e => request(e,`collection/:id/load`, "POST")
 const removeCollection     = e => request(e,`collection/:id/remove`, "POST")
+
+const registerMappings   = e => request(e,`mappings/`, "POST")
+const replaceMappings    = e => request(e,`mappings/`, "PUT")
+const updateMappings     = e => request(e,`mappings/:id`, "PUT")
+const deleteMappings     = e => request(e,`mappings/:id`, "DELETE")
+const appendMappings       = e => request(e,`mappings/:id/append`, "POST")
+const detachMappings     = e => request(e,`mappings/:id/detach`, "POST")
+const receiveMappings    = e => request(e,`mappings/:id/receive?from=${getValue('receiveMappings')}`, "POST", "receiveMappings")
+const loadMappings       = e => request(e,`mappings/:id/load`, "POST")
+const removeMappings     = e => request(e,`mappings/:id/remove`, "POST")
 
 window.onload = () => {
   for (let cls of ["ter","col"]) {
