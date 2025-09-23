@@ -3,17 +3,28 @@
 {% macro help(text, id) -%}
   <span class="msg" id="{{id}}"></span>
   <br>{{ text|safe }}
-  ⇒ <a href="https://github.com/nfdi4objects/n4o-graph-importer#{{id}}" target="_blank">documentation</a>
+  ⇒ <a href="https://github.com/nfdi4objects/n4o-graph-importer#{{id}}" target="_blank">help</a>
 {%- endmacro -%}
 {% macro input_id(class) -%}
   <input type="number" min="0" step="1" size="6" placeholder=":id" class="{{class}}"/>
 {%- endmacro -%}
 
 <p>
-  Controlled <b>write access</b> to Triple store at <a href="{{ sparql }}">{{ sparql }}</a>.
-  Please use SPARQL endpoint or N4O Graph APIs for read access.
-  At this level there is <b>no authentication</b>!
+  Controlled <b>write access</b> to Triple store at <a id="backend" href="{{ sparql }}">{{ sparql }}</a>.
+  Please use SPARQL endpoint or <a id="frontend" href="https://github.com/nfdi4objects/n4o-graph-apis?tab=readme-ov-file#n4o-graph-api">N4O Graph APIs</a> for read access.
+  There is <b>no authentication</b> and all data can be modified!
 </p>
+<h2>General Endpoints</h2>
+<ul>
+  <li>
+    <b>GET <a href="/status.json">/status.json</a></b>
+    {{ help("Get curent information about the application","get-statusjson") }}
+  </li>
+  <li>
+    <b>GET <a href="/data/">/data/</a>:file</b>
+    {{ help("List and get files from local data directory","get-data") }}
+  </li>
+</ul>
 <h2>Terminology Endpoints</h2>
 <ul>
   <li>
@@ -133,17 +144,6 @@
     {{ help("Return the list of registered mapping sources","get-mappings") }}
   </li>
 </ul>
-<h2>Additional endpoints</h2>
-<ul>
-  <li>
-    <b>GET <a href="/data/">/data/</a>:file</b>
-    {{ help("List and get files from local data directory","get-data") }}
-  </li>
-  <li>
-    <b>GET <a href="/status.json">/status.json</a></b>
-    {{ help("Get curent information about the application","get-statusjson") }}
-  </li>
-</ul>
 
 {% include 'foot.html' %}
 
@@ -250,4 +250,10 @@ window.onload = () => {
     }
     updateId(cls, nodes[0].value)
   } 
+  fetch("status.json").then(res => res.json()).then(s => {
+    if (!s.connected) {
+      document.getElementById('backend').className = 'error'
+    }
+    document.getElementById('frontend').href = s.frontend
+  })
 }</script>

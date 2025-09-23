@@ -1,6 +1,6 @@
 from flask import Flask, jsonify, request, render_template, send_from_directory
 from waitress import serve
-from lib import CollectionRegistry, TerminologyRegistry, MappingRegistry, ApiError, NotFound, ValidationError
+from lib import CollectionRegistry, TerminologyRegistry, MappingRegistry, ApiError, NotFound, ValidationError, TripleStore
 import argparse
 import os
 from pathlib import Path
@@ -18,6 +18,7 @@ def init(**config):
     global collections
     global terminologies
     global mappings
+    global sparql
 
     title = config.get('title', os.getenv('TITLE', 'N4O Graph Importer'))
 
@@ -28,14 +29,15 @@ def init(**config):
     app.config['title'] = title
     app.config['base'] = config.get('base', os.getenv(
         'BASE', 'https://graph.nfdi4objects.net/'))
+    app.config['frontend'] = config.get('frontend', os.getenv(
+        'FRONTEND', app.config['base']))
     app.config['sparql'] = config.get(
         'sparql', os.getenv('SPARQL', 'http://localhost:3030/n4o'))
     app.config['stage'] = config.get('stage', os.getenv('STAGE', 'stage'))
     app.config['data'] = config.get('data', os.getenv('DATA', 'data'))
 
     terminologies = TerminologyRegistry(**app.config)
-    app.config["terminologies"] = terminologies
-    collections = CollectionRegistry(**app.config)
+    collections = CollectionRegistry(**app.config, terminologies=terminologies)
     mappings = MappingRegistry(**app.config)
 
 
@@ -62,8 +64,12 @@ route('GET', '/', lambda: render_template('index.html', **app.config))
 
 
 def status():
-    values = {key: str(val) for key, val in app.config.items()}
-    # TODO: add status of triple store (try to connect)
+    values = {key: str(val) for key, val in app.config.items() if key.islower()}
+    try:
+        sparql = TripleStore(app.config['sparql'])
+        values['connected'] = sparql.insert(app.config['base']+'collection/', '')
+    except Exception as e:
+        values['connected'] = False
     return values
 
 

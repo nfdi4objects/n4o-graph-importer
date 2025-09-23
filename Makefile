@@ -13,7 +13,7 @@ start:
 	@.venv/bin/python3 app.py
 
 api:
-	@npm run --silent api
+	@FRONTEND=http://127.0.0.1:8000 npm run --silent api
 
 lint:
 	@.venv/bin/flake8 *.py lib/*.py tests/*.py --ignore=C901,E741,W504 --exit-zero --max-complexity=10 --max-line-length=110 --statistics

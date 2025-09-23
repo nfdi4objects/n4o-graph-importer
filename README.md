@@ -13,8 +13,8 @@ This [web service](#api) implements a controlled workflow to import RDF data int
 - [Configuration](#configuration)
 - [API](#api)
   - [General endpoints](#general-endpoints)
-    - [GET /data/](#get-data)
     - [GET /status.json](#get-statusjson)
+    - [GET /data/](#get-data)
   - [Terminologies](#terminologies)
     - [GET /terminology](#get-terminology)
     - [GET /terminology/:id](#get-terminologyid)
@@ -113,6 +113,7 @@ The web service and its Docker image can be configured via environment variables
 
 - `TITLE`: title of the application. Default: `N4O Graph Importer`
 - `BASE`: base URI of named graphs. Default: `https://graph.nfdi4objects.net/`
+- `FRONTEND`: URL of [n4o-graph-apis] instance. Default is the value of `BASE`
 - `SPARQL`: API endpoint of SPARQL Query protocol, SPARQL Update protocol and SPARQL Graph store protocol. Default: <http://localhost:3030/n4o>.
 - `STAGE`: writeable stage directory. Default: `stage`
 - `DATA`: local data directory for file import
@@ -123,13 +124,13 @@ If the data directory contains a file `bartoc.json` with an array of JSKOS recor
 
 ### General endpoints
 
+#### GET /status.json
+
+Get curent information about the application as JSON object. This includes the [configuration](#configuration) with lowercase field names and field `connected` whether the SPARQL API endpoint can be accessed.
+
 #### GET /data/
 
 List and get files from local data directory.
-
-#### GET /status.json
-
-Get curent information about the application.
 
 ### Terminologies
 
