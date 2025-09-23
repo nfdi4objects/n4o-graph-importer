@@ -158,7 +158,7 @@
     {{ help("Register a new mapping source or update metadata of a mapping source","post-mappings") }}
   </li>
   <li>
-    <b>GET <a onclick="visit(this,'/mappings/'+idValue.col)">/mappings/</a>{{ input_id("map") }}</b>
+    <b>GET <a onclick="visit(this,'/mappings/'+idValue.map)">/mappings/</a>{{ input_id("map") }}</b>
     {{ help("Return a specific mapping source","get-mappingsid") }}
   </li>  
   <li>
@@ -181,7 +181,7 @@
     {{ help("Directly remove mappings from the triple store","post-mappingsiddetach") }}
   </li>
   <li>
-    <b>GET <a onclick="visit(this,'/mappings/'+idValue.col+'/stage/')">/mappings/</a>{{ input_id("map") }}/stage/</b>
+    <b>GET <a onclick="visit(this,'/mappings/'+idValue.map+'/stage/')">/mappings/</a>{{ input_id("map") }}/stage/</b>
     {{ help("List and get files of the stage directory of a mapping source","get-mappingsidstage") }}
   </li>
   <li>
@@ -190,7 +190,7 @@
     {{ help("Receive and process mappings from a mapping source","post-mappingsidreceive") }}
   </li>
   <li>
-    <b>GET <a onclick="visit(this,'/mappings/'+idValue.col+'/receive')">/mappings/</a>{{ input_id("map") }}/receive</b>
+    <b>GET <a onclick="visit(this,'/mappings/'+idValue.map+'/receive')">/mappings/</a>{{ input_id("map") }}/receive</b>
     {{ help("Get latest receive log of a mapping source","get-mappingsidreceive") }}
   </li>
   <li>
@@ -198,7 +198,7 @@
     {{ help("Load received and processed mappings into the triple store","post-mappingsidload") }}
   </li>
   <li>
-    <b>GET <a onclick="visit(this,'/mappings/'+idValue.col+'/load')">/mappings/</a>{{ input_id("map") }}/load</b>
+    <b>GET <a onclick="visit(this,'/mappings/'+idValue.map+'/load')">/mappings/</a>{{ input_id("map") }}/load</b>
     {{ help("Get latest load log of a mapping source","get-mappingsidload") }}
   </li>
   <li>
