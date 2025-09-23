@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request, render_template, send_from_directory
+from flask import Flask, jsonify, request, render_template, send_from_directory, send_file
 from waitress import serve
 from lib import CollectionRegistry, TerminologyRegistry, MappingRegistry, ApiError, NotFound, ValidationError, TripleStore
 import argparse
@@ -73,6 +73,8 @@ def status():
         values['connected'] = False
     return values
 
+
+route('GET', '/icon.png', lambda: send_file("static/nfdi4objects-logo.png"))
 
 api('GET', '/status.json', status)
 

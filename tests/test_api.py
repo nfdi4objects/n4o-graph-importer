@@ -210,6 +210,8 @@ def test_api(client):
     assert resp.status_code == 200
     assert b"N4O Graph Import API TEST" in resp.data
 
+    assert client.get('/icon.png').status_code == 200
+
     assert client.get('/data/').status_code == 200
     assert client.get('/data/data.ttl').status_code == 200
 
