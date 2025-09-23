@@ -117,6 +117,7 @@ def test_terminology(client):
         assert client.put("/terminology/0").status_code == 404
 
     assert client.get("/terminology/18274/stage/").status_code == 200
+    assert client.get("/terminology/18274/stage/checked.nt").status_code == 404
 
     # get list of terminologies
     resp = client.get('/terminology/')
@@ -330,4 +331,8 @@ def test_mappings(client):
 
     assert client.post('/mappings/2/receive?from=mappings.ttl').status_code == 200
     assert client.post('/mappings/2/load').status_code == 200
-    # TODO: check
+    # TODO: check contents
+
+    assert client.get("/mappings/2/stage/").status_code == 200
+
+
