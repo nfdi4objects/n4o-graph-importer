@@ -158,51 +158,51 @@
     {{ help("Register a new mapping source or update metadata of a mapping source","post-mappings") }}
   </li>
   <li>
-    <b>GET <a onclick="visit(this,'/mappings/'+idValue.col)">/mappings/</a>{{ input_id("col") }}</b>
+    <b>GET <a onclick="visit(this,'/mappings/'+idValue.col)">/mappings/</a>{{ input_id("map") }}</b>
     {{ help("Return a specific mapping source","get-mappingsid") }}
   </li>  
   <li>
-    <b>PUT <a onclick="updateMappings(this)">/mappings/</a>{{ input_id("col") }}</b>
+    <b>PUT <a onclick="updateMappings(this)">/mappings/</a>{{ input_id("map") }}</b>
     <input type="file" name="file" id="put-mappingsid-file">
     {{ help("Update a specific mapping source", "put-mappingsid") }}
   </li>
   <li>
-    <b>DELETE <a onclick="deleteMappings(this)">/mappings/</a>{{ input_id("col") }}</b>
+    <b>DELETE <a onclick="deleteMappings(this)">/mappings/</a>{{ input_id("map") }}</b>
     {{ help("Unregister a mappings source and remove it from the triple store and staging area","delete-mappingsid") }}
   </li>  
   <li>
-    <b>POST <a onclick="appendMappings(this)">/mappings/</a>{{ input_id("col") }}/append</b>
+    <b>POST <a onclick="appendMappings(this)">/mappings/</a>{{ input_id("map") }}/append</b>
     <input type="file" name="file" id="post-mappingsidappend-file">
     {{ help("Directly add mappings to the triple store","post-mappingsidappend") }}
   </li>
   <li>
-    <b>POST <a onclick="detachMappings(this)">/mappings/</a>{{ input_id("col") }}/detach</b>
+    <b>POST <a onclick="detachMappings(this)">/mappings/</a>{{ input_id("map") }}/detach</b>
     <input type="file" name="file" id="post-mappingsiddetach-file">
     {{ help("Directly remove mappings from the triple store","post-mappingsiddetach") }}
   </li>
   <li>
-    <b>GET <a onclick="visit(this,'/mappings/'+idValue.col+'/stage/')">/mappings/</a>{{ input_id("col") }}/stage/</b>
+    <b>GET <a onclick="visit(this,'/mappings/'+idValue.col+'/stage/')">/mappings/</a>{{ input_id("map") }}/stage/</b>
     {{ help("List and get files of the stage directory of a mapping source","get-mappingsidstage") }}
   </li>
   <li>
-    <b>POST <a onclick="receiveMappings(this)">/mappings/</a>{{ input_id("col") }}/receive</b>
+    <b>POST <a onclick="receiveMappings(this)">/mappings/</a>{{ input_id("map") }}/receive</b>
     ? from=<input type="text" placeholder="URL or file" id="receiveMappings" />
     {{ help("Receive and process mappings from a mapping source","post-mappingsidreceive") }}
   </li>
   <li>
-    <b>GET <a onclick="visit(this,'/mappings/'+idValue.col+'/receive')">/mappings/</a>{{ input_id("col") }}/receive</b>
+    <b>GET <a onclick="visit(this,'/mappings/'+idValue.col+'/receive')">/mappings/</a>{{ input_id("map") }}/receive</b>
     {{ help("Get latest receive log of a mapping source","get-mappingsidreceive") }}
   </li>
   <li>
-    <b>POST <a onclick="loadMappings(this)">/mappings/</a>{{ input_id("col") }}/load</b>
+    <b>POST <a onclick="loadMappings(this)">/mappings/</a>{{ input_id("map") }}/load</b>
     {{ help("Load received and processed mappings into the triple store","post-mappingsidload") }}
   </li>
   <li>
-    <b>GET <a onclick="visit(this,'/mappings/'+idValue.col+'/load')">/mappings/</a>{{ input_id("col") }}/load</b>
+    <b>GET <a onclick="visit(this,'/mappings/'+idValue.col+'/load')">/mappings/</a>{{ input_id("map") }}/load</b>
     {{ help("Get latest load log of a mapping source","get-mappingsidload") }}
   </li>
   <li>
-    <b>POST <a onclick="removeMappings(this)">/mappings/</a>{{ input_id("col") }}/remove</b>
+    <b>POST <a onclick="removeMappings(this)">/mappings/</a>{{ input_id("map") }}/remove</b>
     {{ help("Remove mappings of a specific mapping source from the triple store and from staging area","post-mappingsidremove") }}
   </li>
 </ul>
@@ -210,7 +210,7 @@
 {% include 'foot.html' %}
 
 <script type="text/javascript">
-const idValue = { ter: "", col: "" }
+const idValue = { ter: "", col: "", map: "" }
 
 const updateId = (cls, value) => {
   idValue[cls] = value
@@ -307,7 +307,7 @@ const loadMappings       = e => request(e,`mappings/:id/load`, "POST")
 const removeMappings     = e => request(e,`mappings/:id/remove`, "POST")
 
 window.onload = () => {
-  for (let cls of ["ter","col"]) {
+  for (let cls in idValue) {
     const nodes = document.getElementsByClassName(cls)
     for (let elem of nodes) {
       elem.addEventListener("input", ({target: {value}}) => {        
