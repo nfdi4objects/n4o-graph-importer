@@ -297,11 +297,15 @@ Unregister a mapping source and remove it from the triple store and staging area
 
 #### POST /mappings/:id/append
 
-Directly add mappings to the triple store, bypassing the receive/load workflow. Directly added triples are not stored in the staging area so they will not persist a load operation of the selected mapping source.
+Directly add mappings to the triple store, bypassing the receive/load workflow. Directly added triples are not stored in the staging area so they will not persist a load operation of the selected mapping source. The format of mappings data (same as supported by [POST /mappings/:id/receive](#post-mappingsidreceive)) is detected automatically from the first line.
+
+*Not implemented yet!*
 
 #### POST /mappings/:id/detach
 
-Directly remove mappings from the triple store. This operation is not reflected in the staging area so it will not persist a load operation of the seleceted mapping source.
+Directly remove mappings from the triple store. This operation is not reflected in the staging area so it will not persist a load operation of the seleceted mapping source. The format of mappings data (same as supported by [POST /mappings/:id/receive](#post-mappingsidreceive)) is detected automatically from the first line. Passing non-existing mappings does not result in an error.
+
+*Not implemented yet!*
 
 #### GET /mappings/:id/stage/
 

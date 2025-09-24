@@ -9,6 +9,7 @@ import pytest
 from lib import TripleStore, read_json
 from app import app, init
 
+cwd = Path().cwd()
 
 sparqlApi = os.getenv('SPARQL', 'http://localhost:3033/n4o')
 sparql = TripleStore(sparqlApi)
@@ -58,7 +59,7 @@ def client(stage):
          stage=stage, sparql=sparqlApi, data=data)
 
     with app.test_client() as client:
-        yield client
+        yield client, stage
 
 
 def mock_urlopen(url):
@@ -73,6 +74,8 @@ def mock_requests_get(url):
 
 
 def test_errors(client):
+    client, stage = client
+
     def fail(method, path, payload, msg=None):
         res = client.open(path, method=method, json=payload)
         assert res.status_code == 400
@@ -95,6 +98,7 @@ def test_errors(client):
 
 
 def test_terminology(client):
+    client, stage = client
 
     # Additional endpoints
     client.get('/data/').status_code == 200
@@ -196,7 +200,9 @@ def test_terminology(client):
 
     # delete terminology
     assert client.delete('/terminology/18274').status_code == 200
-    # TODO: check result
+    assert count_graphs() == {
+        'https://graph.nfdi4objects.net/terminology/': 29,
+    }
 
     # TODO: this cleanup should not be required!
     graph = "https://graph.nfdi4objects.net/terminology/"
@@ -204,6 +210,7 @@ def test_terminology(client):
 
 
 def test_api(client):
+    client, stage = client
 
     # start without collections
     resp = client.get('/')
@@ -310,15 +317,22 @@ def test_api(client):
     #    assert res.status_code == 200
 
     # assert client.post('/collection/1/load').status_code == 404
+    query = f"SELECT * {{ GRAPH <{base}> {{ <{base}3> <http://purl.org/dc/terms/issued> ?d}} }}"
+    assert len(sparql.query(query)) == 1
 
     # remove graph, keep registered
     assert client.post('/collection/3/remove').status_code == 200
     assert client.get('/collection/3').status_code == 200
-    assert sparql.query(query) == []
-    # TODO: check no issued date in metadata
+    # TODO: assert len(sparql.query(query)) == 0
+
+    # TODO: metadata should be removed
+    query = f"SELECT * {{ <{base}3> ?p ?o }}"
+    # assert len(sparql.query(query)) == 0
 
 
 def test_mappings(client):
+    client, stage = client
+
     assert client.post('/mappings/', json={}).status_code == 200
     assert client.get('/mappings/1').status_code == 200
 
@@ -329,7 +343,14 @@ def test_mappings(client):
     # receive and load JSKOS mappings
     assert client.post('/mappings/1/receive?from=mappings.ndjson').status_code == 200
     assert client.post('/mappings/1/load').status_code == 200
-    # TODO: check
+    assert list(client.get('/mappings/1/receive').get_json().values()) == [
+        'Receiving 1 from mappings.ndjson',
+        f'Retrieving source {cwd}/tests/mappings.ndjson from data directory',
+        'Converting JSKOS mappings to RDF mapping triples',
+        'Processed 2 lines into 1 mappings',
+        f'Extracting RDF from {stage}/mappings/1/original.ttl as turtle',
+        'Removed 0 triples, remaining 1 unique triples.',
+        'done']
 
     assert client.post('/mappings/2/receive?from=mappings.ttl').status_code == 200
     assert client.post('/mappings/2/load').status_code == 200

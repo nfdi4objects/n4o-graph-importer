@@ -5,12 +5,12 @@ from .utils import read_json, write_json
 class Log:
     def __init__(self, file, start=None):
         self.file = file
-        self.items = []
+        self.items = {}
         if start:
             self.append(start)
 
     def append(self, entry):
-        self.items.append(f"{datetime.datetime.now()}: {entry}")
+        self.items[f"{datetime.datetime.now()}"] = entry
 
     def done(self, message="done"):
         self.append(message)

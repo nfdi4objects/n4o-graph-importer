@@ -114,8 +114,10 @@ api('POST', '/mappings/', lambda: mappings.register(request.get_json(force=True)
 api('GET', '/mappings/<int:id>', lambda id: mappings.get(id))
 api('PUT', '/mappings/<int:id>', lambda id: mappings.register(request.get_json(force=True), id))
 api('DELETE', '/mappings/<int:id>', lambda id: mappings.delete(id))
-api('POST', '/mappings/<int:id>/append', lambda: mappings.append(id, request.get_json(force=True)))
-api('POST', '/mappings/<int:id>/detach', lambda: mappings.detach(id, request.get_json(force=True)))
+api('POST', '/mappings/<int:id>/append',
+    lambda: mappings.append(id, request.get_data()))
+api('POST', '/mappings/<int:id>/detach',
+    lambda: mappings.detach(id, request.get_data()))
 api('POST', '/mappings/<int:id>/receive',
     lambda id: mappings.receive(id, request.args.get("from", None)))
 api('GET', '/mappings/<int:id>/receive', lambda id: mappings.receive_log(id))
