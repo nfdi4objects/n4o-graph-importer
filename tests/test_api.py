@@ -6,6 +6,7 @@ from shutil import copy
 from pathlib import Path
 import pytest
 
+from rdflib import Graph
 from lib import TripleStore, read_json
 from app import app, init
 
@@ -34,6 +35,17 @@ collection_3_full = {
     "uri": f"{base}3",
     "partOf": [base]
 }
+
+# for pretty-printing
+# Namespace prefixes for pretty RDF/Turtle
+#def to_rdf(doc, context):
+#    prefixes = read_json(Path(__file__).parent.parent / 'prefixes.json')
+#    nquads = jsonld2nt(doc, context)
+#    g = Graph(bind_namespaces="none")
+#    for prefix, uri in prefixes.items():
+#        g.bind(prefix, Namespace(uri))
+#    g.parse(data=nquads, format='nquads')
+#    return g
 
 
 def count_graphs():
@@ -306,6 +318,13 @@ def test_api(client):
     client.post('/collection/3/load')
     assert sparql.query(query) == graph[:1]
 
+    assert client.post('/collection/3/receive?from=rdf.zip').status_code == 200
+    assert client.post('/collection/3/load').status_code == 200
+
+    query = f"SELECT ?e {{ GRAPH <{base}3> {{ ?e a ?t }} }} ORDER BY ?o"
+    res = [r["e"]["value"] for r in sparql.query(query)]
+    assert res == [f'https://example.org/e{i}' for i in [1, 2, 3, 4]]
+
     assert client.post(
         '/terminology/1644/receive?from=crm.ttl').status_code == 200
 
@@ -348,7 +367,7 @@ def test_mappings(client):
         f'Retrieving source {cwd}/tests/mappings.ndjson from data directory',
         'Converting JSKOS mappings to RDF mapping triples',
         'Processed 2 lines into 1 mappings',
-        f'Extracting RDF from {stage}/mappings/1/original.ttl as turtle',
+        f'Extracting RDF from file://{stage}/mappings/1/original.ttl as turtle',
         'Removed 0 triples, remaining 1 unique triples.',
         'done']
 

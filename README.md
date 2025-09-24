@@ -171,7 +171,12 @@ List and get files of the stage directory of a terminology.
 
 #### POST /terminology/:id/receive
 
-Receive terminology data. The location of the data is going to be extracted from terminology metadata from BARTOC but this has not been implemented yet. For now pass query parameter `from` instead to locate an URL or the name of a file in the data directory. Format must be RDF/Turtle for file extension `.ttl` or `.nt`, otherwise RDF/XML.
+Receive terminology data. The location of the data is going to be extracted from terminology metadata from BARTOC but this has not been implemented yet. For now pass query parameter `from` instead to locate an URL or the name of a file in the data directory. File format can be: 
+
+- RDF/Turtle for file extension `.ttl` or `.nt`
+- RDF/XML for file extension `.rdf` or `.xml`
+- JSKOS as newline delimited JSON for file extension `.ndjson`
+- A ZIP archive containing RDF files for file extension `.zip`
 
 #### GET /terminology/:id/receive
 
@@ -241,7 +246,11 @@ List and get files of the stage directory of a collection.
 
 #### POST /collection/:id/receive
 
-Receive and process collection data. The location of the data is taken from collection metadata field `access` if existing. The location can be overridden with optional query parameter `from` with an URL or a file name from local data directory.
+Receive and process collection data. The location of the data is taken from collection metadata field `access` if existing. The location can be overridden with optional query parameter `from` with an URL or a file name from local data directory. File format can be: 
+
+- RDF/Turtle for file extension `.ttl` or `.nt`
+- RDF/XML for file extension `.rdf` or `.xml`
+- A ZIP archive containing RDF files for file extension `.zip`
 
 #### GET /collection/:id/receive
 

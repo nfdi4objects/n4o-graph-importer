@@ -60,10 +60,10 @@ class MappingRegistry(Registry):
         stage.mkdir(exist_ok=True)
         # TODO: guess format from first line
         # process_jskos_mappings(self, source, target, log):
-        #fmt = ".ttl"
-        #file = f"{name}{fmt}"
-        #f = open(stage / file, "w")
-        #f.write(data)
+        # fmt = ".ttl"
+        # file = f"{name}{fmt}"
+        # f = open(stage / file, "w")
+        # f.write(data)
 
     def append(self, id, data):
         self.save_mappings_stage(id, "append")

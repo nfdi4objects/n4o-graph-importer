@@ -18,19 +18,6 @@ def jsonld2nt(doc, context):
     return jsonld.to_rdf(expanded, options={'format': 'application/n-quads'})
 
 
-# for pretty-printing
-# Namespace prefixes for pretty RDF/Turtle
-# prefixes = read_json(Path(__file__).parent.parent / 'prefixes.json')
-#
-# def to_rdf(doc, context):
-#    nquads = jsonld2nt(doc, context)
-#   g = Graph(bind_namespaces="none")
-#    for prefix, uri in prefixes.items():
-#        g.bind(prefix, Namespace(uri))
-#    g.parse(data=nquads, format='nquads')
-#   return g
-
-
 class TripleStore:
     def __init__(self, api):
         self.api = api
@@ -86,11 +73,9 @@ def sparql_to_rdf(binding):
             return Literal(binding['value'])
 
 
-rdfparser = lightrdf.Parser()
-
-
 def triple_iterator(source, log):
     """Recursively extract RDF triples from a file, directory and/or ZIP archive."""
+    rdfparser = lightrdf.Parser()
     for name, path, archive in walk(source):
         format = None
         if name.endswith(".ttl"):
@@ -115,7 +100,8 @@ def triple_iterator(source, log):
             base = f"file://{file}"
 
         try:
-            log.append(f"Extracting RDF from {file} as {format}")
+            log.append(f"Extracting RDF from {base} as {format}")
+            # TODO: pass errors as warnings to logger instead of STDERR
             for triple in rdfparser.parse(file, format=format):
                 yield triple
         except Exception as e:

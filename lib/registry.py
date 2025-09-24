@@ -169,6 +169,8 @@ class Registry:
                 fmt = "xml"
             elif Path(source).suffix in [".ndjson"]:
                 fmt = "ndjson"
+            elif Path(source).suffix in [".zip", ".ZIP"]:
+                fmt = "zip"
 
         if not fmt:
             raise ClientError("Unknown data format")
@@ -200,6 +202,7 @@ class Registry:
         return (original, log)
 
     def preprocess_source(self, id, file, fmt, log):
+        """Returned file must be RDF or ZIP (with RDF)."""
         return file
 
     def receive_rdf(self, id, source, log):
