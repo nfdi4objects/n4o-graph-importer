@@ -1,10 +1,11 @@
 import os
 from zipfile import ZipFile, ZipExtFile
+from pathlib import Path
 
 
 def isZip(file) -> bool:
     """Check whether given file looks like a ZIP archive."""
-    return file.endswith(".zip") or file.endswith(".ZIP")
+    return Path(file).suffix == ".zip" or Path(file).suffix == ".ZIP"
 
 
 def zipwalk(file, path=None) -> list:

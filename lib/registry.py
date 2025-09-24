@@ -3,7 +3,7 @@ from datetime import datetime
 from shutil import copy, copyfileobj, rmtree
 import urllib
 from jsonschema import validate
-from .rdf import rdf_receive, jsonld2nt, TripleStore
+from .rdf import jsonld2nt, TripleStore, triple_iterator
 from .log import Log
 from .errors import NotFound, ClientError, ValidationError
 from .utils import read_json, write_json, access_location
@@ -105,7 +105,7 @@ class Registry:
         rmtree(self.stage / str(id), ignore_errors=True)
 
     def purge(self):
-        for id in [t["uri"].split("/")[-1] for t in self.list()]:
+        for id in [t["id"] for t in self.list()]:
             self.delete(id)
 
     def load(self, id):
@@ -139,16 +139,43 @@ class Registry:
         return {}
 
     def receive(self, id, file=None):
-        file, fmt = self.get_source(id, file)
-        original, log = self.receive_source(id, file, fmt)
-        stage = self.stage / str(id)
-        file = self.process_received(id, original, fmt, log)
-        namespaces = self.forbidden_namespaces(id)
-        rdf_receive(file, stage, log, namespaces)
-
+        file, fmt = self.identify_source(id, file)
+        original, log = self.fetch_source(id, file, fmt)
+        file = self.preprocess_source(id, original, fmt, log)
+        self.receive_rdf(id, file, log)
         return log.done()
 
-    def receive_source(self, id, source, fmt):
+    def identify_source(self, id, source=None):
+        item = self.get(id)
+        fmt = None
+
+        if not source:
+            source, fmt = access_location(item)
+        if not source:
+            raise NotFound("Missing source to receive data from")
+
+        if fmt:
+            fmt = fmt.removeprefix("https://format.gbv.de/")
+            if fmt == "rdf/turtle":
+                fmt = "ttl"
+            elif fmt == "rdf/xml":
+                fmt = "xml"
+
+        # TODO: configure and extend this. Add support of .zip files
+        if not fmt:
+            if Path(source).suffix in [".nt", ".ttl"]:
+                fmt = "ttl"
+            elif Path(source).suffix in [".rdf", ".xml"]:
+                fmt = "xml"
+            elif Path(source).suffix in [".ndjson"]:
+                fmt = "ndjson"
+
+        if not fmt:
+            raise ClientError("Unknown data format")
+
+        return source, fmt
+
+    def fetch_source(self, id, source, fmt):
         stage = self.stage / str(id)
         stage.mkdir(exist_ok=True)
 
@@ -172,35 +199,29 @@ class Registry:
 
         return (original, log)
 
-    def get_source(self, id, source=None):
-        item = self.get(id)
-        fmt = None
-
-        if not source:
-            source, fmt = access_location(item)
-        if not source:
-            raise NotFound("Missing source to receive data from")
-
-        if fmt:
-            fmt = fmt.removeprefix("https://format.gbv.de/")
-            if fmt == "rdf/turtle":
-                fmt = "ttl"
-            elif fmt == "rdf/xml":
-                fmt = "xml"
-
-        # TODO: configure and extend this
-        if not fmt:
-            if Path(source).suffix in [".nt", ".ttl"]:
-                fmt = "ttl"
-            elif Path(source).suffix in [".rdf", ".xml"]:
-                fmt = "xml"
-            elif Path(source).suffix in [".ndjson"]:
-                fmt = "ndjson"
-
-        if not fmt:
-            raise ClientError("Unknown data format")
-
-        return source, fmt
-
-    def process_received(self, id, file, fmt, log):
+    def preprocess_source(self, id, file, fmt, log):
         return file
+
+    def receive_rdf(self, id, source, log):
+        namespaces = tuple(list(self.forbidden_namespaces(id).values()))
+
+        stage = self.stage / str(id)
+        checked = open(stage / "checked.nt", "w")
+        removed = open(stage / "removed.nt", "w")
+
+        okCount, removedCount = 0, 0
+        for s, p, o in triple_iterator(source, log):
+            # TODO: implement more filtering and rewrite
+            if str(s)[1:].startswith(namespaces):
+                removedCount = removedCount + 1
+                removed.write(f"{s} {p} {o} .\n")
+            else:
+                okCount = okCount + 1
+                # TODO: filter out namespaces
+                # if predicate.startswith(rdflib.RDFS)
+                checked.write(f"{s} {p} {o} .\n")
+
+        log.append(
+            f"Removed {removedCount} triples, remaining {okCount} unique triples.")
+
+        # TODO: if okCount is zero, raise an error

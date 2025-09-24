@@ -25,7 +25,7 @@ class MappingRegistry(Registry):
     def __init__(self, **config):
         super().__init__("mappings", **config)
 
-    def process_received(self, id, original, fmt, log):
+    def preprocess_source(self, id, original, fmt, log):
         if fmt == "ndjson":
             log.append("Converting JSKOS mappings to RDF mapping triples")
             source = open(original)
@@ -41,10 +41,10 @@ class MappingRegistry(Registry):
                     if type(f) is not list or type(t) is not list or len(f) != 1 or len(t) != 1:
                         continue
                     target.write(f"<{f[0]['uri']}> <{prop}> <{t[0]['uri']}> .\n")
-            except Exception as e:
+            except Exception:
                 raise ValidationError("Failed to convert JSKOS mappings!")
             # TODO: log number of triples
 
         return original
 
-    # TODO: def process_received_rdf to further filter triples from graph
+    # TODO: def preprocess_source_rdf to further filter triples from graph

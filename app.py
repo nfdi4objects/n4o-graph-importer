@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, request, render_template, send_from_directory, send_file
 from waitress import serve
-from lib import CollectionRegistry, TerminologyRegistry, MappingRegistry, ApiError, NotFound, ValidationError, TripleStore
+from lib import CollectionRegistry, TerminologyRegistry, MappingRegistry, \
+    ApiError, NotFound, ValidationError, TripleStore
 import argparse
 import os
 from pathlib import Path
@@ -18,7 +19,6 @@ def init(**config):
     global collections
     global terminologies
     global mappings
-    global sparql
 
     title = config.get('title', os.getenv('TITLE', 'N4O Graph Importer'))
 
@@ -67,9 +67,9 @@ def status():
     values = {key: str(val) for key, val in app.config.items() if key.islower()}
     try:
         sparql = TripleStore(app.config['sparql'])
-        sparql.insert(app.config['base']+'collection/', '')
+        sparql.insert(f"{app.config['base']}collection/", '')
         values['connected'] = True
-    except Exception as e:
+    except Exception:
         values['connected'] = False
     return values
 

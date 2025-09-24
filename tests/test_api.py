@@ -336,5 +336,3 @@ def test_mappings(client):
     # TODO: check contents
 
     assert client.get("/mappings/2/stage/").status_code == 200
-
-

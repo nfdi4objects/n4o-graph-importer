@@ -40,7 +40,7 @@ class TerminologyRegistry(Registry):
 
         return super().register(voc[0], id)
 
-    def process_received(self, id, original, fmt, log):
+    def preprocess_source(self, id, original, fmt, log):
         if fmt == "ndjson":
             log.append("Converting JSKOS to RDF")
             with open(original) as file:

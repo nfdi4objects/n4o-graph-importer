@@ -1,8 +1,10 @@
-from rdflib import Graph, URIRef, Literal, BNode
+from rdflib import URIRef, Literal, BNode
 from SPARQLWrapper import SPARQLWrapper
 import requests
 from pyld import jsonld
 from .errors import ServerError
+from .walk import walk
+import lightrdf
 
 
 def jsonld2nt(doc, context):
@@ -84,43 +86,38 @@ def sparql_to_rdf(binding):
             return Literal(binding['value'])
 
 
-def rdf_receive(source, path, log, namespaces={}, properties=[]):
-    namespaces = tuple(list(namespaces.values()))
+rdfparser = lightrdf.Parser()
 
-    graph = Graph()
-    graph.parse(source)
-    size = len(graph)
-    log.append(f"Parsed {size} unique triples")
 
-    checked = open(path / "checked.nt", "w")
-    removed = open(path / "removed.nt", "w")
-
-    count = 0
-    for s, p, o in graph.triples((None, None, None)):
-        if str(s).startswith(namespaces):
-            removed.write(f"{s.n3()} {p.n3()} {o.n3()} .\n")
+def triple_iterator(source, log):
+    """Recursively extract RDF triples from a file, directory and/or ZIP archive."""
+    for name, path, archive in walk(source):
+        format = None
+        if name.endswith(".ttl"):
+            format = "turtle"
+        elif name.endswith(".nt"):
+            format = "nt"
+        elif name.endswith(".owl"):
+            format = "owl"
+        elif name.endswith(".rdf"):
+            format = "xml"
+        elif name.endswith(".xml"):
+            # TODO: check whether it's RDF/XML?
+            format = "xml"
         else:
-            count = count + 1
-            # TODO: filter out namespaces
-            # if predicate.startswith(rdflib.RDFS)
-            checked.write(f"{s.n3()} {p.n3()} {o.n3()} .\n")
+            continue
 
-    log.append(
-        f"Removed {size - count} triples, remaining {count} unique triples.")
+        if archive:
+            file = archive.open(name)
+            base = f"file://{file.name}"
+        else:
+            file = f"{'/'.join(path)}/{name}"
+            base = f"file://{file}"
 
-
-"""
-checked=$stage/checked.nt
-removed=$stage/removed.nt
-namespace=$(jq -r --arg uri "$uri" '.[$uri]' $STAGE/terminology/namespaces.json)
-
-export RDFFILTER_ALLOW_NAMESPACE=$namespace
-npm run --silent -- rdffilter $unique -o $checked --stats -f ./js/rdffilter.js
-# TODO: extend rdffilter for one-pass
-npm run --silent -- rdffilter $unique -o $removed -r -f ./js/rdffilter.js
-unset RDFFILTER_ALLOW_NAMESPACE
-
-wc -l $duplicated
-wc -l $removed
-wc -l $checked
-"""
+        try:
+            log.append(f"Extracting RDF from {file} as {format}")
+            for triple in rdfparser.parse(file, format=format):
+                yield triple
+        except Exception as e:
+            log.append(f"Error parsing {base}: {e}")
+            continue
