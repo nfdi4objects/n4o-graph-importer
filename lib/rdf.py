@@ -51,6 +51,10 @@ class TripleStore:
         query = "INSERT DATA { GRAPH <%s> { %s } }" % (graph, triples)
         return self.update(query)
 
+    def delete(self, graph, triples):
+        query = "DELETE WHERE { GRAPH <%s> { %s } }" % (graph, triples)
+        return self.update(query)
+
     def store_file(self, graph, file):
         headers = {"content-type": "text/turtle"}
         res = requests.put(f"{self.api}?graph={graph}",

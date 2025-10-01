@@ -117,11 +117,15 @@ class Registry:
         log = Log(stage / "load.json",
                   f"Loading {self.kind} {uri} from {file}")
         self.sparql.store_file(uri, file)
+
         issued = datetime.now().replace(microsecond=0).isoformat()
         log.append(f"Update timestamp to {issued}")
+        triples = f"<{uri}> <http://purl.org/dc/terms/issued> ?issued"
+        self.sparql.delete(self.graph, triples)
         triples = f'<{uri}> <http://purl.org/dc/terms/issued> "{issued}"' \
             + '^^<http://www.w3.org/2001/XMLSchema#dateTime>'
         self.sparql.insert(self.graph, triples)
+
         return log.done()
 
     def remove(self, id):
