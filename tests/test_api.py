@@ -6,7 +6,6 @@ from shutil import copy
 from pathlib import Path
 import pytest
 
-from rdflib import Graph
 from lib import TripleStore, read_json
 from app import app, init
 
@@ -38,7 +37,7 @@ collection_3_full = {
 
 # for pretty-printing
 # Namespace prefixes for pretty RDF/Turtle
-#def to_rdf(doc, context):
+# def to_rdf(doc, context):
 #    prefixes = read_json(Path(__file__).parent.parent / 'prefixes.json')
 #    nquads = jsonld2nt(doc, context)
 #    g = Graph(bind_namespaces="none")
@@ -133,7 +132,7 @@ def test_terminology(client):
         assert client.put("/terminology/0").status_code == 404
 
     assert client.get("/terminology/18274/stage/").status_code == 200
-    assert client.get("/terminology/18274/stage/checked.nt").status_code == 404
+    assert client.get("/terminology/18274/stage/terminology-18274.nt").status_code == 404
 
     # get list of terminologies
     resp = client.get('/terminology/')
@@ -168,7 +167,7 @@ def test_terminology(client):
     assert client.post(
         '/terminology/18274/receive?from=skos.rdf').status_code == 200
     assert client.get('/terminology/18274/receive').status_code == 200
-    assert client.get("/terminology/18274/stage/checked.nt").status_code == 200
+    assert client.get("/terminology/18274/stage/terminology-18274.nt").status_code == 200
 
     # load terminology data and check log
     assert client.get('/terminology/18274/load').status_code == 404
@@ -200,7 +199,7 @@ def test_terminology(client):
     }
     assert client.post("/terminology/20533/remove").status_code == 200
     assert count_graphs() == {
-        'https://graph.nfdi4objects.net/terminology/': 29,
+        'https://graph.nfdi4objects.net/terminology/': 28,
         'http://bartoc.org/en/node/18274': 377,
     }
 
@@ -213,7 +212,8 @@ def test_terminology(client):
     # delete terminology
     assert client.delete('/terminology/18274').status_code == 200
     assert count_graphs() == {
-        'https://graph.nfdi4objects.net/terminology/': 29,
+        # TODO: this seems wrong if terminology is unregistered
+        'https://graph.nfdi4objects.net/terminology/': 27,
     }
 
     # TODO: this cleanup should not be required!

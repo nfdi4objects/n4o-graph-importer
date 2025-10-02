@@ -110,28 +110,46 @@ class Registry:
 
     def load(self, id):
         stage = self.stage / str(id)
-        file = stage / "checked.nt"
+        file = stage / f"{self.kind}-{id}.nt"
         uri = self.get(id)["uri"]
         if not file.is_file():
             raise NotFound(f"{self.kind} data has not been received!")
         log = Log(stage / "load.json",
                   f"Loading {self.kind} {uri} from {file}")
         self.sparql.store_file(uri, file)
-
-        issued = datetime.now().replace(microsecond=0).isoformat()
-        log.append(f"Update timestamp to {issued}")
-        triples = f"<{uri}> <http://purl.org/dc/terms/issued> ?issued"
-        self.sparql.delete(self.graph, triples)
-        triples = f'<{uri}> <http://purl.org/dc/terms/issued> "{issued}"' \
-            + '^^<http://www.w3.org/2001/XMLSchema#dateTime>'
-        self.sparql.insert(self.graph, triples)
-
+        self.update_distribution(id, log)
         return log.done()
+
+    def update_distribution(self, id, log, published=True):
+        uri = self.get(id)["uri"]
+        self.sparql.delete(self.graph, f"<{uri}> <http://purl.org/dc/terms/issued> ?issued")
+
+        # TODO:
+        # download = f"{self.graph}{id}/stage/{self.kind}-{id}.nt"
+        # self.sparql.update("\n".join([
+        #    "PREFIX dcat: <http://www.w3.org/ns/dcat#>"
+        #    "DELETE {"
+        #    f"<{uri}> dcat:distribution ?d . ?d ?p ?o"
+        #    "} WHERE {"
+        #    f"<{uri}> dcat:distribution> ?d; ?d dcat:downloadURL> <{download}> }}"]))
+
+        if published:
+            log.append("Update issued timestamp and distribution")
+            issued = datetime.now().replace(microsecond=0).isoformat()
+            triples = f'<{uri}> <http://purl.org/dc/terms/issued> "{issued}"' \
+                + '^^<http://www.w3.org/2001/XMLSchema#dateTime>'
+            self.sparql.insert(self.graph, triples)
+            # TODO: add distribution statement with downloadURL and format
+        else:
+            log.append("Removing issued timestamp and distribution")
+
+        # TODO: add download URL unless already loaded
 
     def remove(self, id):
         uri = self.get(id)["uri"]
         rmtree(self.stage / str(id), ignore_errors=True)
         self.sparql.update(f"DROP GRAPH <{uri}>")
+        self.update_distribution(id, Log("/dev/null"), False)
 
     def receive_log(self, id):
         return Log(self.stage / str(id) / "receive.json").load()
@@ -213,7 +231,7 @@ class Registry:
         namespaces = tuple(list(self.forbidden_namespaces(id).values()))
 
         stage = self.stage / str(id)
-        checked = open(stage / "checked.nt", "w")
+        checked = open(stage / f"{self.kind}-{id}.nt", "w")
         removed = open(stage / "removed.nt", "w")
 
         okCount, removedCount = 0, 0
