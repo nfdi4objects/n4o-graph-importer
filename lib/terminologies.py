@@ -46,10 +46,10 @@ class TerminologyRegistry(Registry):
         # Experimental: create Skosmos configuration section
         config = voc.copy()
         config["a"] = ["skosmos:Vocabulary", "void:Dataset"]
-        config["id"] = f"uri#{id}"
-        with open(self.stage / "skosmos.ttl", "w") as f:
-            # TODO: emit beautiful Turtle instead of raw N-Triples
+        config["id"] = f"{uri}#{id}"
+        with open(self.stage / id / "skosmos.ttl", "w") as f:
             ttl = jsonld2nt(config, self.skosmos_context)
+            ttl = "\n".join(sorted(ttl.rstrip().split("\n")))
             f.write(ttl)
 
         return voc

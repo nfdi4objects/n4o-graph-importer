@@ -139,9 +139,14 @@ def test_terminology(client):
     assert resp.status_code == 200
     assert len(resp.get_json()) == 1
 
-    # get list terminology namespaces
+    # get list of terminology namespaces
     assert client.get("/terminology/namespaces.json").get_json() == {
         "http://bartoc.org/en/node/18274": "http://www.w3.org/2004/02/skos/core#"}
+
+    # Skosmos configuraton
+    skosmos = Path("tests/skosmos-18274.ttl").read_text().rstrip()
+    res = client.get("/terminology/18274/stage/skosmos.ttl").data.decode("utf-8")
+    assert res == skosmos
 
     # replace list of terminologies
     assert client.put("/terminology/", json={}).status_code == 400

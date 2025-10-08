@@ -1,38 +1,40 @@
-{
-  "void": "http://rdfs.org/ns/void#",
-  "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
-  "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
-  "owl": "http://www.w3.org/2002/07/owl#",
-  "xsd": "http://www.w3.org/2001/XMLSchema#",
-  "dc": "http://purl.org/dc/terms/",
-  "foaf": "http://xmlns.com/foaf/0.1/",
-  "wv": "http://vocab.org/waiver/terms/norms",
-  "sd": "http://www.w3.org/ns/sparql-service-description#",
-  "skos": "http://www.w3.org/2004/02/skos/core#",
-  "skosmos": "http://purl.org/net/skosmos#",
-  "isothes": "http://purl.org/iso25964/skos-thes#",
-  "mdrtype": "http://publications.europa.eu/resource/authority/dataset-type/",
-  "prefLabel": {
-    "@id": "dc:title",
-    "@container": "@language"
-  },
-  "definition": {
-    "@id": "dc:description",
-    "@container": "@language"
-  },
-  "languages": {
-    "@id": "skosmos:language",
-    "@container": "@set"
-  },
-  "namespace": "void:uriSpace",
-  "@base": "http://example.org/",
-  "uri": {
-    "@id": "skosmos:sparqlGraph",
-    "@type": "@id" 
-  },
-  "id": "@id",
-  "a": {
-    "@id": "rdf:type",
-    "@type": "@id" 
+{  
+  "@context": {
+    "void": "http://rdfs.org/ns/void#",
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "owl": "http://www.w3.org/2002/07/owl#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "dc": "http://purl.org/dc/terms/",
+    "foaf": "http://xmlns.com/foaf/0.1/",
+    "wv": "http://vocab.org/waiver/terms/norms",
+    "sd": "http://www.w3.org/ns/sparql-service-description#",
+    "skos": "http://www.w3.org/2004/02/skos/core#",
+    "skosmos": "http://purl.org/net/skosmos#",
+    "isothes": "http://purl.org/iso25964/skos-thes#",
+    "mdrtype": "http://publications.europa.eu/resource/authority/dataset-type/",
+    "prefLabel": {
+      "@id": "dc:title",
+      "@container": "@language"
+    },
+    "definition": {
+      "@id": "dc:description",
+      "@container": "@language"
+    },
+    "languages": {
+      "@id": "skosmos:language",
+      "@container": "@set"
+    },
+    "namespace": "void:uriSpace",
+    "@base": "http://example.org/",
+    "uri": {
+      "@id": "skosmos:sparqlGraph",
+      "@type": "@id" 
+    },
+    "id": "@id",
+    "a": {
+      "@id": "rdf:type",
+      "@type": "@id" 
+    }
   }
 }
