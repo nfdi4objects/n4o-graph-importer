@@ -6,9 +6,12 @@ from .errors import NotFound, ValidationError
 from .rdf import jsonld2nt
 from .registry import Registry
 
+ROOT = Path(__file__).parent.parent
+
 
 class TerminologyRegistry(Registry):
-    context = read_json(Path(__file__).parent.parent / 'jskos-context.json')
+    context = read_json(ROOT / 'jskos-context.json')
+    skosmos_context = read_json(ROOT / 'skosmos-context.json')
     increment = False
 
     def __init__(self, **config):
@@ -38,7 +41,18 @@ class TerminologyRegistry(Registry):
         if not len(voc):
             raise NotFound(f"Terminology not found: {uri}")
 
-        return super().register(voc[0], id)
+        voc = super().register(voc[0], id)
+
+        # Experimental: create Skosmos configuration section
+        config = voc.copy()
+        config["a"] = ["skosmos:Vocabulary", "void:Dataset"]
+        config["id"] = f"uri#{id}"
+        with open(self.stage / "skosmos.ttl", "w") as f:
+            # TODO: emit beautiful Turtle instead of raw N-Triples
+            ttl = jsonld2nt(config, self.skosmos_context)
+            f.write(ttl)
+
+        return voc
 
     def preprocess_source(self, id, original, fmt, log):
         if fmt == "ndjson":

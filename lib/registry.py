@@ -215,6 +215,7 @@ class Registry:
                 # TODO: source may be a DOI or similar identifier
                 # ./extract-rdf.py $download_dir $stage/triples.nt
                 log.append(f"Retrieving source from {source}")
+                # TODO: caching (download only if modified)
                 with urllib.request.urlopen(source) as fsrc, open(original, 'wb') as fdst:
                     copyfileobj(fsrc, fdst)
         except Exception as e:

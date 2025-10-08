@@ -23,7 +23,7 @@ def access_location(data):
         fmt = access.get("format", None)
         if "download" in access:
             return access["download"], fmt
-        if "url" in access:
+        elif "url" in access:
             url = access["url"]
             try:
                 info = datahugger.info(url)
