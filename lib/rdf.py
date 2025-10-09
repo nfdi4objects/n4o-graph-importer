@@ -21,12 +21,22 @@ def jsonld2nt(doc, context):
 class TripleStore:
     def __init__(self, api):
         self.api = api
+        self.prefixes = {
+            "dcat": "http://www.w3.org/ns/dcat#",
+            "dct": "http://purl.org/dc/terms/",
+            "xsd": "http://www.w3.org/2001/XMLSchema#"
+        }
+
+    def client(self, query):
+        client = SPARQLWrapper(self.api, returnFormat='json')
+        prefixes = "".join([f"PREFIX {p}: <{self.prefixes[p]}>\n" for p in self.prefixes])
+        client.setQuery(prefixes + query)
+        return client
 
     def query(self, query):
-        wrapper = SPARQLWrapper(self.api, returnFormat='json')
-        wrapper.setQuery(query)
+        client = self.client(query)
         try:
-            return wrapper.queryAndConvert()["results"]["bindings"]
+            return client.queryAndConvert()["results"]["bindings"]
         except Exception as e:
             raise ServerError(f"SPARQL Query failed: {e}")
 
@@ -37,11 +47,10 @@ class TripleStore:
         return "\n".join([f"{row['s']} {row['p']} {row['o']} ." for row in rows])
 
     def update(self, query):
-        sparql = SPARQLWrapper(self.api, returnFormat='json')
-        sparql.method = 'POST'
-        sparql.setQuery(query)
+        client = self.client(query)
+        client.method = 'POST'
         try:
-            res = sparql.query()
+            res = client.query()
             if res.response.code != 200:
                 raise ServerError(f"HTTP Status code {res.response.code}")
         except Exception as e:

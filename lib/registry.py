@@ -89,8 +89,7 @@ class Registry:
         return self.list()
 
     def update_metadata(self):
-        query = f"SELECT * {{ GRAPH <{self.graph}>" + \
-            "{ VALUES (?p) {(<http://purl.org/dc/terms/issued>)} ?s ?p ?o } }"
+        query = f"SELECT * {{ GRAPH <{self.graph}> {{ VALUES (?p) {{(dct:issued)}} ?s ?p ?o }} }}"
         issued = self.sparql.query_ttl(query)
         metadata = jsonld2nt(self.list(), self.context)
         file = self.stage / f"{self.kind}.ttl"
@@ -122,28 +121,30 @@ class Registry:
 
     def update_distribution(self, id, log, published=True):
         uri = self.get(id)["uri"]
-        self.sparql.delete(self.graph, f"<{uri}> <http://purl.org/dc/terms/issued> ?issued")
+        download = f"{self.graph}{id}/stage/{self.kind}-{id}.nt"
 
-        # TODO:
-        # download = f"{self.graph}{id}/stage/{self.kind}-{id}.nt"
-        # self.sparql.update("\n".join([
-        #    "PREFIX dcat: <http://www.w3.org/ns/dcat#>"
-        #    "DELETE {"
-        #    f"<{uri}> dcat:distribution ?d . ?d ?p ?o"
-        #    "} WHERE {"
-        #    f"<{uri}> dcat:distribution> ?d; ?d dcat:downloadURL> <{download}> }}"]))
+        self.sparql.delete(self.graph, f"<{uri}> dct:issued ?issued")
+        query = f"DELETE {{ <{uri}> dcat:distribution ?s. ?s ?p ?o }} WHERE {{ <{uri}> dcat:distribution ?s . ?s dcat:downloadURL <{download}> }}"
+        self.sparql.update(query)
 
         if published:
             log.append("Update issued timestamp and distribution")
             issued = datetime.now().replace(microsecond=0).isoformat()
-            triples = f'<{uri}> <http://purl.org/dc/terms/issued> "{issued}"' \
-                + '^^<http://www.w3.org/2001/XMLSchema#dateTime>'
+            triples = "\n".join([
+                f'<{uri}> dct:issued "{issued}"^^xsd:dateTime .',
+                f'<{uri}> dcat:distribution [',
+                f"dcat:accessURL <{uri}> ;",
+                f"dcat:downloadURL <{download}> ;",
+                f'dct:issued "{issued}"^^xsd:dateTime ;',
+                "dcat:mediaType <https://www.iana.org/assignments/media-types/application/n-triples> ;",
+                "dct:format <http://publications.europa.eu/resource/authority/file-type/RDF_N_TRIPLES> ",
+                # TODO: dct:license and dct:modified ?
+                # TODO: dcat:byteSize
+                "]"
+            ])
             self.sparql.insert(self.graph, triples)
-            # TODO: add distribution statement with downloadURL and format
         else:
-            log.append("Removing issued timestamp and distribution")
-
-        # TODO: add download URL unless already loaded
+            log.append("Removed issued timestamp and distribution")
 
     def remove(self, id):
         uri = self.get(id)["uri"]
