@@ -1,4 +1,4 @@
-{  
+{
   "@context": {
     "void": "http://rdfs.org/ns/void#",
     "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
@@ -29,12 +29,19 @@
     "@base": "http://example.org/",
     "uri": {
       "@id": "skosmos:sparqlGraph",
-      "@type": "@id" 
+      "@type": "@id"
+    },
+    "subject": {
+      "@context": {
+        "uri": "@id"
+      },
+      "@id": "dc:subject",
+      "@type": "@id"
     },
     "id": "@id",
     "a": {
       "@id": "rdf:type",
-      "@type": "@id" 
+      "@type": "@id"
     }
   }
 }

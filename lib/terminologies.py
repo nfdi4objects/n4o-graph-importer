@@ -41,18 +41,29 @@ class TerminologyRegistry(Registry):
         if not len(voc):
             raise NotFound(f"Terminology not found: {uri}")
 
-        voc = super().register(voc[0], id)
+        return super().register(voc[0], id)
 
-        # Experimental: create Skosmos configuration section
-        config = voc.copy()
-        config["a"] = ["skosmos:Vocabulary", "void:Dataset"]
-        config["id"] = f"{uri}#{id}"
-        with open(self.stage / id / "skosmos.ttl", "w") as f:
-            ttl = jsonld2nt(config, self.skosmos_context)
+    def update_distribution(self, id, log, published=True):
+        super().update_distribution(id, log, published)
+
+        stage = self.stage / str(id)
+        file = stage / "skosmos.ttl"
+        if not stage.is_dir():
+            return
+
+        voc = self.get(id)
+        query = f"SELECT * {{ GRAPH <{voc['uri']}> {{ ?voc a <http://www.w3.org/2004/02/skos/core#ConceptScheme> }} }} LIMIT 1"
+        if not (voc.get("languages", []) and self.sparql.query(query)):
+            if file.is_file():
+                file.unlink()
+            return
+
+        voc["a"] = ["skosmos:Vocabulary", "void:Dataset"]
+        voc["id"] = f"{self.graph}{id}/stage/skosmos.ttl#{id}"
+        with open(file, "w") as f:
+            ttl = jsonld2nt(voc, self.skosmos_context)
             ttl = "\n".join(sorted(ttl.rstrip().split("\n")))
             f.write(ttl)
-
-        return voc
 
     def preprocess_source(self, id, original, fmt, log):
         if fmt == "ndjson":

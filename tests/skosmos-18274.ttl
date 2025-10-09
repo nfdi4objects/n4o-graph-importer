@@ -1,5 +1,0 @@
-<http://bartoc.org/en/node/18274#18274> <http://purl.org/dc/terms/title> "Simple Knowledge Organization System"@en .
-<http://bartoc.org/en/node/18274#18274> <http://purl.org/net/skosmos#sparqlGraph> <http://bartoc.org/en/node/18274> .
-<http://bartoc.org/en/node/18274#18274> <http://rdfs.org/ns/void#uriSpace> "http://www.w3.org/2004/02/skos/core#" .
-<http://bartoc.org/en/node/18274#18274> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://purl.org/net/skosmos#Vocabulary> .
-<http://bartoc.org/en/node/18274#18274> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://rdfs.org/ns/void#Dataset> .

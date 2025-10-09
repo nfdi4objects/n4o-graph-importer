@@ -143,11 +143,6 @@ def test_terminology(client):
     assert client.get("/terminology/namespaces.json").get_json() == {
         "http://bartoc.org/en/node/18274": "http://www.w3.org/2004/02/skos/core#"}
 
-    # Skosmos configuraton
-    skosmos = Path("tests/skosmos-18274.ttl").read_text().rstrip()
-    res = client.get("/terminology/18274/stage/skosmos.ttl").data.decode("utf-8")
-    assert res == skosmos
-
     # replace list of terminologies
     assert client.put("/terminology/", json={}).status_code == 400
     assert client.put("/terminology/", json=[{}]).status_code == 400
@@ -179,6 +174,9 @@ def test_terminology(client):
     assert client.post('/terminology/18274/load').status_code == 200
     assert client.get('/terminology/18274/load').status_code == 200
 
+    # no Skosmos configuraton as it's no SKOS vocabulary
+    assert client.get("/terminology/18274/stage/skosmos.ttl").status_code == 404
+
     # try to receive and load an unregistered terminology
     assert client.post(
         '/terminology/20533/receive?from=abc').status_code == 404
@@ -192,19 +190,24 @@ def test_terminology(client):
         '/terminology/20533/receive?from=20533.concepts.ndjson').status_code == 200
     assert client.post('/terminology/20533/load').status_code == 200
 
+    # check Skosmos configuration
+    skosmos = Path("tests/skosmos-20533.ttl").read_text().rstrip()
+    res = client.get("/terminology/20533/stage/skosmos.ttl").data.decode("utf-8")
+    assert res == skosmos
+
     with patch('urllib.request.urlopen', new=mock_urlopen):
         query = '/terminology/20533/receive?from=http://example.org/20533.concepts.ndjson'
         assert client.post(query).status_code == 200
 
     # check size of terminology graphs
     assert count_graphs() == {
-        'https://graph.nfdi4objects.net/terminology/': 29,
+        'https://graph.nfdi4objects.net/terminology/': 30,
         'http://bartoc.org/en/node/18274': 377,
         'http://bartoc.org/en/node/20533': 679
     }
     assert client.post("/terminology/20533/remove").status_code == 200
     assert count_graphs() == {
-        'https://graph.nfdi4objects.net/terminology/': 28,
+        'https://graph.nfdi4objects.net/terminology/': 29,
         'http://bartoc.org/en/node/18274': 377,
     }
 
@@ -218,7 +221,7 @@ def test_terminology(client):
     assert client.delete('/terminology/18274').status_code == 200
     assert count_graphs() == {
         # TODO: this seems wrong if terminology is unregistered
-        'https://graph.nfdi4objects.net/terminology/': 27,
+        'https://graph.nfdi4objects.net/terminology/': 28,
     }
 
     # TODO: this cleanup should not be required!

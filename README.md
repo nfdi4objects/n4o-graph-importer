@@ -5,7 +5,7 @@
 
 > Import RDF data into the NFDI4Objects Knowledge Graph
 
-This [web service](#api) implements a controlled workflow to import RDF data into the triple store of [NFDI4Objects Knowledge Graph](https://graph.nfdi4objects.net/). The service is provided [as Docker image](https://github.com/nfdi4objects/n4o-graph-importer) but it can also be run from sources for [development and testing](#development). 
+This [web service](#api) implements a controlled workflow to import RDF data into the triple store of [NFDI4Objects Knowledge Graph](https://graph.nfdi4objects.net/). The service is provided [as Docker image](https://github.com/nfdi4objects/n4o-graph-importer) but it can also be run from sources for [development and testing](#development).
 
 ## Table of Contents
 
@@ -89,7 +89,7 @@ flowchart LR
   S("**stage**"):::data
   T("**triple store**"):::data
 
-  START -- register --> R 
+  START -- register --> R
   R -- receive --> S
   S -- load --> T
   T -- remove --> R
@@ -134,7 +134,7 @@ List and get files from local data directory.
 
 ### Terminologies
 
-Terminologies are identified by their [BARTOC] identifier. Terminology data should be registered before receiving collection data to detect use of terminologies in collections. 
+Terminologies are identified by their [BARTOC] identifier. Terminology data should be registered before receiving collection data to detect use of terminologies in collections.
 
 #### GET /terminology
 
@@ -171,7 +171,7 @@ List and get files of the stage directory of a terminology.
 
 #### POST /terminology/:id/receive
 
-Receive terminology data. The location of the data is going to be extracted from terminology metadata from BARTOC but this has not been implemented yet. For now pass query parameter `from` instead to locate an URL or the name of a file in the data directory. File format can be: 
+Receive terminology data. The location of the data is going to be extracted from terminology metadata from BARTOC but this has not been implemented yet. For now pass query parameter `from` instead to locate an URL or the name of a file in the data directory. File format can be:
 
 - RDF/Turtle for file extension `.ttl` or `.nt`
 - RDF/XML for file extension `.rdf` or `.xml`
@@ -184,11 +184,11 @@ Get latest receive log of a terminology.
 
 #### POST /terminology/:id/load
 
-Load received terminology data into the triple store.
+Load received terminology data into the triple store. If the terminology is SKOS format (possibly converted from JSKOS) and the terminology has title and language information, a configuration file `skosmos.ttl` to be used for [Skosmos](https://skosmos.org/) is also generated in the stage are of the terminology.
 
 #### GET /terminology/:id/load
 
-Get latest load log of a terminology. 
+Get latest load log of a terminology.
 
 #### POST /terminology/:id/remove
 
@@ -236,7 +236,7 @@ Return metadata of a specific registered collection.
 
 Update metadata of a specific registered collection or register a new collection.
 
-#### DELETE /collection/:id 
+#### DELETE /collection/:id
 
 Unregister a collection and remove it from the triple store and staging area. This implies [DELETE /collection/:id/remove](#delete-collectionidremove).
 
@@ -246,7 +246,7 @@ List and get files of the stage directory of a collection.
 
 #### POST /collection/:id/receive
 
-Receive and process collection data. The location of the data is taken from collection metadata field `access` if existing. The location can be overridden with optional query parameter `from` with an URL or a file name from local data directory. File format can be: 
+Receive and process collection data. The location of the data is taken from collection metadata field `access` if existing. The location can be overridden with optional query parameter `from` with an URL or a file name from local data directory. File format can be:
 
 - RDF/Turtle for file extension `.ttl` or `.nt`
 - RDF/XML for file extension `.rdf` or `.xml`
@@ -300,7 +300,7 @@ Return a specific mapping source.
 
 Update metadata of a specific mapping source.
 
-#### DELETE /mappings/:id 
+#### DELETE /mappings/:id
 
 Unregister a mapping source and remove it from the triple store and staging area. This implies [DELETE /mappings/:id/remove](#delete-mappingsidremove).
 
@@ -384,5 +384,5 @@ docker compose create
 Licensed under [Apache License](http://www.apache.org/licenses/) 2.0.
 
 [BARTOC]: https://bartoc.org/
-[n4o-fuseki]: https://github.com/nfdi4objects/n4o-fuseki#readme 
-[n4o-graph-apis]: https://github.com/nfdi4objects/n4o-graph-apis#readme 
+[n4o-fuseki]: https://github.com/nfdi4objects/n4o-fuseki#readme
+[n4o-graph-apis]: https://github.com/nfdi4objects/n4o-graph-apis#readme

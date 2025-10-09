@@ -55,6 +55,9 @@
     ],
     "subject": [
       {
+        "uri": "http://dewey.info/class/7/e23/"
+      },
+      {
         "uri": "http://dewey.info/class/737/e23/",
         "inScheme": [
           {
