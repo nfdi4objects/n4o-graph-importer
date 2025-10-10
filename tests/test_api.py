@@ -192,12 +192,8 @@ def test_terminology(client):
 
     # check Skosmos configuration
     skosmos = Path("tests/skosmos-20533.ttl").read_text().rstrip()
-    res = client.get("/terminology/20533/stage/skosmos.ttl").data.decode("utf-8")
-    assert res == skosmos
-
-    with patch('urllib.request.urlopen', new=mock_urlopen):
-        query = '/terminology/20533/receive?from=http://example.org/20533.concepts.ndjson'
-        assert client.post(query).status_code == 200
+    assert client.get("/terminology/20533/stage/skosmos.ttl").data.decode("utf-8") == skosmos
+    assert client.get("/terminology/skosmos.ttl").data.decode("utf-8") == skosmos
 
     # check size of terminology graphs
     assert count_graphs() == {

@@ -28,6 +28,7 @@ This [web service](#api) implements a controlled workflow to import RDF data int
     - [GET /terminology/:id/load](#get-terminologyidload)
     - [POST /terminology/:id/remove](#post-terminologyidremove)
     - [GET /terminology/namespaces.json](#get-terminologynamespacesjson)
+    - [GET /terminology/skosmos.ttl](#get-terminologyskosmosttl)
   - [Collections](#collections)
     - [GET /collection/](#get-collection)
     - [GET /collection/schema.json](#get-collectionschemajson)
@@ -197,6 +198,10 @@ Remove terminology data from the triple store and from staging area. The termino
 #### GET /terminology/namespaces.json
 
 Return registered URI namespaces forbidden to be used in RDF subjects. The result is a JSON object with terminology URIs as keys and namespaces as values. For instance the SKOS (<http://bartoc.org/en/node/18274>) namespace is <http://www.w3.org/2004/02/skos/core#> so RDF triples with subjects in this namespace can only be added to the knowledge graph via `/terminology/18274`.
+
+#### GET /terminology/skosmos.ttl
+
+Return Skosmos vocabulary configuration for imported (J)SKOS vocabularies.
 
 ### Collections
 

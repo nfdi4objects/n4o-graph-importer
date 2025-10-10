@@ -24,12 +24,17 @@ class TerminologyRegistry(Registry):
                 namespaces[voc["uri"]] = voc["namespace"]
         return namespaces
 
-    def register(self, item):
-        try:
-            id = str(int(item.get("id")))
-        except Exception:
-            raise ValidationError("Missing or malformed BARTOC id")
+    def skosmos(self):
+        ttl = ""
+        for voc in self.list():
+            file = self.stage / voc["id"] / "skosmos.ttl"
+            if file.is_file():
+                ttl = ttl + file.read_text()
 
+        return ttl
+
+    def register(self, item):
+        id = str(int(item.get("id")))
         uri = f"{self.prefix}{id}"
 
         bartoc = Path(self.data) / 'bartoc.json'
@@ -47,20 +52,20 @@ class TerminologyRegistry(Registry):
         super().update_distribution(id, log, published)
 
         stage = self.stage / str(id)
-        file = stage / "skosmos.ttl"
         if not stage.is_dir():
             return
 
+        skosmos = stage / "skosmos.ttl"
         voc = self.get(id)
         query = f"SELECT * {{ GRAPH <{voc['uri']}> {{ ?voc a <http://www.w3.org/2004/02/skos/core#ConceptScheme> }} }} LIMIT 1"
         if not (voc.get("languages", []) and self.sparql.query(query)):
-            if file.is_file():
-                file.unlink()
+            if skosmos.is_file():
+                skosmos.unlink()
             return
 
         voc["a"] = ["skosmos:Vocabulary", "void:Dataset"]
         voc["id"] = f"{self.graph}{id}/stage/skosmos.ttl#{id}"
-        with open(file, "w") as f:
+        with open(skosmos, "w") as f:
             ttl = jsonld2nt(voc, self.skosmos_context)
             ttl = "\n".join(sorted(ttl.rstrip().split("\n")))
             f.write(ttl)

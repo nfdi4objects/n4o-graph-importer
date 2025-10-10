@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request, render_template, send_from_directory, send_file
+from flask import Flask, jsonify, request, render_template, send_from_directory, send_file, Response
 from waitress import serve
 from lib import CollectionRegistry, TerminologyRegistry, MappingRegistry, \
     ApiError, NotFound, ValidationError, TripleStore
@@ -80,6 +80,9 @@ api('GET', '/status.json', status)
 
 api('GET', '/terminology/', lambda: terminologies.list())
 api('GET', '/terminology/namespaces.json', lambda: terminologies.namespaces())
+
+route('GET', '/terminology/skosmos.ttl', lambda: Response(terminologies.skosmos(), mimetype="text/turtle"))
+
 api('PUT', '/terminology/', lambda: terminologies.replace(request.get_json(force=True)))
 api('GET', '/terminology/<int:id>', lambda id: terminologies.get(id))
 api('PUT', '/terminology/<int:id>', lambda id: terminologies.register({"id": str(id)}))
