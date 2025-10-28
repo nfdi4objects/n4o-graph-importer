@@ -3,7 +3,8 @@ from datetime import datetime
 from shutil import copy, copyfileobj, rmtree
 import urllib
 from jsonschema import validate
-from .rdf import jsonld2nt, TripleStore, triple_iterator
+from .rdf import jsonld2nt, TripleStore
+from .rdffilter import RDFFilter
 from .log import Log
 from .errors import NotFound, ClientError, ValidationError
 from .utils import read_json, write_json, access_location
@@ -13,7 +14,7 @@ import re
 class Registry:
     context = None
     schema = None
-    increment = True
+    auto_ids = True
 
     def __init__(self, kind, **config):
         self.base = config["base"]
@@ -49,7 +50,7 @@ class Registry:
                 raise ValidationError(f"malformed URI: {item['uri']}")
 
         if not id:
-            if self.increment:
+            if self.auto_ids:
                 items = self.list()
                 id = str(max(int(c["id"]) for c in items) + 1 if items else 1)
             else:
@@ -184,13 +185,12 @@ class Registry:
             elif fmt == "rdf/xml":
                 fmt = "xml"
 
-        # TODO: configure and extend this. Add support of .zip files
         if not fmt:
             if Path(source).suffix in [".nt", ".ttl"]:
                 fmt = "ttl"
             elif Path(source).suffix in [".rdf", ".xml"]:
                 fmt = "xml"
-            elif Path(source).suffix in [".ndjson"]:
+            elif Path(source).suffix in [".ndjson", ".jsonl"]:
                 fmt = "ndjson"
             elif Path(source).suffix in [".zip", ".ZIP"]:
                 fmt = "zip"
@@ -229,26 +229,14 @@ class Registry:
         """Returned file must be RDF or ZIP (with RDF)."""
         return file
 
-    def receive_rdf(self, id, source, log):
+    def rdf_filter(self, id):
         namespaces = tuple(list(self.forbidden_namespaces(id).values()))
+        return RDFFilter(disallow_subject_ns=namespaces)
 
+    def receive_rdf(self, id, source, log):
         stage = self.stage / str(id)
-        checked = open(stage / f"{self.kind}-{id}.nt", "w")
-        removed = open(stage / "removed.nt", "w")
+        keep = open(stage / f"{self.kind}-{id}.nt", "w")
+        remove = open(stage / "removed.nt", "w")
 
-        okCount, removedCount = 0, 0
-        for s, p, o in triple_iterator(source, log):
-            # TODO: implement more filtering and rewrite
-            if str(s)[1:].startswith(namespaces):
-                removedCount = removedCount + 1
-                removed.write(f"{s} {p} {o} .\n")
-            else:
-                okCount = okCount + 1
-                # TODO: filter out namespaces
-                # if predicate.startswith(rdflib.RDFS)
-                checked.write(f"{s} {p} {o} .\n")
-
-        log.append(
-            f"Removed {removedCount} triples, remaining {okCount} unique triples.")
-
-        # TODO: if okCount is zero, raise an error
+        kept, removed, changed = self.rdf_filter(id).process(source, keep, remove, log)
+        # TODO: if keptCount is zero, raise an error

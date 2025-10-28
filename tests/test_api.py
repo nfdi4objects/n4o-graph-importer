@@ -375,8 +375,18 @@ def test_mappings(client):
         'Removed 0 triples, remaining 1 unique triples.',
         'done']
 
+    query = "SELECT ?x { <http://example.org/A> ?p ?x }"
+    assert sparql.query(query) == [{'x': {'type': 'uri', 'value': 'http://example.com/A'}}]
+
+    mappings = [{"type": ["http://www.w3.org/2004/02/skos/core#exactMatch"], "from": {"memberSet": [
+        {"uri": "http://example.org/A"}]}, "to": {"memberSet": [{"uri": "http://example.com/A"}]}}]
+    assert client.post('/mappings/1/detach', json=mappings).status_code == 200
+    assert sparql.query(query) == []
+
     assert client.post('/mappings/2/receive?from=mappings.ttl').status_code == 200
     assert client.post('/mappings/2/load').status_code == 200
-    # TODO: check contents
+
+    query = "SELECT ?x { <http://d-nb.info/gnd/4193078-2> ?p ?x }"
+    assert len(sparql.query(query)) == 1
 
     assert client.get("/mappings/2/stage/").status_code == 200

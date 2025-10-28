@@ -2,7 +2,7 @@ from pathlib import Path
 import requests
 import json
 from .utils import read_json
-from .errors import NotFound, ValidationError
+from .errors import NotFound
 from .rdf import jsonld2nt
 from .registry import Registry
 
@@ -12,7 +12,7 @@ ROOT = Path(__file__).parent.parent
 class TerminologyRegistry(Registry):
     context = read_json(ROOT / 'jskos-context.json')
     skosmos_context = read_json(ROOT / 'skosmos-context.json')
-    increment = False
+    auto_ids = False
 
     def __init__(self, **config):
         super().__init__("terminology", prefix="http://bartoc.org/en/node/", **config)

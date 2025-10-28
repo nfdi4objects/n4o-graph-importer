@@ -71,7 +71,7 @@ Three kinds of data can be imported seperately:
 - **collections** of arbitrary RDF data from open research data repositories
 - **mappings** between resources from terminologies
 
-Each terminology, and each collection is imported into an individual named graph. Mappings are also grouped in named graph for individual mapping sources. Terminology graph URIs equal to BARTOC URIs. Collection graph URIs and mapping source graphs consist of URI namespace <https://graph.nfdi4objects.net/collection/> and <https://graph.nfdi4objects.net/mappings/>, respectively, followed by a numeric identifier. Metadata of terminologies, collections, and mappings sources is merged into two additional graphs, <https://graph.nfdi4objects.net/terminology/>, <https://graph.nfdi4objects.net/collection/>, and <https://graph.nfdi4objects.net/mappings/> respectively.
+Each terminology, and each collection is imported into an individual named graph. Mappings are also grouped in named graph for individual mapping sources. Terminology graph URIs equal to BARTOC URIs. Collection graph URIs and mapping source graphs consist of URI namespace <https://graph.nfdi4objects.net/collection/> and <https://graph.nfdi4objects.net/mappings/>, respectively, followed by a numeric identifier. Metadata of terminologies, collections, and mapping sources is merged into two additional graphs, <https://graph.nfdi4objects.net/terminology/>, <https://graph.nfdi4objects.net/collection/>, and <https://graph.nfdi4objects.net/mappings/> respectively.
 
 Importing is controlled via [an HTTP API](#api) in three steps:
 
@@ -279,11 +279,11 @@ Mappings are grouped in **mapping sources**, which correspond to concordances or
 
 #### GET /mappings/
 
-Return the list of registered mappings sources.
+Return the list of registered mapping sources.
 
 #### GET /mappings/schema.json
 
-Return the [mapping sources schema](mappings-schema.json)) used to validate mapping sources.
+Return the [mapping sources schema](mappings-schema.json) used to validate mapping sources.
 
 #### GET /mappings/properties.json
 
@@ -291,7 +291,7 @@ Get a list of supported mapping properties. By default this is the list of [SKOS
 
 #### PUT /mappings/
 
-Register a list of mappings sources. All existing mapping sources and mappings will be deleted.
+Register a list of mapping sources. All existing mapping sources and mappings will be deleted.
 
 #### POST /mappings/
 
@@ -311,15 +311,11 @@ Unregister a mapping source and remove it from the triple store and staging area
 
 #### POST /mappings/:id/append
 
-Directly add mappings to the triple store, bypassing the receive/load workflow. Directly added triples are not stored in the staging area so they will not persist a load operation of the selected mapping source. The format of mappings data (same as supported by [POST /mappings/:id/receive](#post-mappingsidreceive)) is detected automatically from the first line.
-
-*Not implemented yet!*
+Directly add mappings to the triple store, bypassing the receive/load workflow. Directly added triples are not stored in the staging area so they will not persist a load operation of the selected mapping source. Expects a JSON array with mappings in JSKOS format.
 
 #### POST /mappings/:id/detach
 
-Directly remove mappings from the triple store. This operation is not reflected in the staging area so it will not persist a load operation of the seleceted mapping source. The format of mappings data (same as supported by [POST /mappings/:id/receive](#post-mappingsidreceive)) is detected automatically from the first line. Passing non-existing mappings does not result in an error.
-
-*Not implemented yet!*
+Directly remove mappings from the triple store. This operation is not reflected in the staging area so it will not persist a load operation of the seleceted mapping source. Expects a JSON array with mappings in JSKOS format. Non-existing mappings are ignored.
 
 #### GET /mappings/:id/stage/
 

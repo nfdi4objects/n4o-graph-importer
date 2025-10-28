@@ -16,10 +16,10 @@ api:
 	@FRONTEND=http://127.0.0.1:8000 npm run --silent api
 
 lint:
-	@.venv/bin/flake8 *.py lib/*.py tests/*.py --ignore=C901,E741,W504 --exit-zero --max-complexity=10 --max-line-length=110 --statistics
+	@.venv/bin/flake8 *.py lib/*.py tests/*.py --ignore=C901,E741,W504 --exit-zero --max-complexity=10 --max-line-length=115 --statistics
 
 fix:
-	@.venv/bin/autopep8 --in-place --max-line-length=110 *.py lib/*.py tests/*.py
+	@.venv/bin/autopep8 --in-place --max-line-length=115 *.py lib/*.py tests/*.py
 
 tests/20533.concepts.ndjson:
 	curl -s https://api.dante.gbv.de/export/download/kenom_material/default/kenom_material__default.jskos.ndjson | \
