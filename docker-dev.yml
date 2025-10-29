@@ -27,11 +27,6 @@ services:
       fuseki: 
         condition: service_healthy
 
-  converter:
-    image: ghcr.io/nfdi4objects/lido-rdf-converter:main
-    networks:
-      - n4o
-
 networks:
   n4o:
     driver: bridge
