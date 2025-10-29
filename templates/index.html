@@ -46,7 +46,7 @@
   <li>
     <b>PUT <a onclick="replaceTerminologies(this)">/terminology/</a></b>
     <input type="file" name="file" id="put-terminology-file">
-    {{ help("Initially register a list of terminologies","put-terminology") }}
+    {{ help("Register a list of terminologies, replacing existing ones","put-terminology") }}
   </li>
   <li>
     <b>GET <a onclick="visit(this,'/terminology/'+idValue.ter+'/stage/')">/terminology/</a>{{ input_id("ter") }}/stage/</b>
@@ -95,7 +95,7 @@
   <li>
     <b>PUT <a onclick="replaceCollections(this)">/collection/</a></b>
     <input type="file" name="file" id="put-collection-file">
-    {{ help("Initially register a list of collections","put-collection") }}
+    {{ help("Register a list of collections, replacing existing ones","put-collection") }}
   </li>
   <li>
     <b>POST <a onclick="registerCollection(this)">/collection/</a></b>
@@ -154,7 +154,7 @@
   <li>
     <b>PUT <a onclick="replaceMappings(this)">/mappings/</a></b>
     <input type="file" name="file" id="put-mappings-file">
-    {{ help("Register a list of mappings sources","put-mappings") }}
+    {{ help("Register a list of mappings sources, removing all existing mappings and mapping sources","put-mappings") }}
   </li>
   <li>
     <b>POST <a onclick="registerMappings(this)">/mappings/</a></b>

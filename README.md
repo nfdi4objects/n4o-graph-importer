@@ -155,7 +155,7 @@ Unregister a terminology and remove it from stage directory and triple store. Th
 
 #### PUT /terminology/
 
-Register a list of terminologies. This is only allowed as long as the current list is empty. The response body is expected to be a JSON array with objects having key `uri` with the BARTOC URI like this:
+Replace the list of terminologies. By unregistering all and registering a new list. The response body is expected to be a JSON array with objects having key `uri` with the BARTOC URI like this:
 
 ~~~json
 [
@@ -227,7 +227,7 @@ Return the JSON Schema used to validation collection metadata. See file [collect
 
 #### PUT /collection/
 
-Register a list of collections. This is only allowed if the current list is empty.
+Replace the list of collections by unregistering all and registering a new list of collections.
 
 #### POST /collection/
 
