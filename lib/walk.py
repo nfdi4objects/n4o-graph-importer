@@ -42,3 +42,5 @@ def walk(top) -> list:
             path, name = os.path.split(top)
             path = [] if path == '' else [path]
             yield name, path, None
+    else:
+        raise Exception(f"file not found: {top}")

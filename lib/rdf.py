@@ -100,7 +100,6 @@ def triple_iterator(source, log):
         elif name.endswith(".rdf"):
             format = "xml"
         elif name.endswith(".xml"):
-            # TODO: check whether it's RDF/XML?
             format = "xml"
         else:
             continue
@@ -112,6 +111,17 @@ def triple_iterator(source, log):
             file = f"{'/'.join(path)}/{name}"
             base = f"file://{file}"
 
+        #  Check whether XML file is RDF/XML
+        if format == "xml":
+            f = open(file, "r") if type(file) == str else file
+            # FIXME: this requires all XML files to be UTF-8!
+            xml = f.read()
+            if type(xml) == bytes:
+                xml = xml.decode("utf-8")
+            if 'http://www.w3.org/1999/02/22-rdf-syntax-ns#' not in xml:
+                continue
+            f.seek(0)
+
         try:
             log.append(f"Extracting RDF from {base} as {format}")
             # TODO: pass errors as warnings to logger instead of STDERR
@@ -119,4 +129,4 @@ def triple_iterator(source, log):
                 yield triple
         except Exception as e:
             log.append(f"Error parsing {base}: {e}")
-            continue
+            raise e
