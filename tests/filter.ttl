@@ -1,0 +1,18 @@
+@prefix crm: <http://www.cidoc-crm.org/cidoc-crm/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+
+<http://example.org/x> a
+     crm:E1_CRM_Entity ,                                    # keep
+     <http://www.cidoc-crm.org/cidoc-crm/E1_CRM_Entity> .   # ignore (duplicated)
+
+### remove:
+
+crm:E1_CRM_Entity a owl:Class .                             # disallowed namespace
+
+<file:///dev/null> a crm:E1_CRM_Entity .                    # local IRI
+
+### Rewrite
+
+<http://example.org/y> a <http://cidoc-crm.org/current/E1_CRM_Entity> .
+
+<http://cidoc-crm.org/current/E1_CRM_Entity> a owl:Class .  # disallowed
