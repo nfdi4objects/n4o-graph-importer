@@ -8,8 +8,13 @@ class LogMock:
         pass
 
 
-def parse(source):
-    return [(s, p, o) for s, p, o in triple_iterator(source, LogMock())]
+def parse(source, filter=None, unique=False):
+    triples = [(s, p, o) for s, p, o in triple_iterator(source, LogMock())]
+    if filter:
+        triples = [t for t in [filter.check_triple(*t) for t in triples] if type(t) == list]
+    if unique:
+        triples = [list(t) for t in set(tuple(t) for t in triples)]
+    return triples
 
 
 def test_parsing():
@@ -25,8 +30,5 @@ def test_filter():
     assert len(triples) == 6
 
     filter = RDFFilter(disallow_subject_ns=('http://www.cidoc-crm.org/cidoc-crm/'))
-    triples = [t for t in [filter.check_triple(*t) for t in triples] if t]
-    # reduce to unique triples
-    triples = [list(t) for t in set(tuple(t) for t in triples)]
-
+    triples = parse("tests/filter.ttl", filter, True)
     assert len(triples) == 2

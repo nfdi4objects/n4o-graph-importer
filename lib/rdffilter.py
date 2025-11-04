@@ -51,22 +51,26 @@ class RDFFilter:
 
         # ignore local IRIs
         if any(iri.startswith("<file://") for iri in (s, p, o)):
-            return False
+            return "local URI"
 
         # replace IRI namespaces
         s = self.map(s)
+        if not s:
+            return "subject namespace"
         p = self.map(p)
+        if not p:
+            return "predicate namespace"
         o = self.map(o)
-        if not (s and p and o):
-            return
+        if not o:
+            return "object namespace"
 
         # disallow subject namespace
         if self.disallow_subject_ns and str(s)[1:].startswith(self.disallow_subject_ns):
-            return False
+            return "subject namespace not allowed"
 
         # only allow specific predicates
         if self.allow_predicate and p not in self.allow_predicate:
-            return False
+            return "predicate"
 
         return [s, p, o]
 
@@ -75,7 +79,10 @@ class RDFFilter:
 
         for s, p, o in triple_iterator(source, log):
             t = self.check_triple(s, p, o)
-            if not t:
+            if type(t) == str:
+                remove.write(f"{s} {p} {o} . # {t}\n")
+                removed = removed + 1
+            elif not t:
                 remove.write(f"{s} {p} {o} .\n")
                 removed = removed + 1
             elif t == True or t == [s, p, o]:

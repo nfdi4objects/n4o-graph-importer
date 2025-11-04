@@ -10,6 +10,8 @@ This [web service](#api) implements a controlled workflow to import RDF data int
 ## Table of Contents
 
 - [Usage](#usage)
+  - [Validation](#validation)
+  - [Filtering](#filtering)
 - [Configuration](#configuration)
 - [API](#api)
   - [General endpoints](#general-endpoints)
@@ -76,7 +78,7 @@ Each terminology, and each collection is imported into an individual named graph
 Importing is controlled via [an HTTP API](#api) in three steps:
 
 1. **register**: metadata is retrieved, collected in a **registry** and written to the triple store
-2. **receive**: data is retrieved into a **stage** directory where it is validated, filtered, and a report log is generated
+2. **receive**: data is retrieved into a **stage** directory where it is [validated](#validation), [filtered](#filtering), and a report log is generated
 2. **load**: processed data is loaded into the triple store
 
 Register can be undone by additional step **delete**. Load and receive can be undone by step **remove**. Mappings can also be injested and withdraw directly into/from the triple store via **append/detach** to support non-durable live-updates.
@@ -107,6 +109,14 @@ The application does not include any methods of authentification. It is meant to
 
 - [n4o-fuseki](https://github.com/nfdi4objects/n4o-fuseki): RDF triple store
 - [n4o-graph-apis](https://github.com/nfdi4objects/n4o-graph-apis): web interface and public SPARQL endpoint
+
+### Validation
+
+Data to be imported (RDF or JSKOS) must be syntactically valid. Additional validation has not been implemented yet.
+
+### Filterung
+
+*...not documented yet...*
 
 ## Configuration
 
