@@ -113,10 +113,10 @@ def triple_iterator(source, log):
 
         #  Check whether XML file is RDF/XML
         if format == "xml":
-            f = open(file, "r") if type(file) == str else file
+            f = open(file, "r") if type(file) is str else file
             # FIXME: this requires all XML files to be UTF-8!
             xml = f.read()
-            if type(xml) == bytes:
+            if type(xml) is bytes:
                 xml = xml.decode("utf-8")
             if 'http://www.w3.org/1999/02/22-rdf-syntax-ns#' not in xml:
                 continue

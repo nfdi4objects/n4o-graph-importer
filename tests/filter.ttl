@@ -2,10 +2,10 @@
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 
 <http://example.org/x> a
-     crm:E1_CRM_Entity ,                                    # keep
+     crm:E1_CRM_Entity ,                                    # Keep
      <http://www.cidoc-crm.org/cidoc-crm/E1_CRM_Entity> .   # ignore (duplicated)
 
-### remove:
+### Remove
 
 crm:E1_CRM_Entity a owl:Class .                             # disallowed namespace
 
@@ -16,3 +16,7 @@ crm:E1_CRM_Entity a owl:Class .                             # disallowed namespa
 <http://example.org/y> a <http://cidoc-crm.org/current/E1_CRM_Entity> .
 
 <http://cidoc-crm.org/current/E1_CRM_Entity> a owl:Class .  # disallowed
+
+### Keep
+
+<http://example.org/x> <http://purl.org/dc/terms/title> "Hello"@en .

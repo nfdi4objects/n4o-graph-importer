@@ -1,5 +1,3 @@
-import re
-from rdflib.term import URIRef
 from .rdf import triple_iterator
 
 # TODO: this should not be hardcoded here but in a config file
@@ -22,7 +20,7 @@ class NamespaceMap:
         for ns, mapped in self.namespaces.items():
             if iri.startswith(ns):
                 if mapped:
-                    if mapped == True:
+                    if mapped is True:
                         return iri
                     else:
                         return mapped + iri[len(ns):]
@@ -46,6 +44,7 @@ class RDFFilter:
         if value.startswith("<") and value.endswith(">"):
             iri = self.nsmap.map(value[1:-1])
             return f"<{iri}>" if iri else False
+        return value
 
     def check_triple(self, s, p, o):
 
@@ -79,13 +78,13 @@ class RDFFilter:
 
         for s, p, o in triple_iterator(source, log):
             t = self.check_triple(s, p, o)
-            if type(t) == str:
+            if type(t) is str:
                 remove.write(f"{s} {p} {o} . # {t}\n")
                 removed = removed + 1
             elif not t:
                 remove.write(f"{s} {p} {o} .\n")
                 removed = removed + 1
-            elif t == True or t == [s, p, o]:
+            elif t is True or t == [s, p, o]:
                 keep.write(f"{s} {p} {o} .\n")
                 kept = kept + 1
             else:
