@@ -49,7 +49,7 @@ class RDFFilter:
     def check_triple(self, s, p, o):
 
         # ignore local IRIs
-        if any(iri.startswith("<file://") for iri in (s, p, o)):
+        if any(iri.startswith("<file:") for iri in (s, p, o)):
             return "local URI"
 
         # replace IRI namespaces

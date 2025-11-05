@@ -236,7 +236,7 @@ class Registry:
     def receive_rdf(self, id, source, log):
         stage = self.stage / str(id)
         keep = open(stage / f"{self.kind}-{id}.nt", "w")
-        remove = open(stage / "removed.nt", "w")
+        remove = open(stage / f"{self.kind}-{id}-removed.nt", "w")
 
         kept, removed, changed = self.rdf_filter(id).process(source, keep, remove, log)
         # TODO: if keptCount is zero, raise an error

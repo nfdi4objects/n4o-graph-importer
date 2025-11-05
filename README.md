@@ -3,15 +3,19 @@
 [![Docker image](https://github.com/nfdi4objects/n4o-graph-importer/actions/workflows/docker.yml/badge.svg)](https://github.com/orgs/nfdi4objects/packages/container/package/n4o-graph-importer)
 [![Test](https://github.com/nfdi4objects/n4o-graph-importer/actions/workflows/test.yml/badge.svg)](https://github.com/nfdi4objects/n4o-graph-importer/actions/workflows/test.yml)
 
-> Import RDF data into the NFDI4Objects Knowledge Graph
+> Import RDF data into a Knowledge Graph
 
-This [web service](#api) implements a controlled workflow to import RDF data into the triple store of [NFDI4Objects Knowledge Graph](https://graph.nfdi4objects.net/). The service is provided [as Docker image](https://github.com/nfdi4objects/n4o-graph-importer) but it can also be run from sources for [development and testing](#development).
+This [web service](#api) implements a controlled workflow to import RDF data into the triple store of a knowledge graph.
+The service is provided [as Docker image](https://github.com/nfdi4objects/n4o-graph-importer) but it can also be run from sources for [development and testing](#development).
+
+The first use case and default configuration is management of the [NFDI4Objects Knowledge Graph](https://graph.nfdi4objects.net/). 
 
 ## Table of Contents
 
 - [Usage](#usage)
   - [Validation](#validation)
   - [Filtering](#filtering)
+  - [Reports](#reports)
 - [Configuration](#configuration)
 - [API](#api)
   - [General endpoints](#general-endpoints)
@@ -73,12 +77,14 @@ Three kinds of data can be imported seperately:
 - **collections** of arbitrary RDF data from open research data repositories
 - **mappings** between resources from terminologies
 
-Each terminology, and each collection is imported into an individual named graph. Mappings are also grouped in named graph for individual mapping sources. Terminology graph URIs equal to BARTOC URIs. Collection graph URIs and mapping source graphs consist of URI namespace <https://graph.nfdi4objects.net/collection/> and <https://graph.nfdi4objects.net/mappings/>, respectively, followed by a numeric identifier. Metadata of terminologies, collections, and mapping sources is merged into two additional graphs, <https://graph.nfdi4objects.net/terminology/>, <https://graph.nfdi4objects.net/collection/>, and <https://graph.nfdi4objects.net/mappings/> respectively.
+Each terminology, and each collection is imported into an individual named graph. Mappings are also grouped in named graph for individual mapping sources. Terminology graph URIs equal to BARTOC URIs. Collection graph URIs and mapping source graphs consist of URI namespace `http://example.org/collection/` and `http://example.org/mappings/`, respectively, followed by a numeric identifier.Metadata of terminologies, collections, and mapping sources is merged into two additional graphs, http://example.org/terminology/`, http://example.org/collection/`, and `http://example.org/mappings/` respectively.
+
+The URI namespace prefix `http://example.org/` can and should be changed by [configuration]. It is currently set to `https://graph.nfdi4objects.net/` by default.
 
 Importing is controlled via [an HTTP API](#api) in three steps:
 
 1. **register**: metadata is retrieved, collected in a **registry** and written to the triple store
-2. **receive**: data is retrieved into a **stage** directory where it is [validated](#validation), [filtered](#filtering), and a report log is generated
+2. **receive**: data is retrieved into a **stage** directory where it is [validated](#validation), [filtered](#filtering), and a [report](#reports) is generated
 2. **load**: processed data is loaded into the triple store
 
 Register can be undone by additional step **delete**. Load and receive can be undone by step **remove**. Mappings can also be injested and withdraw directly into/from the triple store via **append/detach** to support non-durable live-updates.
@@ -112,26 +118,48 @@ The application does not include any methods of authentification. It is meant to
 
 ### Validation
 
-Data to be imported (RDF or JSKOS) must be syntactically valid. Additional validation has not been implemented yet.
+Received data in RDF or JSKOS format must be syntactically valid. Additional validation has not been implemented yet.
 
-### Filterung
+### Filtering
+
+RDF data is filtered depending on kind of data and configuration.
 
 *...not documented yet...*
+
+### Reports
+
+Reports are generated on receiving and loading data. The final format of reports has not been specified yet.
+
+Reports can be accessed with the following API methods:
+
+- [GET /terminology/:id/receive](#get-terminologyidreceive)
+- [GET /terminology/:id/load](#get-terminologyidload)
+- [GET /collection/:id/receive](#get-collectionidreceive)
+- [GET /collection/:id/load](#get-collectionidload)
+- [GET /mappings/:id/receive](#get-mappingsidreceive)
+- [GET /mappings/:id/load](#get-mappingsidload)
+
+Receiving data generates two additional files in the stage directory (replace `X` with a selected numeric identifier):
+
+- `terminology-X.nt`/`collection-X.nt`/`mappings-X.nt`: validated and filtered RDF triples to be imported
+- `terminology-X-removed.nt`/`collection-X-removed.nt`/`mappings-X-removed.nt`: triples removed on [filtering]
 
 ## Configuration
 
 The web service and its Docker image can be configured via environment variables:
 
 - `TITLE`: title of the application. Default: `N4O Graph Importer`
-- `BASE`: base URI of named graphs. Default: `https://graph.nfdi4objects.net/`
-- `FRONTEND`: URL of [n4o-graph-apis] instance. Default is the value of `BASE`
+- `BASE`: base URI of named graphs. Default: `https://graph.nfdi4objects.net/` (this will be changed to `http://example.org/`)
 - `SPARQL`: API endpoint of SPARQL Query protocol, SPARQL Update protocol and SPARQL Graph store protocol. Default: <http://localhost:3030/n4o>.
 - `STAGE`: writeable stage directory. Default: `stage`
 - `DATA`: local data directory for file import
+- `FRONTEND`: URL of [n4o-graph-apis] instance. This is included in [/status.json](#get-statusjson) and shown in the HTML interface for convenience only. Default is the value of `BASE`
 
 If the data directory contains a file `bartoc.json` with an array of JSKOS records from BARTOC, this file is used as source of terminology metadata instead of BARTOC API. Script `update-terminologies` in this repository can be used to get a subset from BARTOC, including all [terminologies listed in NFDI4Objects](https://bartoc.org/vocabularies?partOf=http://bartoc.org/en/node/18961).
 
 ## API
+
+There is a minimal HTML interface at root path (**GET /**) to try out the API. This is more useful than an interface generated automatically with Swagger. The API is not meant to be publically available (there is no authentification), so there is no need for an [OpenAPI](https://swagger.io/specification/) document anyway.
 
 ### General endpoints
 
