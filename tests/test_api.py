@@ -35,17 +35,6 @@ collection_3_full = {
     "partOf": [base]
 }
 
-# for pretty-printing
-# Namespace prefixes for pretty RDF/Turtle
-# def to_rdf(doc, context):
-#    prefixes = read_json(Path(__file__).parent.parent / 'prefixes.json')
-#    nquads = jsonld2nt(doc, context)
-#    g = Graph(bind_namespaces="none")
-#    for prefix, uri in prefixes.items():
-#        g.bind(prefix, Namespace(uri))
-#    g.parse(data=nquads, format='nquads')
-#    return g
-
 
 def count_graphs():
     query = "SELECT ?g (count(*) as ?t) { GRAPH ?g {?s ?p ?o} } GROUP BY ?g"

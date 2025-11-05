@@ -12,4 +12,4 @@ ENV PATH="/app:$PATH"
 COPY . .
 
 ENTRYPOINT []
-CMD ["start.sh"]
+CMD ["python", "./app.py"]

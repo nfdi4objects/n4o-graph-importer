@@ -1,4 +1,5 @@
 #!/usr/bin/bash
+# This script must be run from root directory of repository.
 set -euo pipefail
 
 SPARQL_PORT=3033
@@ -14,7 +15,7 @@ cleanup() {
 trap 'cleanup 1' ERR
 
 count=5
-until ./sparql-update "INSERT DATA {}" || (( count-- == 0 )); do
+until ./tests/sparql-update "INSERT DATA {}" || (( count-- == 0 )); do
   echo "Waiting for SPARQL endpoint $SPARQL ..."
   sleep 1
 done

@@ -8,7 +8,7 @@
 This [web service](#api) implements a controlled workflow to import RDF data into the triple store of a knowledge graph.
 The service is provided [as Docker image](https://github.com/nfdi4objects/n4o-graph-importer) but it can also be run from sources for [development and testing](#development).
 
-The first use case and default configuration is management of the [NFDI4Objects Knowledge Graph](https://graph.nfdi4objects.net/). 
+Development is being funded as part of [NFDI4Objects](https://www.nfdi4objects.net/) to build the [NFDI4Objects Knowledge Graph](https://graph.nfdi4objects.net/). 
 
 ## Table of Contents
 
@@ -408,19 +408,16 @@ docker run --rm -p 3030:3030 ghcr.io/nfdi4objects/n4o-fuseki:main
 
 To also inspect the content of the triple store, use [n4o-graph-apis].
 
-*TODO: add description how to run this container*
+*TODO: add description how to run this both*
 
-<!--
-~~~sh
-docker run --rm --net=host -p 8000:8000 -v ./config-apis.yaml:/app/config.yaml:ro -v ./stage:/app/stage:ro ghcr.io/nfdi4objects/n4o-graph-apis:main
-~~~
--->
-
-The Docker image of n4o-graph-importer is automatically build on GitHub. To locally build the image for testing:
+The Docker image of n4o-graph-importer is automatically build on GitHub. To locally build and run the image for testing:
 
 ~~~sh
 docker compose create
+docker compose run -p 5020:5020 importer
 ~~~
+
+*TODO: add description how to also run triple store and apis*
 
 ## License
 

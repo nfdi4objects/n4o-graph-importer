@@ -1,5 +1,7 @@
 #!/usr/bin/bash
-. utils.sh
+
+SPARQL=${SPARQL:-http://localhost:3030/n4o}
+SPARQL_UPDATE=${SPARQL_UPDATE:-$SPARQL}
 
 if [ $# -ne 1 ]; then
     echo "Usage: $0 SPARQL"
