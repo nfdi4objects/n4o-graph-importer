@@ -23,16 +23,16 @@ The first use case and default configuration is management of the [NFDI4Objects 
     - [GET /data/](#get-data)
   - [Terminologies](#terminologies)
     - [GET /terminology](#get-terminology)
-    - [GET /terminology/:id](#get-terminologyid)
-    - [PUT /terminology/:id](#put-terminologyid)
-    - [DELETE /terminology/:id](#delete-terminologyid)
+    - [GET /terminology/{id}](#get-terminologyid)
+    - [PUT /terminology/{id}](#put-terminologyid)
+    - [DELETE /terminology/{id}](#delete-terminologyid)
     - [PUT /terminology/](#put-terminology)
-    - [GET /terminology/:id/stage/](#get-terminologyidstage)
-    - [POST /terminology/:id/receive](#post-terminologyidreceive)
-    - [GET /terminology/:id/receive](#get-terminologyidreceive)
-    - [POST /terminology/:id/load](#post-terminologyidload)
-    - [GET /terminology/:id/load](#get-terminologyidload)
-    - [POST /terminology/:id/remove](#post-terminologyidremove)
+    - [GET /terminology/{id}/stage/](#get-terminologyidstage)
+    - [POST /terminology/{id}/receive](#post-terminologyidreceive)
+    - [GET /terminology/{id}/receive](#get-terminologyidreceive)
+    - [POST /terminology/{id}/load](#post-terminologyidload)
+    - [GET /terminology/{id}/load](#get-terminologyidload)
+    - [POST /terminology/{id}/remove](#post-terminologyidremove)
     - [GET /terminology/namespaces.json](#get-terminologynamespacesjson)
     - [GET /terminology/skosmos.ttl](#get-terminologyskosmosttl)
   - [Collections](#collections)
@@ -40,32 +40,32 @@ The first use case and default configuration is management of the [NFDI4Objects 
     - [GET /collection/schema.json](#get-collectionschemajson)
     - [PUT /collection/](#put-collection)
     - [POST /collection/](#post-collection)
-    - [GET /collection/:id](#get-collectionid)
-    - [PUT /collection/:id](#put-collectionid)
-    - [DELETE /collection/:id](#delete-collectionid)
-    - [GET /collection/:id/stage/](#get-collectionidstage)
-    - [POST /collection/:id/receive](#post-collectionidreceive)
-    - [GET /collection/:id/receive](#get-collectionidreceive)
-    - [POST /collection/:id/load](#post-collectionidload)
-    - [GET /collection/:id/load](#get-collectionidload)
-    - [POST /collection/:id/remove](#post-collectionidremove)
+    - [GET /collection/{id}](#get-collectionid)
+    - [PUT /collection/{id}](#put-collectionid)
+    - [DELETE /collection/{id}](#delete-collectionid)
+    - [GET /collection/{id}/stage/](#get-collectionidstage)
+    - [POST /collection/{id}/receive](#post-collectionidreceive)
+    - [GET /collection/{id}/receive](#get-collectionidreceive)
+    - [POST /collection/{id}/load](#post-collectionidload)
+    - [GET /collection/{id}/load](#get-collectionidload)
+    - [POST /collection/{id}/remove](#post-collectionidremove)
   - [Mappings](#mappings)
     - [GET /mappings/](#get-mappings)
     - [GET /mappings/schema.json](#get-mappingsschemajson)
     - [GET /mappings/properties.json](#get-mappingspropertiesjson)
     - [PUT /mappings/](#put-mappings)
     - [POST /mappings/](#post-mappings)
-    - [GET /mappings/:id](#get-mappingsid)
-    - [PUT /mappings/:id](#put-mappingsid)
-    - [DELETE /mappings/:id](#delete-mappingsid)
-    - [POST /mappings/:id/append](#post-mappingsidappend)
-    - [POST /mappings/:id/detach](#post-mappingsiddetach)
-    - [GET /mappings/:id/stage/](#get-mappingsidstage)
-    - [POST /mappings/:id/receive](#post-mappingsidreceive)
-    - [GET /mappings/:id/receive](#get-mappingsidreceive)
-    - [POST /mappings/:id/load](#post-mappingsidload)
-    - [GET /mappings/:id/load](#get-mappingsidload)
-    - [POST /mappings/:id/remove](#post-mappingsidremove)
+    - [GET /mappings/{id}](#get-mappingsid)
+    - [PUT /mappings/{id}](#put-mappingsid)
+    - [DELETE /mappings/{id}](#delete-mappingsid)
+    - [POST /mappings/{id}/append](#post-mappingsidappend)
+    - [POST /mappings/{id}/detach](#post-mappingsiddetach)
+    - [GET /mappings/{id}/stage/](#get-mappingsidstage)
+    - [POST /mappings/{id}/receive](#post-mappingsidreceive)
+    - [GET /mappings/{id}/receive](#get-mappingsidreceive)
+    - [POST /mappings/{id}/load](#post-mappingsidload)
+    - [GET /mappings/{id}/load](#get-mappingsidload)
+    - [POST /mappings/{id}/remove](#post-mappingsidremove)
 - [Development](#development)
 - [License](#license)
 
@@ -77,14 +77,14 @@ Three kinds of data can be imported seperately:
 - **collections** of arbitrary RDF data from open research data repositories
 - **mappings** between resources from terminologies
 
-Each terminology, and each collection is imported into an individual named graph. Mappings are also grouped in named graph for individual mapping sources. Terminology graph URIs equal to BARTOC URIs. Collection graph URIs and mapping source graphs consist of URI namespace `http://example.org/collection/` and `http://example.org/mappings/`, respectively, followed by a numeric identifier.Metadata of terminologies, collections, and mapping sources is merged into two additional graphs, http://example.org/terminology/`, http://example.org/collection/`, and `http://example.org/mappings/` respectively.
+Each terminology, and each collection is imported into an individual named graph. Mappings are also grouped in named graph for individual mapping sources. Terminology graph URIs equal to [BARTOC] URIs. Collection graph URIs and mapping source graphs consist of URI namespace `http://example.org/collection/` and `http://example.org/mappings/`, respectively, followed by a numeric identifier.Metadata of terminologies, collections, and mapping sources is merged into three additional graphs, `http://example.org/terminology/`, `http://example.org/collection/`, and `http://example.org/mappings/` respectively.
 
-The URI namespace prefix `http://example.org/` can and should be changed by [configuration]. It is currently set to `https://graph.nfdi4objects.net/` by default.
+The URI namespace prefix `http://example.org/` can and should be changed by [configuration](#configuration). It is currently set to `https://graph.nfdi4objects.net/` by default.
 
 Importing is controlled via [an HTTP API](#api) in three steps:
 
 1. **register**: metadata is retrieved, collected in a **registry** and written to the triple store
-2. **receive**: data is retrieved into a **stage** directory where it is [validated](#validation), [filtered](#filtering), and a [report](#reports) is generated
+2. **receive**: data is retrieved into a **stage** directory where it is [validated](#validation), [filtered](#filtering), and a [report] is generated
 2. **load**: processed data is loaded into the triple store
 
 Register can be undone by additional step **delete**. Load and receive can be undone by step **remove**. Mappings can also be injested and withdraw directly into/from the triple store via **append/detach** to support non-durable live-updates.
@@ -122,27 +122,31 @@ Received data in RDF or JSKOS format must be syntactically valid. Additional val
 
 ### Filtering
 
+[filtering]: #filtering
+
 RDF data is filtered depending on kind of data and configuration.
 
 *...not documented yet...*
 
 ### Reports
 
+[report]: #reports
+
 Reports are generated on receiving and loading data. The final format of reports has not been specified yet.
 
 Reports can be accessed with the following API methods:
 
-- [GET /terminology/:id/receive](#get-terminologyidreceive)
-- [GET /terminology/:id/load](#get-terminologyidload)
-- [GET /collection/:id/receive](#get-collectionidreceive)
-- [GET /collection/:id/load](#get-collectionidload)
-- [GET /mappings/:id/receive](#get-mappingsidreceive)
-- [GET /mappings/:id/load](#get-mappingsidload)
+- [GET /terminology/{id}/receive](#get-terminologyidreceive)
+- [GET /terminology/{id}/load](#get-terminologyidload)
+- [GET /collection/{id}/receive](#get-collectionidreceive)
+- [GET /collection/{id}/load](#get-collectionidload)
+- [GET /mappings/{id}/receive](#get-mappingsidreceive)
+- [GET /mappings/{id}/load](#get-mappingsidload)
 
-Receiving data generates two additional files in the stage directory (replace `X` with a selected numeric identifier):
+Receiving data generates two additional files in the stage directory (replace `{id}` with a selected numeric identifier):
 
-- `terminology-X.nt`/`collection-X.nt`/`mappings-X.nt`: validated and filtered RDF triples to be imported
-- `terminology-X-removed.nt`/`collection-X-removed.nt`/`mappings-X-removed.nt`: triples removed on [filtering]
+- `terminology-{id}.nt`/`collection-{id}.nt`/`mappings-{id}.nt`: validated and filtered RDF triples to be imported
+- `terminology-{id}-removed.nt`/`collection-{id}-removed.nt`/`mappings-{id}-removed.nt`: triples removed on [filtering]
 
 ## Configuration
 
@@ -153,13 +157,13 @@ The web service and its Docker image can be configured via environment variables
 - `SPARQL`: API endpoint of SPARQL Query protocol, SPARQL Update protocol and SPARQL Graph store protocol. Default: <http://localhost:3030/n4o>.
 - `STAGE`: writeable stage directory. Default: `stage`
 - `DATA`: local data directory for file import
-- `FRONTEND`: URL of [n4o-graph-apis] instance. This is included in [/status.json](#get-statusjson) and shown in the HTML interface for convenience only. Default is the value of `BASE`
+- `FRONTEND`: URL of [n4o-graph-apis] instance. This is included as field `frontend` in [/status.json](#get-statusjson) and shown in the HTML interface for convenience. Default is the value of `BASE`
 
 If the data directory contains a file `bartoc.json` with an array of JSKOS records from BARTOC, this file is used as source of terminology metadata instead of BARTOC API. Script `update-terminologies` in this repository can be used to get a subset from BARTOC, including all [terminologies listed in NFDI4Objects](https://bartoc.org/vocabularies?partOf=http://bartoc.org/en/node/18961).
 
 ## API
 
-There is a minimal HTML interface at root path (**GET /**) to try out the API. This is more useful than an interface generated automatically with Swagger. The API is not meant to be publically available (there is no authentification), so there is no need for an [OpenAPI](https://swagger.io/specification/) document anyway.
+There is a minimal HTML interface at root path (**GET /**) to try out the API. This is more useful than an interface generated automatically, for instance with Swagger. The API is not meant to be publically available (there is no authentification), so there is no need for an [OpenAPI](https://swagger.io/specification/) document anyway.
 
 ### General endpoints
 
@@ -179,17 +183,17 @@ Terminologies are identified by their [BARTOC] identifier. Terminology data shou
 
 Return the list of registered terminologies.
 
-#### GET /terminology/:id
+#### GET /terminology/{id}
 
 Return metadata of a registered terminology.
 
-#### PUT /terminology/:id
+#### PUT /terminology/{id}
 
 Register a terminology or update its metadata from BARTOC. The metadata is directly added to the triple store. Updates may lead to errors in description of terminologies because removal of statements is limited to simple triples with terminology URI as subject!
 
-#### DELETE /terminology/:id
+#### DELETE /terminology/{id}
 
-Unregister a terminology and remove it from stage directory and triple store. This implies [DELETE /terminology/:id/remove](#delete-terminologyidremove).
+Unregister a terminology and remove it from stage directory and triple store. This implies [DELETE /terminology/{id}/remove](#delete-terminologyidremove).
 
 #### PUT /terminology/
 
@@ -204,11 +208,11 @@ Replace the list of terminologies. By unregistering all and registering a new li
 
 Other fields are ignored so the return value of [GET /terminology/](#get-terminology) can be used as payload.
 
-#### GET /terminology/:id/stage/
+#### GET /terminology/{id}/stage/
 
 List and get files of the stage directory of a terminology.
 
-#### POST /terminology/:id/receive
+#### POST /terminology/{id}/receive
 
 Receive terminology data. The location of the data is going to be extracted from terminology metadata from BARTOC but this has not been implemented yet. For now pass query parameter `from` instead to locate an URL or the name of a file in the data directory. File format can be:
 
@@ -217,19 +221,19 @@ Receive terminology data. The location of the data is going to be extracted from
 - JSKOS as newline delimited JSON for file extension `.ndjson`
 - A ZIP archive containing RDF files for file extension `.zip`
 
-#### GET /terminology/:id/receive
+#### GET /terminology/{id}/receive
 
-Get latest receive log of a terminology.
+Get latest receive [report] of a terminology.
 
-#### POST /terminology/:id/load
+#### POST /terminology/{id}/load
 
 Load received terminology data into the triple store. If the terminology is SKOS format (possibly converted from JSKOS) and the terminology has title and language information, a configuration file `skosmos.ttl` to be used for [Skosmos](https://skosmos.org/) is also generated in the stage are of the terminology.
 
-#### GET /terminology/:id/load
+#### GET /terminology/{id}/load
 
-Get latest load log of a terminology.
+Get latest load [report] of a terminology.
 
-#### POST /terminology/:id/remove
+#### POST /terminology/{id}/remove
 
 Remove terminology data from the triple store and from staging area. The terminology will still be registered and its metadata is not removed from the triple store.
 
@@ -271,23 +275,23 @@ Replace the list of collections by unregistering all and registering a new list 
 
 Register a new collection or update metadata of a registered collection.
 
-#### GET /collection/:id
+#### GET /collection/{id}
 
 Return metadata of a specific registered collection.
 
-#### PUT /collection/:id
+#### PUT /collection/{id}
 
 Update metadata of a specific registered collection or register a new collection.
 
-#### DELETE /collection/:id
+#### DELETE /collection/{id}
 
-Unregister a collection and remove it from the triple store and staging area. This implies [DELETE /collection/:id/remove](#delete-collectionidremove).
+Unregister a collection and remove it from the triple store and staging area. This implies [DELETE /collection/{id}/remove](#delete-collectionidremove).
 
-#### GET /collection/:id/stage/
+#### GET /collection/{id}/stage/
 
 List and get files of the stage directory of a collection.
 
-#### POST /collection/:id/receive
+#### POST /collection/{id}/receive
 
 Receive and process collection data. The location of the data is taken from collection metadata field `access` if existing. The location can be overridden with optional query parameter `from` with an URL or a file name from local data directory. File format can be:
 
@@ -295,19 +299,19 @@ Receive and process collection data. The location of the data is taken from coll
 - RDF/XML for file extension `.rdf` or `.xml`
 - A ZIP archive containing RDF files for file extension `.zip`
 
-#### GET /collection/:id/receive
+#### GET /collection/{id}/receive
 
-Get latest receive log of a collection.
+Get latest receive [report] of a collection.
 
-#### POST /collection/:id/load
+#### POST /collection/{id}/load
 
 Load received and processed collection data into the triple store.
 
-#### GET /collection/:id/load
+#### GET /collection/{id}/load
 
-Get latest load log of a collection.
+Get latest load [report] of a collection.
 
-#### POST /collection/:id/remove
+#### POST /collection/{id}/remove
 
 Remove collection data from the triple store and from staging area. The collection will still be registered and its metadata is not removed from the triple store.
 
@@ -335,53 +339,53 @@ Register a list of mapping sources. All existing mapping sources and mappings wi
 
 Register a new mapping source or update metadata of a mapping source.
 
-#### GET /mappings/:id
+#### GET /mappings/{id}
 
 Return a specific mapping source.
 
-#### PUT /mappings/:id
+#### PUT /mappings/{id}
 
 Update metadata of a specific mapping source.
 
-#### DELETE /mappings/:id
+#### DELETE /mappings/{id}
 
-Unregister a mapping source and remove it from the triple store and staging area. This implies [DELETE /mappings/:id/remove](#delete-mappingsidremove).
+Unregister a mapping source and remove it from the triple store and staging area. This implies [DELETE /mappings/{id}/remove](#delete-mappingsidremove).
 
-#### POST /mappings/:id/append
+#### POST /mappings/{id}/append
 
 Directly add mappings to the triple store, bypassing the receive/load workflow. Directly added triples are not stored in the staging area so they will not persist a load operation of the selected mapping source. Expects a JSON array with mappings in JSKOS format.
 
-#### POST /mappings/:id/detach
+#### POST /mappings/{id}/detach
 
 Directly remove mappings from the triple store. This operation is not reflected in the staging area so it will not persist a load operation of the seleceted mapping source. Expects a JSON array with mappings in JSKOS format. Non-existing mappings are ignored.
 
-#### GET /mappings/:id/stage/
+#### GET /mappings/{id}/stage/
 
 List and get files of the stage directory of a mapping source.
 
-#### POST /mappings/:id/receive
+#### POST /mappings/{id}/receive
 
 Receive and process mappings from a mapping source. The location of the data is taken from mapping source field `access` if existing. The location can be overridden with optional query parameter `from` with an URL or a file name from local data directory. The file format is derived from file name extension, unless explicitly specified in metadata field `access.format`. Mappings can be given as:
 
 - plain RDF triples in Turtle syntax (extension `.nt` or `.ttl`)
 - plain RDF triples in RDF/XML syntax (extension `.rdf` or `.xml`)
-- newline delimited JSON with [JSKOS Concept Mappings](https://gbv.github.io/jskos/#concept-mappings) (extension `.ndjson`), only 1-to-1 mappings are included
+- newline delimited JSON with [JSKOS Concept Mappings](https://gbv.github.io/jskos/#concept-mappings) (extension `.ndjson`). Only 1-to-1 mappings are included
 
-Mapping metadata such as date of creation and annotations is ignored.
+Mapping metadata such as date of creation and annotations are ignored.
 
-#### GET /mappings/:id/receive
+#### GET /mappings/{id}/receive
 
-Get latest receive log of a mapping source.
+Get latest receive [report] of a mapping source.
 
-#### POST /mappings/:id/load
+#### POST /mappings/{id}/load
 
 Load received and processed mapping into the triple store.
 
-#### GET /mappings/:id/load
+#### GET /mappings/{id}/load
 
-Get latest load log of a mapping source.
+Get latest load [report] of a mapping source.
 
-#### POST /mappings/:id/remove
+#### POST /mappings/{id}/remove
 
 Remove mappings of a specific mapping source from the triple store and from staging area. The mapping source will still be registered and its metadata is not removed from the triple store.
 
