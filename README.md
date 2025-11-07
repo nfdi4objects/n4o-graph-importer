@@ -13,6 +13,7 @@ Development is being funded as part of [NFDI4Objects](https://www.nfdi4objects.n
 ## Table of Contents
 
 - [Usage](#usage)
+  - [Graphs](#graphs)
   - [Validation](#validation)
   - [Filtering](#filtering)
   - [Reports](#reports)
@@ -77,9 +78,7 @@ Three kinds of data can be imported seperately:
 - **collections** of arbitrary RDF data from open research data repositories
 - **mappings** between resources from terminologies
 
-Each terminology, and each collection is imported into an individual named graph. Mappings are also grouped in named graph for individual mapping sources. Terminology graph URIs equal to [BARTOC] URIs. Collection graph URIs and mapping source graphs consist of URI namespace `http://example.org/collection/` and `http://example.org/mappings/`, respectively, followed by a numeric identifier.Metadata of terminologies, collections, and mapping sources is merged into three additional graphs, `http://example.org/terminology/`, `http://example.org/collection/`, and `http://example.org/mappings/` respectively.
-
-The URI namespace prefix `http://example.org/` can and should be changed by [configuration](#configuration). It is currently set to `https://graph.nfdi4objects.net/` by default.
+Each terminology, each collection, and each mapping source is imported into an individual named [graph]. 
 
 Importing is controlled via [an HTTP API](#api) in three steps:
 
@@ -116,6 +115,24 @@ The application does not include any methods of authentification. It is meant to
 - [n4o-fuseki](https://github.com/nfdi4objects/n4o-fuseki): RDF triple store
 - [n4o-graph-apis](https://github.com/nfdi4objects/n4o-graph-apis): web interface and public SPARQL endpoint
 
+### Graphs
+
+[graph]: #graphs
+
+The knowledge graph is organized in individual named graphs. URIs of most of these graphs are based on a namespace prefix, like `http://example.org/`. The prefix base can be changed by [configuration](#configuration) and it is currently set to `https://graph.nfdi4objects.net/` by default.
+
+- metadata about all terminologies is in graph of URI `http://example.org/terminology/`
+
+- metadata about all collections is in graph of URI `http://example.org/collection/`
+
+- metadata about all mapping sources is in graph of URI `http://example.org/mappings/`
+
+- each terminology is imported into a graph by its [BARTOC] URI
+
+- each collection is imported into a graph of URI namespace `http://example.org/collection/`, followed by a numeric identifier
+
+- mappings are grouped into mapping sources, each imported into a graph of URI namespace `http://example.org/mappings/`, followed by a numeric identifier
+
 ### Validation
 
 Received data in RDF or JSKOS format must be syntactically valid. Additional validation has not been implemented yet.
@@ -126,7 +143,7 @@ Received data in RDF or JSKOS format must be syntactically valid. Additional val
 
 RDF data is filtered depending on kind of data and configuration.
 
-*...not documented yet...*
+*Filtering is still being worked on and not fully documented yet.*
 
 ### Reports
 
