@@ -6,7 +6,7 @@ from jsonschema import validate
 from .rdf import jsonld2nt, TripleStore
 from .rdffilter import RDFFilter
 from .log import Log
-from .errors import NotFound, ClientError, ValidationError
+from .errors import ApiError, NotFound, ValidationError
 from .utils import read_json, write_json, access_location
 import re
 
@@ -196,7 +196,7 @@ class Registry:
                 fmt = "zip"
 
         if not fmt:
-            raise ClientError("Unknown data format")
+            raise ApiError("Unknown data format")
 
         return source, fmt
 

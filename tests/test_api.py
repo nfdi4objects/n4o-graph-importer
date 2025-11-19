@@ -50,6 +50,19 @@ def stage():
         yield tempdir
 
 
+def expect_error(client, method, path, json=None, error=None, code=400):
+    res = client.open(path, method=method, json=json)
+    assert res.status_code == code
+    if error:
+        if type(error) is str:
+            error = {"message": error}
+        error["code"] = code
+        res = res.get_json()
+        # print(res)
+        for key in error:
+            assert res.get(key, None) == error[key]
+
+
 @pytest.fixture
 def client(stage):
     app.testing = True
@@ -59,7 +72,9 @@ def client(stage):
          stage=stage, sparql=sparqlApi, data=data)
 
     with app.test_client() as client:
-        yield client, stage
+        def fail(*args, **kwargs):
+            return expect_error(client, *args, **kwargs)
+        yield client, fail, stage
 
 
 def mock_urlopen(url):
@@ -73,14 +88,8 @@ def mock_requests_get(url):
     return type('', (), {'json': lambda s: json})()
 
 
-def test_errors(client):
-    client, stage = client
-
-    def fail(method, path, payload, msg=None):
-        res = client.open(path, method=method, json=payload)
-        assert res.status_code == 400
-        if msg:
-            assert res.get_json()["error"] == msg
+def test_validation(client):
+    client, fail, _ = client
 
     # malformed payload
     fail("PUT", "/collection/1", [], "expected JSON object")
@@ -98,7 +107,7 @@ def test_errors(client):
 
 
 def test_terminology(client):
-    client, stage = client
+    client, fail, stage = client
 
     # Additional endpoints
     client.get('/data/').status_code == 200
@@ -108,8 +117,8 @@ def test_terminology(client):
         '/status.json').get_json()["title"] == "N4O Graph Import API TEST"
 
     # get unregisterd terminology
-    assert client.get("/terminology/18274").status_code == 404
-    assert client.get("/terminology/18274/stage/").status_code == 404
+    fail("GET", "/terminology/18274", code=404)
+    fail("GET", "/terminology/18274/stage/", code=404)
 
     with patch('requests.get', new=mock_requests_get):
 
@@ -118,10 +127,10 @@ def test_terminology(client):
         assert client.get("/terminology/18274").status_code == 200
 
         # try to register non-existing terminology
-        assert client.put("/terminology/0").status_code == 404
+        fail("PUT", "/terminology/0", code=404)
 
     assert client.get("/terminology/18274/stage/").status_code == 200
-    assert client.get("/terminology/18274/stage/terminology-18274.nt").status_code == 404
+    fail("GET", "/terminology/18274/stage/terminology-18274.nt", code=404)
 
     # get list of terminologies
     resp = client.get('/terminology/')
@@ -133,9 +142,9 @@ def test_terminology(client):
         "http://bartoc.org/en/node/18274": "http://www.w3.org/2004/02/skos/core#"}
 
     # replace list of terminologies
-    assert client.put("/terminology/", json={}).status_code == 400
-    assert client.put("/terminology/", json=[{}]).status_code == 400
-    assert client.put("/terminology/", json=[{"uri": "x"}]).status_code == 400
+    fail("PUT", "/terminology/", json={})
+    fail("PUT", "/terminology/", json=[{}], code=400)
+    fail("PUT", "/terminology/", json=[{"uri": "x"}], code=400)
     assert len(client.get('/terminology/').get_json()) == 1
     assert client.put("/terminology/", json=[]).status_code == 200
     assert client.get('/terminology/').get_json() == []
@@ -147,34 +156,31 @@ def test_terminology(client):
     assert len(client.get('/terminology/').get_json()) == 1
 
     # receive terminology data and check log
-    assert client.get('/terminology/18274/receive').status_code == 404
-    assert client.post('/terminology/18274/receive').status_code == 404
-    assert client.post(
-        '/terminology/18274/receive?from=abc').status_code == 400
-    assert client.post(
-        '/terminology/18274/receive?from=abc.rdf').status_code == 404
+    fail("GET", '/terminology/18274/receive', code=404)
+    fail("POST", '/terminology/18274/receive', code=404)
+    fail("POST", '/terminology/18274/receive?from=abc', code=400)
+    fail("POST", '/terminology/18274/receive?from=abc.rdf', code=404)
     assert client.post(
         '/terminology/18274/receive?from=skos.rdf').status_code == 200
     assert client.get('/terminology/18274/receive').status_code == 200
     assert client.get("/terminology/18274/stage/terminology-18274.nt").status_code == 200
 
     # load terminology data and check log
-    assert client.get('/terminology/18274/load').status_code == 404
+    fail("GET", '/terminology/18274/load', code=404)
     assert client.post('/terminology/18274/load').status_code == 200
     assert client.get('/terminology/18274/load').status_code == 200
 
     # no Skosmos configuraton as it's no SKOS vocabulary
-    assert client.get("/terminology/18274/stage/skosmos.ttl").status_code == 404
+    fail("GET", "/terminology/18274/stage/skosmos.ttl", code=404)
 
     # try to receive and load an unregistered terminology
-    assert client.post(
-        '/terminology/20533/receive?from=abc').status_code == 404
-    assert client.post('/terminology/20533/load').status_code == 404
+    fail("POST", '/terminology/20533/receive?from=abc', code=404)
+    fail("POST", '/terminology/20533/load', code=404)
 
     # register, receive, and load another terminology
     with patch('requests.get', new=mock_requests_get):
-        assert client.put('/terminology/20533').status_code == 200
-    assert client.post('/terminology/20533/load').status_code == 404
+        fail("PUT", '/terminology/20533', code=200)
+    fail("POST", '/terminology/20533/load', code=404)
     assert client.post(
         '/terminology/20533/receive?from=20533.concepts.ndjson').status_code == 200
     assert client.post('/terminology/20533/load').status_code == 200
@@ -200,7 +206,7 @@ def test_terminology(client):
     assert client.post("/terminology/20533/remove").status_code == 200
 
     # but graph must be registered
-    assert client.post("/terminology/1234/remove").status_code == 404
+    fail("POST", "/terminology/1234/remove", code=404)
 
     # delete terminology
     assert client.delete('/terminology/18274').status_code == 200
@@ -215,7 +221,7 @@ def test_terminology(client):
 
 
 def test_api(client):
-    client, stage = client
+    client, fail, stage = client
 
     # start without collections
     resp = client.get('/')
@@ -231,7 +237,7 @@ def test_api(client):
     assert resp.status_code == 200
     assert resp.get_json() == []
 
-    assert client.get('/collection/1').status_code == 404
+    fail("GET", '/collection/1', code=404)
 
     assert client.get('/collection/schema.json').status_code == 200
 
@@ -252,11 +258,11 @@ def test_api(client):
 
     # delete collection
     assert client.delete('/collection/1').status_code == 200
-    assert client.get('/collection/1').status_code == 404
+    fail("GET", '/collection/1', code=404)
 
     # try to receive and load non-existing collection
-    assert client.post('/collection/1/receive').status_code == 404
-    assert client.post('/collection/1/load').status_code == 404
+    fail("POST", '/collection/1/receive', code=404)
+    fail("POST", '/collection/1/load', code=404)
 
     # add again
     resp = client.put('/collection/1', json=collection_1)
@@ -280,7 +286,7 @@ def test_api(client):
     assert resp.get_json()["id"] == "4"
 
     # receive from file
-    assert client.post('/collection/3/receive').status_code == 404
+    fail("POST", '/collection/3/receive', code=404)
     assert client.post(
         '/collection/3/receive?from=data.ttl').status_code == 200
     assert client.get('/collection/3/receive').status_code == 200
@@ -303,7 +309,7 @@ def test_api(client):
     # register terminology and receive + load again
     # test local BARTOC cache
     copy("tests/bartoc-crm.json", "tests/bartoc.json")
-    assert client.put('/terminology/18274').status_code == 404
+    fail("PUT", '/terminology/18274', code=404)
     assert client.put('/terminology/1644').status_code == 200  # CIDOC-CRM
     os.remove("tests/bartoc.json")
 
@@ -343,7 +349,7 @@ def test_api(client):
 
 
 def test_mappings(client):
-    client, stage = client
+    client, fail, stage = client
 
     assert client.post('/mappings/', json={}).status_code == 200
     assert client.get('/mappings/1').status_code == 200
