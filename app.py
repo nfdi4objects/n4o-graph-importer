@@ -41,14 +41,16 @@ def init(**config):
     mappings = MappingRegistry(**app.config)
 
 
-@app.errorhandler(ValidationError)
-def handle_validation_error(e):
-    return jsonify(error="ValidationError", message=str(e), code=400), 400
-
-
 @app.errorhandler(ApiError)
 def handle_error(e):
     return jsonify(e.to_dict()), type(e).code
+
+
+@app.errorhandler(ValidationError)
+def handle_error(e):
+    e = e.to_dict()
+    e["code"] = 400
+    return jsonify(e), 400
 
 
 def route(method, path, fn):

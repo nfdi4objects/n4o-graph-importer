@@ -2,7 +2,7 @@ from pathlib import Path
 from datetime import datetime
 from shutil import copy, copyfileobj, rmtree
 import urllib
-from jsonschema import validate
+from .validate import validateJSON
 from .rdf import jsonld2nt, TripleStore
 from .rdffilter import RDFFilter
 from .log import Log
@@ -60,7 +60,7 @@ class Registry:
         item["uri"] = self.prefix + id
         item["partOf"] = [self.graph]
         if self.schema:
-            validate(instance=item, schema=self.schema)
+            validateJSON(item, schema=self.schema)
         return item
 
     def list(self):

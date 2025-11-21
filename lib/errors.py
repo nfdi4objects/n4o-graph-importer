@@ -1,4 +1,4 @@
-from jsonschema import ValidationError  # noqa
+from .validate import ValidationError  # noqa
 
 
 class ApiError(Exception):

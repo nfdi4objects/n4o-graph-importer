@@ -182,6 +182,8 @@ If the data directory contains a file `bartoc.json` with an array of JSKOS recor
 
 There is a minimal HTML interface at root path (**GET /**) to try out the API. This is more useful than an interface generated automatically, for instance with Swagger. The API is not meant to be publically available (there is no authentification), so there is no need for an [OpenAPI](https://swagger.io/specification/) document anyway.
 
+A HTTP 400 error with response body in [Data Validation Error Format](https://gbv.github.io/validation-error-format/) is returned if collection metadata or mapping source metadata does not conform to its corresponding JSON Schema.
+
 ### General endpoints
 
 #### GET /status.json
