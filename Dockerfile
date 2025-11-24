@@ -1,15 +1,16 @@
-FROM nikolaik/python-nodejs:latest
+FROM python:3.12-slim
+
 WORKDIR /app
-COPY package.json .
-COPY package-lock.json .
-COPY install-packages.sh .
-RUN ./install-packages.sh
-RUN npm ci --omit=dev
 
 COPY requirements.txt requirements.txt
 RUN pip3 install -r requirements.txt
-ENV PATH="/app:$PATH"
-COPY . .
+
+COPY app.py /app
+COPY lib/ /app/lib
+COPY templates/ /app/templates
+COPY static/ /app/static
+
+EXPOSE 5020
 
 ENTRYPOINT []
 CMD ["python", "./app.py"]

@@ -434,8 +434,8 @@ To also inspect the content of the triple store, use [n4o-graph-apis].
 The Docker image of n4o-graph-importer is automatically build on GitHub. To locally build and run the image for testing:
 
 ~~~sh
-docker compose create
-docker compose run -p 5020:5020 importer
+docker image build -t grimpo .
+IMPORTER_IMAGE=grimpo docker compose run --rm -p 5020:5020 importer
 ~~~
 
 *TODO: add description how to also run triple store and apis*
