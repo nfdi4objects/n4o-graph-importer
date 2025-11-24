@@ -6,12 +6,10 @@ from .errors import NotFound
 from .rdf import jsonld2nt
 from .registry import Registry
 
-ROOT = Path(__file__).parent.parent
-
 
 class TerminologyRegistry(Registry):
-    context = read_json(ROOT / 'jskos-context.json')
-    skosmos_context = read_json(ROOT / 'skosmos-context.json')
+    context = read_json(Path(__file__).parent / 'jskos-context.json')
+    skosmos_context = read_json(Path(__file__).parent / 'skosmos-context.json')
     auto_ids = False
 
     def __init__(self, **config):
@@ -57,7 +55,8 @@ class TerminologyRegistry(Registry):
 
         skosmos = stage / "skosmos.ttl"
         voc = self.get(id)
-        query = f"SELECT * {{ GRAPH <{voc['uri']}> {{ ?voc a <http://www.w3.org/2004/02/skos/core#ConceptScheme> }} }} LIMIT 1"
+        query = "SELECT * { GRAPH <%s> { ?voc a <%s> } } LIMIT 1" \
+            % (voc['uri'], 'http://www.w3.org/2004/02/skos/core#ConceptScheme')
         if not (voc.get("languages", []) and self.sparql.query(query)):
             if skosmos.is_file():
                 skosmos.unlink()

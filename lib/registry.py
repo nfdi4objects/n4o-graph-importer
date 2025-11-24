@@ -125,8 +125,10 @@ class Registry:
         download = f"{self.graph}{id}/stage/{self.kind}-{id}.nt"
 
         self.sparql.delete(self.graph, f"<{uri}> dct:issued ?issued")
-        query = f"DELETE {{ <{uri}> dcat:distribution ?s. ?s ?p ?o }} WHERE {{ <{uri}> dcat:distribution ?s . ?s dcat:downloadURL <{download}> }}"
-        self.sparql.update(query)
+        self.sparql.update((
+            "DELETE { <%s> dcat:distribution ?s. ?s ?p ?o }"
+            "WHERE { <%s> dcat:distribution ?s . ?s dcat:downloadURL <%s> }"
+        ) % (uri, uri, download))
 
         if published:
             log.append("Update issued timestamp and distribution")

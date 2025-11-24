@@ -266,7 +266,7 @@ Return Skosmos vocabulary configuration for imported (J)SKOS vocabularies.
 
 ### Collections
 
-Collections are described in a custom JSON format described by JSON Schema [collection-schema.json](collection-schema.json). This JSON data is enriched with field `id` and internally converted to RDF for import into the knowledge graph. In its simplest form, a collection should contain a name, an URL, and a license:
+Collections are described in a custom JSON format described by JSON Schema [collection-schema.json]. This JSON data is enriched with field `id` and internally converted to RDF for import into the knowledge graph. In its simplest form, a collection should contain a name, an URL, and a license:
 
 ~~~json
 {
@@ -284,7 +284,9 @@ Return the list of registered collections (metadata only).
 
 #### GET /collection/schema.json
 
-Return the JSON Schema used to validation collection metadata. See file [collection-schema.json](collection-schema.json). Collection field `id` is required by the schema but it gets assigned automatically in most cases.
+[collection-schema.json]: lib/collection-schema.json
+
+Return the JSON Schema used to validation collection metadata. See file [collection-schema.json]. Collection field `id` is required by the schema but it gets assigned automatically in most cases.
 
 #### PUT /collection/
 
@@ -344,7 +346,7 @@ Return the list of registered mapping sources.
 
 #### GET /mappings/schema.json
 
-Return the [mapping sources schema](mappings-schema.json) used to validate mapping sources.
+Return the [mapping sources schema](lib/mappings-schema.json) used to validate mapping sources.
 
 #### GET /mappings/properties.json
 

@@ -36,8 +36,8 @@ def jskos_mapping_triples(mappings) -> list:
 
 
 class MappingRegistry(Registry):
-    schema = read_json(Path(__file__).parent.parent / 'mappings-schema.json')
-    context = read_json(Path(__file__).parent.parent / 'collection-context.json')
+    schema = read_json(Path(__file__).parent / 'mappings-schema.json')
+    context = read_json(Path(__file__).parent / 'collection-context.json')
 
     def __init__(self, **config):
         super().__init__("mappings", **config)

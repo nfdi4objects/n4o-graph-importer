@@ -42,12 +42,12 @@ def init(**config):
 
 
 @app.errorhandler(ApiError)
-def handle_error(e):
+def handle_apierror(e):
     return jsonify(e.to_dict()), type(e).code
 
 
 @app.errorhandler(ValidationError)
-def handle_error(e):
+def handle_validationerror(e):
     e = e.to_dict()
     e["code"] = 400
     return jsonify(e), 400

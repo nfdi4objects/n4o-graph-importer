@@ -4,8 +4,8 @@ from .utils import read_json
 
 
 class CollectionRegistry(Registry):
-    schema = read_json(Path(__file__).parent.parent / 'collection-schema.json')
-    context = read_json(Path(__file__).parent.parent / 'collection-context.json')
+    schema = read_json(Path(__file__).parent / 'collection-schema.json')
+    context = read_json(Path(__file__).parent / 'collection-context.json')
 
     def __init__(self, **config):
         super().__init__("collection", **config)
