@@ -39,8 +39,6 @@ def walk(top) -> list:
         if isZip(top):
             yield from zipwalk(top)
         else:
-            path, name = os.path.split(top)
-            path = [] if path == '' else [path]
-            yield name, path, None
+            yield str(top), [], None
     else:
         raise Exception(f"file not found: {top}")

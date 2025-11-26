@@ -2,9 +2,10 @@ from rdflib import URIRef, Literal, BNode
 from SPARQLWrapper import SPARQLWrapper
 import requests
 from pyld import jsonld
-from .errors import ServerError
+from .errors import ServerError, ValidationError
 from .walk import walk
 from pyoxigraph import parse, RdfFormat
+import re
 
 
 def jsonld2nt(doc, context):
@@ -86,45 +87,60 @@ def sparql_to_rdf(binding):
             return Literal(binding['value'])
 
 
-def triple_iterator(source, log):
+class NullLog:
+    def append(self, msg):
+        pass
+
+
+def triple_iterator(source, log=NullLog()):
     """Recursively extract RDF triples from a file, directory and/or ZIP archive."""
-    for name, path, archive in walk(source):
+    for file, path, archive in walk(source):
         format = None
-        if name.endswith(".ttl"):
+        if file.endswith(".ttl"):
             format = RdfFormat.TURTLE
-        elif name.endswith(".nt"):
+        elif file.endswith(".nt"):
             format = RdfFormat.N_TRIPLES
-        elif name.endswith(".rdf") or name.endswith(".xml"):
+        elif file.endswith(".rdf") or file.endswith(".xml"):
             format = RdfFormat.RDF_XML
         else:
             continue
 
         if archive:
-            file = archive.open(name)
-            base = f"file://{file.name}"
+            input = archive.open(file)
         else:
-            file = f"{'/'.join(path)}/{name}"
-            base = f"file://{file}"
+            input = open(file, "rb")
 
-        #  Check whether XML file is RDF/XML
-        if format == RdfFormat.RDF_XML:
-            f = open(file, "r") if type(file) is str else file
-            # FIXME: this requires all XML files to be UTF-8!
-            xml = f.read()
-            if type(xml) is bytes:
-                xml = xml.decode("utf-8")
+        base = f"file://{file}" if file.startswith("/") else f"file:{file}"
+
+        # Check whether XML file is RDF/XML or any other XML
+        if file.endswith(".xml"):
+            # FIXME: this requires all XML inputs to be UTF-8, what about other encodings?!
+            xml = input.read().decode('utf-8')
             if 'http://www.w3.org/1999/02/22-rdf-syntax-ns#' not in xml:
                 continue
-            f.seek(0)
+            input.seek(0)
 
         try:
             log.append(f"Extracting RDF from {base} as {format}")
-            # TODO: pass errors as warnings to logger instead of STDERR
-            if type(file) is str:
-                file = open(file, "rb")
-            for triple in parse(file, format=format, lenient=True, without_named_graphs=True):
+            for triple in parse(input, format=format, base_iri=base, lenient=True, without_named_graphs=True):
                 # TODO: check whether IRIs are valid!
                 yield str(triple.subject), str(triple.predicate), str(triple.object)
+        # except ValidationError as e:
+        except SyntaxError as e:
+            # TODO: move to ValidationError.fromSyntaxError
+            pos = None
+            if e.lineno:
+                pos = {"line": e.lineno}
+                if e.offset:
+                    pos["linecol"] = f"{e.lineno}:{e.offset}"
+            msg = re.sub("^Parser error at[^:]+: ", "", str(e))
+            error = ValidationError(msg, pos)
+            nested = [*path, file]
+            nested = nested[1:]
+            for file in reversed(nested):
+                error = error.wrapInFile(file)
+            raise error
         except Exception as e:
             log.append(f"Error parsing {base}: {e}")
+            # TODO: convert to ValidationError as well
             raise e

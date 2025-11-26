@@ -1,6 +1,14 @@
 from lib import ValidationError, validateJSON
 
 
+def validateIRI():
+    pass
+
+
+def test_validateiri():
+    pass
+
+
 def test_jsonschema():
     data = {  # Example from JSON Pointer RFC
         "foo": ["bar"],

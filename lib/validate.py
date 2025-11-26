@@ -14,6 +14,15 @@ class ValidationError(Exception):
             e["position"] = self.position
         return e
 
+    def wrapInFile(self, file):
+        message = f"{str(self)} in {file}"
+        position = [{
+            "dimension": "file",
+            "address": file,
+            "errors": [self.to_dict()]
+        }]
+        return ValidationError(message, position)
+
 
 def validateJSON(data, schema):
     try:

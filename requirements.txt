@@ -5,6 +5,6 @@ requests
 datahugger
 jsonschema
 SPARQLWrapper
-pyoxigraph
+pyoxigraph==3.14.0
 rdflib
 PyLD

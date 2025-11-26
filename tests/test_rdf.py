@@ -3,13 +3,8 @@ import pytest
 from lib import triple_iterator, RDFFilter
 
 
-class LogMock:
-    def append(self, msg):
-        pass
-
-
 def parse(source, filter=None, unique=False):
-    triples = [(s, p, o) for s, p, o in triple_iterator(source, LogMock())]
+    triples = [(s, p, o) for s, p, o in triple_iterator(source)]
     if filter:
         triples = [t for t in [filter.check_triple(*t) for t in triples] if type(t) is list]
     if unique:
