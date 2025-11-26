@@ -4,7 +4,7 @@ import requests
 from pyld import jsonld
 from .errors import ServerError
 from .walk import walk
-import lightrdf
+from pyoxigraph import parse, RdfFormat
 
 
 def jsonld2nt(doc, context):
@@ -88,19 +88,14 @@ def sparql_to_rdf(binding):
 
 def triple_iterator(source, log):
     """Recursively extract RDF triples from a file, directory and/or ZIP archive."""
-    rdfparser = lightrdf.Parser()
     for name, path, archive in walk(source):
         format = None
         if name.endswith(".ttl"):
-            format = "turtle"
+            format = RdfFormat.TURTLE
         elif name.endswith(".nt"):
-            format = "nt"
-        elif name.endswith(".owl"):
-            format = "owl"
-        elif name.endswith(".rdf"):
-            format = "xml"
-        elif name.endswith(".xml"):
-            format = "xml"
+            format = RdfFormat.N_TRIPLES
+        elif name.endswith(".rdf") or name.endswith(".xml"):
+            format = RdfFormat.RDF_XML
         else:
             continue
 
@@ -112,7 +107,7 @@ def triple_iterator(source, log):
             base = f"file://{file}"
 
         #  Check whether XML file is RDF/XML
-        if format == "xml":
+        if format == RdfFormat.RDF_XML:
             f = open(file, "r") if type(file) is str else file
             # FIXME: this requires all XML files to be UTF-8!
             xml = f.read()
@@ -125,8 +120,11 @@ def triple_iterator(source, log):
         try:
             log.append(f"Extracting RDF from {base} as {format}")
             # TODO: pass errors as warnings to logger instead of STDERR
-            for triple in rdfparser.parse(file, format=format):
-                yield triple
+            if type(file) is str:
+                file = open(file, "rb")
+            for triple in parse(file, format=format, lenient=True, without_named_graphs=True):
+                # TODO: check whether IRIs are valid!
+                yield str(triple.subject), str(triple.predicate), str(triple.object)
         except Exception as e:
             log.append(f"Error parsing {base}: {e}")
             raise e

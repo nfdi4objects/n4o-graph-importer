@@ -366,7 +366,7 @@ def test_mappings(client):
         f'Retrieving source {cwd}/tests/mappings.ndjson from data directory',
         'Converting JSKOS mappings to RDF mapping triples',
         'Processed 2 lines into 1 mappings',
-        f'Extracting RDF from file://{stage}/mappings/1/original.ttl as turtle',
+        f'Extracting RDF from file://{stage}/mappings/1/original.ttl as Turtle',
         'Removed 0 triples, changed 0 triples, kept 1 triples.',
         'done']
 
