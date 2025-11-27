@@ -137,6 +137,8 @@ The knowledge graph is organized in individual named graphs. URIs of most of the
 
 Received data in RDF or JSKOS format must be syntactically valid. Additional validation has not been implemented yet.
 
+Validation errors are returned in [Data Validation Error Format]. 
+
 ### Filtering
 
 [filtering]: #filtering
@@ -182,7 +184,7 @@ If the data directory contains a file `bartoc.json` with an array of JSKOS recor
 
 There is a minimal HTML interface at root path (**GET /**) to try out the API. This is more useful than an interface generated automatically, for instance with Swagger. The API is not meant to be publically available (there is no authentification), so there is no need for an [OpenAPI](https://swagger.io/specification/) document anyway.
 
-A HTTP 400 error with response body in [Data Validation Error Format](https://gbv.github.io/validation-error-format/) is returned if collection metadata or mapping source metadata does not conform to its corresponding JSON Schema.
+A HTTP 400 error with response body in [Data Validation Error Format] is returned if collection metadata or mapping source metadata does not conform to its corresponding JSON Schema.
 
 ### General endpoints
 
@@ -447,3 +449,4 @@ Licensed under [Apache License](http://www.apache.org/licenses/) 2.0.
 [BARTOC]: https://bartoc.org/
 [n4o-fuseki]: https://github.com/nfdi4objects/n4o-fuseki#readme
 [n4o-graph-apis]: https://github.com/nfdi4objects/n4o-graph-apis#readme
+[Data Validation Error Format]: https://gbv.github.io/validation-error-format/

@@ -4,8 +4,8 @@ import requests
 from pyld import jsonld
 from .errors import ServerError, ValidationError
 from .walk import walk
+from .validate import invalidIRI
 from pyoxigraph import parse, RdfFormat
-import re
 
 
 def jsonld2nt(doc, context):
@@ -95,7 +95,6 @@ class NullLog:
 def triple_iterator(source, log=NullLog()):
     """Recursively extract RDF triples from a file, directory and/or ZIP archive."""
     for file, path, archive in walk(source):
-        format = None
         if file.endswith(".ttl"):
             format = RdfFormat.TURTLE
         elif file.endswith(".nt"):
@@ -123,24 +122,15 @@ def triple_iterator(source, log=NullLog()):
         try:
             log.append(f"Extracting RDF from {base} as {format}")
             for triple in parse(input, format=format, base_iri=base, lenient=True, without_named_graphs=True):
-                # TODO: check whether IRIs are valid!
+                for x in ['subject', 'predicate', 'object']:
+                    if invalidIRI(getattr(triple, x)):
+                        raise ValidationError(f"{getattr(triple, x)} is no valid IRI")
                 yield str(triple.subject), str(triple.predicate), str(triple.object)
-        # except ValidationError as e:
-        except SyntaxError as e:
-            # TODO: move to ValidationError.fromSyntaxError
-            pos = None
-            if e.lineno:
-                pos = {"line": e.lineno}
-                if e.offset:
-                    pos["linecol"] = f"{e.lineno}:{e.offset}"
-            msg = re.sub("^Parser error at[^:]+: ", "", str(e))
-            error = ValidationError(msg, pos)
+        except Exception as e:
+            error = e if type(e) is ValidationError else ValidationError.fromException(e)
+            log.append(f"Error parsing {base}: {error}")
             nested = [*path, file]
             nested = nested[1:]
             for file in reversed(nested):
                 error = error.wrapInFile(file)
             raise error
-        except Exception as e:
-            log.append(f"Error parsing {base}: {e}")
-            # TODO: convert to ValidationError as well
-            raise e

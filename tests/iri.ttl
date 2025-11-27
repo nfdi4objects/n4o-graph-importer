@@ -1,0 +1,4 @@
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+# No strict IRI but allowed by most parsers
+<http://example.org/?ä[]=1#x#y> a skos:Concept . 

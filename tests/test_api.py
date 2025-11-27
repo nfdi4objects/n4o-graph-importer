@@ -291,6 +291,12 @@ def test_api(client):
         '/collection/3/receive?from=data.ttl').status_code == 200
     assert client.get('/collection/3/receive').status_code == 200
 
+    # FIXME: this should not end up in loadable data!!!
+    # fail('POST', '/collection/3/receive?from=namespace-prefix-undefined.ttl', error={
+    #    "message": "The prefix skos: has not been declared",
+    #    "position": {"line": 2, "linecol": "2:5"}
+    # })
+
     # load received RDF
     assert client.post('/collection/3/load').status_code == 200
     assert client.get('/collection/3/load').status_code == 200
