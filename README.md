@@ -133,6 +133,20 @@ The knowledge graph is organized in individual named graphs. URIs of most of the
 
 - mappings are grouped into mapping sources, each imported into a graph of URI namespace `http://example.org/mappings/`, followed by a numeric identifier
 
+```mermaid
+flowchart TD
+    collectionMeta --describe--> collection
+    terminologyMeta -- describe --> terminology
+    mappingsMeta --describe--> mappings    
+
+    collectionMeta["collection/"]
+    collection["collection/{id}"]
+    terminology["terminology/{id}"]
+    terminologyMeta["terminology/"]
+    mappings["mappings/{id}"]
+    mappingsMeta["mappings/"]
+```
+
 ### Validation
 
 Received data in RDF or JSKOS format must be syntactically valid. Additional constraints are being implemented. Validation errors are returned in [Data Validation Error Format]. For instance an error like this is emitted when JSON field `url` is no valid URL:
