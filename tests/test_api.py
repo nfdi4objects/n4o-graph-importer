@@ -58,7 +58,6 @@ def expect_error(client, method, path, json=None, error=None, code=400):
             error = {"message": error}
         error["code"] = code
         res = res.get_json()
-        # print(res)
         for key in error:
             assert res.get(key, None) == error[key]
 
@@ -95,6 +94,9 @@ def test_validation(client):
     fail("PUT", "/collection/1", [], "expected JSON object")
     fail("PUT", "/collection/1", {"uri": "https://graph.nfdi4objects.net/collection/2"},
          "URI https://graph.nfdi4objects.net/collection/2 and id 1 don't match")
+    fail("PUT", "/collection/1", {"url": "http:/example.org/"}, {
+        'message': "'http:/example.org/' does not match '^https?://'",
+        'position': {'jsonpointer': '/url'}})
     fail("PUT", "/collection/1", {"id": "2"}, "ids 1 and 2 don't match")
 
     fail("PUT", "/collection/", {}, "expected list of collection")

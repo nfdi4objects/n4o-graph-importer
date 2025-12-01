@@ -135,17 +135,36 @@ The knowledge graph is organized in individual named graphs. URIs of most of the
 
 ### Validation
 
-Received data in RDF or JSKOS format must be syntactically valid. Additional validation has not been implemented yet.
+Received data in RDF or JSKOS format must be syntactically valid. Additional constraints are being implemented. Validation errors are returned in [Data Validation Error Format]. For instance an error like this is emitted when JSON field `url` is no valid URL:
 
-Validation errors are returned in [Data Validation Error Format]. 
+~~~json
+{
+  "message": "'http:/example.org/' does not match '^https?://'",
+  "position" {
+    "jsonpointer": "/url"
+  }
+}
+~~~
+
+**JSON metadata** to describe collections and mapping sources is validated with JSON Schemas [collection-schema.json] and [mappings-schema.json], respectively.
+
+**JSKOS data** (for terminologies and mappings) is not validated yet (see [open issue](https://github.com/nfdi4objects/n4o-graph-importer/issues/50)).
+
+**RDF data** is allowed to contain any absolute IRI references matching the regular expression `` ^[a-z][a-z0-9+.-]*:[^<>"{}|^`\\\x00-\x20]*$ ``. This includes some IRI references invalid in theory but  supported by most RDF software in practice. Additional constraints on RDF data do not result in validation errors but malformed triples are filtered out and result in collected as part of [report] files.
 
 ### Filtering
 
 [filtering]: #filtering
 
-RDF data is filtered depending on kind of data and configuration.
+RDF data is filtered depending on kind of data and configuration. Triples (aka RDF statements) matching the following criteria are filtered out:
 
-*Filtering is still being worked on and not fully documented yet.*
+- Triples with relative IRI references and local `file:` URIs
+
+- Statements about registered terminologies in collection data
+
+- ... *(RDF filtering is still being worked on and not fully documented yet)*
+
+Filtered RDF triples are collected as part of reports.
 
 ### Reports
 
@@ -348,7 +367,9 @@ Return the list of registered mapping sources.
 
 #### GET /mappings/schema.json
 
-Return the [mapping sources schema](lib/mappings-schema.json) used to validate mapping sources.
+[mappings-schema.json]: lib/mappings-schema.json)
+
+Return the mapping sources schema [mappings-schema.json] used to validate mapping sources.
 
 #### GET /mappings/properties.json
 
